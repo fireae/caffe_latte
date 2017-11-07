@@ -1,4 +1,4 @@
-#ifndef CPU_ONLY  // CPU-GPU test
+#ifdef USE_CUDA  // CPU-GPU test
 
 #include "gtest/gtest.h"
 
@@ -129,4 +129,4 @@ TYPED_TEST(GemmTest, TestGemvCPUGPU) {
 
 }  // namespace caffe
 
-#endif  // CPU_ONLY
+#endif  // USE_CUDA

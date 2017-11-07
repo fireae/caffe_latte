@@ -183,7 +183,7 @@ void Im2colLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   }
 }
 
-#ifdef CPU_ONLY
+#ifndef USE_CUDA
 STUB_GPU(Im2colLayer);
 #endif
 

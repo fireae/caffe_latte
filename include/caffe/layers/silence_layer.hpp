@@ -29,7 +29,7 @@ class SilenceLayer : public Layer<Dtype> {
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {}
   // We can't define Forward_gpu here, since STUB_GPU will provide
-  // its own definition for CPU_ONLY mode.
+  // its own definition for USE_CUDA mode.
   virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
   virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,

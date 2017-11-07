@@ -75,7 +75,7 @@ class GradientBasedSolverTest : public MultiDeviceTest<TypeParam> {
       const bool snapshot = false, const char* from_snapshot = NULL) {
     ostringstream proto;
     int device_id = 0;
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
     if (Caffe::mode() == Caffe::GPU) {
       CUDA_CHECK(cudaGetDevice(&device_id));
     }

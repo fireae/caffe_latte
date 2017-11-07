@@ -41,7 +41,7 @@ class BaseConvolutionLayer : public Layer<Dtype> {
       weights);
   void backward_cpu_bias(Dtype* bias, const Dtype* input);
 
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
   void forward_gpu_gemm(const Dtype* col_input, const Dtype* weights,
       Dtype* output, bool skip_im2col = false);
   void forward_gpu_bias(Dtype* output, const Dtype* bias);
@@ -123,7 +123,7 @@ class BaseConvolutionLayer : public Layer<Dtype> {
           pad_.cpu_data(), stride_.cpu_data(), dilation_.cpu_data(), data);
     }
   }
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
   inline void conv_im2col_gpu(const Dtype* data, Dtype* col_buff) {
     if (!force_nd_im2col_ && num_spatial_axes_ == 2) {
       im2col_gpu(data, conv_in_channels_,

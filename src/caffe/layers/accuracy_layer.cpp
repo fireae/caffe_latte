@@ -97,7 +97,7 @@ void AccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   // Accuracy layer should not be used as a loss function.
 }
 
-#ifdef CPU_ONLY
+#ifndef USE_CUDA
 STUB_GPU(AccuracyLayer);
 #endif
 

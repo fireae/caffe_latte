@@ -65,7 +65,7 @@ void DropoutLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 }
 
 
-#ifdef CPU_ONLY
+#ifndef USE_CUDA
 STUB_GPU(DropoutLayer);
 #endif
 

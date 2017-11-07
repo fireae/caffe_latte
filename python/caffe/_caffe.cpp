@@ -464,7 +464,7 @@ BOOST_PYTHON_MODULE(_caffe) {
     .add_property("count",    static_cast<int (Blob<Dtype>::*)() const>(
         &Blob<Dtype>::count))
     .def("reshape",           bp::raw_function(&Blob_Reshape))
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
     .add_property("_gpu_data_ptr",
         reinterpret_cast<uintptr_t (Blob<Dtype>::*)()>(
           &Blob<Dtype>::mutable_gpu_data))

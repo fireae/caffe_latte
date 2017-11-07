@@ -16,7 +16,7 @@ void AdamSolver<Dtype>::AdamPreSolve() {
   }
 }
 
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
 template <typename Dtype>
 void adam_update_gpu(int N, Dtype* g, Dtype* m, Dtype* v, Dtype beta1,
     Dtype beta2, Dtype eps_hat, Dtype corrected_local_rate);
@@ -74,7 +74,7 @@ void AdamSolver<Dtype>::ComputeUpdateValue(int param_id, Dtype rate) {
     break;
   }
   case Caffe::GPU: {
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
     adam_update_gpu(N, net_params[param_id]->mutable_gpu_diff(),
         val_m->mutable_gpu_data(), val_v->mutable_gpu_data(), beta1, beta2,
         eps_hat, local_rate*correction);

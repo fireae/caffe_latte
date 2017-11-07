@@ -51,7 +51,7 @@ Pycaffe and Matcaffe interfaces have their own natural needs.
 
 **cuDNN Caffe**: for fastest operation Caffe is accelerated by drop-in integration of [NVIDIA cuDNN](https://developer.nvidia.com/cudnn). To speed up your Caffe models, install cuDNN then uncomment the `USE_CUDNN := 1` flag in `Makefile.config` when installing Caffe. Acceleration is automatic. The current version is cuDNN v6; older versions are supported in older Caffe.
 
-**CPU-only Caffe**: for cold-brewed CPU-only Caffe uncomment the `CPU_ONLY := 1` flag in `Makefile.config` to configure and build Caffe without CUDA. This is helpful for cloud or cluster deployment.
+**CPU-only Caffe**: for cold-brewed CPU-only Caffe uncomment the `USE_CUDA := 1` flag in `Makefile.config` to configure and build Caffe without CUDA. This is helpful for cloud or cluster deployment.
 
 ### CUDA and BLAS
 
@@ -110,7 +110,7 @@ Configure the build by copying and modifying the example `Makefile.config` for y
 
 - For CPU & GPU accelerated Caffe, no changes are needed.
 - For cuDNN acceleration using NVIDIA's proprietary cuDNN software, uncomment the `USE_CUDNN := 1` switch in `Makefile.config`. cuDNN is sometimes but not always faster than Caffe's GPU acceleration.
-- For CPU-only Caffe, uncomment `CPU_ONLY := 1` in `Makefile.config`.
+- For CPU-only Caffe, uncomment `USE_CUDA := 1` in `Makefile.config`.
 
 To compile the Python and MATLAB wrappers do `make pycaffe` and `make matcaffe` respectively.
 Be sure to set your MATLAB and Python paths in `Makefile.config` first!

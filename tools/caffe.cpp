@@ -89,7 +89,7 @@ static BrewFunction GetBrewFunction(const caffe::string& name) {
 static void get_gpus(vector<int>* gpus) {
   if (FLAGS_gpu == "all") {
     int count = 0;
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
     CUDA_CHECK(cudaGetDeviceCount(&count));
 #else
     NO_GPU;
@@ -216,7 +216,7 @@ int train() {
       s << (i ? ", " : "") << gpus[i];
     }
     LOG(INFO) << "Using GPUs " << s.str();
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
     cudaDeviceProp device_prop;
     for (int i = 0; i < gpus.size(); ++i) {
       cudaGetDeviceProperties(&device_prop, gpus[i]);
@@ -273,7 +273,7 @@ int test() {
   get_gpus(&gpus);
   if (gpus.size() != 0) {
     LOG(INFO) << "Use GPU with device ID " << gpus[0];
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
     cudaDeviceProp device_prop;
     cudaGetDeviceProperties(&device_prop, gpus[0]);
     LOG(INFO) << "GPU device name: " << device_prop.name;

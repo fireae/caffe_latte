@@ -172,7 +172,7 @@ endif
 CUDA_LIB_DIR += $(CUDA_DIR)/lib
 
 INCLUDE_DIRS += $(BUILD_INCLUDE_DIR) ./src ./include
-ifneq ($(CPU_ONLY), 1)
+ifneq ($(USE_CUDA), 0)
 	INCLUDE_DIRS += $(CUDA_INCLUDE_DIR)
 	LIBRARY_DIRS += $(CUDA_LIB_DIR)
 	LIBRARIES := cudart cublas curand
@@ -271,7 +271,7 @@ endif
 # libstdc++ for NVCC compatibility on OS X >= 10.9 with CUDA < 7.0
 ifeq ($(OSX), 1)
 	CXX := /usr/bin/clang++
-	ifneq ($(CPU_ONLY), 1)
+	ifneq ($(USE_CUDA), 0)
 		CUDA_VERSION := $(shell $(CUDA_DIR)/bin/nvcc -V | grep -o 'release [0-9.]*' | tr -d '[a-z ]')
 		ifeq ($(shell echo | awk '{exit $(CUDA_VERSION) < 7.0;}'), 1)
 			CXXFLAGS += -stdlib=libstdc++
@@ -349,13 +349,12 @@ endif
 endif
 
 # CPU-only configuration
-ifeq ($(CPU_ONLY), 1)
+ifeq ($(USE_CUDA), 0)
 	OBJS := $(PROTO_OBJS) $(CXX_OBJS)
 	TEST_OBJS := $(TEST_CXX_OBJS)
 	TEST_BINS := $(TEST_CXX_BINS)
 	ALL_WARNS := $(ALL_CXX_WARNS)
 	TEST_FILTER := --gtest_filter="-*GPU*"
-	COMMON_FLAGS += -DCPU_ONLY
 endif
 
 # Python layer support

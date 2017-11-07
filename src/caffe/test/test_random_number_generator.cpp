@@ -168,7 +168,7 @@ class RandomNumberGeneratorTest : public ::testing::Test {
     EXPECT_NEAR(sample_mean, true_mean, bound);
   }
 
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
 
   void RngGaussianFillGPU(const Dtype mu, const Dtype sigma, void* gpu_data) {
     Dtype* rng_data = static_cast<Dtype*>(gpu_data);
@@ -395,7 +395,7 @@ TYPED_TEST(RandomNumberGeneratorTest, TestRngBernoulliTimesBernoulli) {
   EXPECT_NEAR(true_mean, sample_p, bound);
 }
 
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
 
 TYPED_TEST(RandomNumberGeneratorTest, TestRngGaussianGPU) {
   const TypeParam mu = 0;

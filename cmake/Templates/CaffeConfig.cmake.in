@@ -50,6 +50,6 @@ endif()
 set(Caffe_LIBRARIES caffe)
 
 # Cuda support variables
-set(Caffe_CPU_ONLY @CPU_ONLY@)
+set(Caffe_USE_CUDA @USE_CUDA@)
 set(Caffe_HAVE_CUDA @HAVE_CUDA@)
 set(Caffe_HAVE_CUDNN @HAVE_CUDNN@)

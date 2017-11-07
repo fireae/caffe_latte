@@ -131,7 +131,7 @@ class Caffe {
     }
     return *(Get().random_generator_);
   }
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
   inline static cublasHandle_t cublas_handle() { return Get().cublas_handle_; }
   inline static curandGenerator_t curand_generator() {
     return Get().curand_generator_;
@@ -168,7 +168,7 @@ class Caffe {
   inline static bool root_solver() { return Get().solver_rank_ == 0; }
 
  protected:
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
   cublasHandle_t cublas_handle_;
   curandGenerator_t curand_generator_;
 #endif

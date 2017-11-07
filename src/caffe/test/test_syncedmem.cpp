@@ -22,7 +22,7 @@ TEST_F(SyncedMemoryTest, TestInitialization) {
   delete p_mem;
 }
 
-#ifndef CPU_ONLY  // GPU test
+#ifdef USE_CUDA  // GPU test
 
 TEST_F(SyncedMemoryTest, TestAllocationCPUGPU) {
   SyncedMemory mem(10);
@@ -40,7 +40,7 @@ TEST_F(SyncedMemoryTest, TestAllocationCPU) {
   EXPECT_TRUE(mem.mutable_cpu_data());
 }
 
-#ifndef CPU_ONLY  // GPU test
+#ifdef USE_CUDA  // GPU test
 
 TEST_F(SyncedMemoryTest, TestAllocationGPU) {
   SyncedMemory mem(10);
@@ -67,7 +67,7 @@ TEST_F(SyncedMemoryTest, TestCPUWrite) {
   }
 }
 
-#ifndef CPU_ONLY  // GPU test
+#ifdef USE_CUDA  // GPU test
 
 TEST_F(SyncedMemoryTest, TestGPURead) {
   SyncedMemory mem(10);

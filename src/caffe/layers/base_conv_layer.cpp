@@ -319,7 +319,7 @@ void BaseConvolutionLayer<Dtype>::backward_cpu_bias(Dtype* bias,
       input, bias_multiplier_.cpu_data(), 1., bias);
 }
 
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
 
 template <typename Dtype>
 void BaseConvolutionLayer<Dtype>::forward_gpu_gemm(const Dtype* input,
@@ -388,7 +388,7 @@ void BaseConvolutionLayer<Dtype>::backward_gpu_bias(Dtype* bias,
       input, bias_multiplier_.gpu_data(), 1., bias);
 }
 
-#endif  // !CPU_ONLY
+#endif  // !USE_CUDA
 
 INSTANTIATE_CLASS(BaseConvolutionLayer);
 

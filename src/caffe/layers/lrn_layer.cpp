@@ -246,7 +246,7 @@ void LRNLayer<Dtype>::WithinChannelBackward(
   }
 }
 
-#ifdef CPU_ONLY
+#ifndef USE_CUDA
 STUB_GPU(LRNLayer);
 STUB_GPU_FORWARD(LRNLayer, CrossChannelForward);
 STUB_GPU_BACKWARD(LRNLayer, CrossChannelBackward);

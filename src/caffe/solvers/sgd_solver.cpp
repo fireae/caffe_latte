@@ -128,7 +128,7 @@ void SGDSolver<Dtype>::Normalize(int param_id) {
     break;
   }
   case Caffe::GPU: {
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
     caffe_gpu_scal(net_params[param_id]->count(), accum_normalization,
         net_params[param_id]->mutable_gpu_diff());
 #else
@@ -173,7 +173,7 @@ void SGDSolver<Dtype>::Regularize(int param_id) {
     break;
   }
   case Caffe::GPU: {
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
     if (local_decay) {
       if (regularization_type == "L2") {
         // add weight decay
@@ -203,7 +203,7 @@ void SGDSolver<Dtype>::Regularize(int param_id) {
   }
 }
 
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
 template <typename Dtype>
 void sgd_update_gpu(int N, Dtype* g, Dtype* h, Dtype momentum,
     Dtype local_rate);
@@ -227,7 +227,7 @@ void SGDSolver<Dtype>::ComputeUpdateValue(int param_id, Dtype rate) {
     break;
   }
   case Caffe::GPU: {
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
     sgd_update_gpu(net_params[param_id]->count(),
         net_params[param_id]->mutable_gpu_diff(),
         history_[param_id]->mutable_gpu_data(),

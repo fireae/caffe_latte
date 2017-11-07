@@ -1,6 +1,3 @@
-if(CPU_ONLY)
-  return()
-endif()
 
 # Known NVIDIA GPU achitectures Caffe can be compiled for.
 # This list will be used for CUDA_ARCH_NAME = All option
@@ -235,6 +232,7 @@ find_package(CUDA 5.5 QUIET)
 find_cuda_helper_libs(curand)  # cmake 2.8.7 compartibility which doesn't search for curand
 
 if(NOT CUDA_FOUND)
+  message(STATUS "not find cuda ...")
   return()
 endif()
 

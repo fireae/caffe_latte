@@ -22,7 +22,7 @@ void ThresholdLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   }
 }
 
-#ifdef CPU_ONLY
+#ifndef USE_CUDA
 STUB_GPU_FORWARD(ThresholdLayer, Forward);
 #endif
 

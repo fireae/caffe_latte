@@ -16,7 +16,7 @@ void AdaDeltaSolver<Dtype>::AdaDeltaPreSolve() {
   }
 }
 
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
 template <typename Dtype>
 void adadelta_update_gpu(int N, Dtype* g, Dtype* h, Dtype* h2, Dtype momentum,
     Dtype delta, Dtype local_rate);
@@ -90,7 +90,7 @@ void AdaDeltaSolver<Dtype>::ComputeUpdateValue(int param_id, Dtype rate) {
     break;
   }
   case Caffe::GPU: {
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
     adadelta_update_gpu(net_params[param_id]->count(),
         net_params[param_id]->mutable_gpu_diff(),
         this->history_[param_id]->mutable_gpu_data(),

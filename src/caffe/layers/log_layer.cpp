@@ -75,7 +75,7 @@ void LogLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   caffe_mul(count, top_diff, bottom_diff, bottom_diff);
 }
 
-#ifdef CPU_ONLY
+#ifndef USE_CUDA
 STUB_GPU(LogLayer);
 #endif
 

@@ -6,7 +6,7 @@ namespace caffe {
 SyncedMemory::SyncedMemory()
   : cpu_ptr_(NULL), gpu_ptr_(NULL), size_(0), head_(UNINITIALIZED),
     own_cpu_data_(false), cpu_malloc_use_cuda_(false), own_gpu_data_(false) {
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
 #ifdef DEBUG
   CUDA_CHECK(cudaGetDevice(&device_));
 #endif
@@ -16,7 +16,7 @@ SyncedMemory::SyncedMemory()
 SyncedMemory::SyncedMemory(size_t size)
   : cpu_ptr_(NULL), gpu_ptr_(NULL), size_(size), head_(UNINITIALIZED),
     own_cpu_data_(false), cpu_malloc_use_cuda_(false), own_gpu_data_(false) {
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
 #ifdef DEBUG
   CUDA_CHECK(cudaGetDevice(&device_));
 #endif
@@ -29,11 +29,11 @@ SyncedMemory::~SyncedMemory() {
     CaffeFreeHost(cpu_ptr_, cpu_malloc_use_cuda_);
   }
 
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
   if (gpu_ptr_ && own_gpu_data_) {
     CUDA_CHECK(cudaFree(gpu_ptr_));
   }
-#endif  // CPU_ONLY
+#endif  // USE_CUDA
 }
 
 inline void SyncedMemory::to_cpu() {
@@ -46,7 +46,7 @@ inline void SyncedMemory::to_cpu() {
     own_cpu_data_ = true;
     break;
   case HEAD_AT_GPU:
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
     if (cpu_ptr_ == NULL) {
       CaffeMallocHost(&cpu_ptr_, size_, &cpu_malloc_use_cuda_);
       own_cpu_data_ = true;
@@ -65,7 +65,7 @@ inline void SyncedMemory::to_cpu() {
 
 inline void SyncedMemory::to_gpu() {
   check_device();
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
   switch (head_) {
   case UNINITIALIZED:
     CUDA_CHECK(cudaMalloc(&gpu_ptr_, size_));
@@ -109,7 +109,7 @@ void SyncedMemory::set_cpu_data(void* data) {
 
 const void* SyncedMemory::gpu_data() {
   check_device();
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
   to_gpu();
   return (const void*)gpu_ptr_;
 #else
@@ -120,7 +120,7 @@ const void* SyncedMemory::gpu_data() {
 
 void SyncedMemory::set_gpu_data(void* data) {
   check_device();
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
   CHECK(data);
   if (own_gpu_data_) {
     CUDA_CHECK(cudaFree(gpu_ptr_));
@@ -142,7 +142,7 @@ void* SyncedMemory::mutable_cpu_data() {
 
 void* SyncedMemory::mutable_gpu_data() {
   check_device();
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
   to_gpu();
   head_ = HEAD_AT_GPU;
   return gpu_ptr_;
@@ -152,7 +152,7 @@ void* SyncedMemory::mutable_gpu_data() {
 #endif
 }
 
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
 void SyncedMemory::async_gpu_push(const cudaStream_t& stream) {
   check_device();
   CHECK(head_ == HEAD_AT_CPU);
@@ -168,7 +168,7 @@ void SyncedMemory::async_gpu_push(const cudaStream_t& stream) {
 #endif
 
 void SyncedMemory::check_device() {
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
 #ifdef DEBUG
   int device;
   cudaGetDevice(&device);

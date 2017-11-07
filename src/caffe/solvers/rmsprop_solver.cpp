@@ -4,7 +4,7 @@
 
 namespace caffe {
 
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
 template <typename Dtype>
 void rmsprop_update_gpu(int N, Dtype* g, Dtype* h, Dtype rms_decay,
     Dtype delta, Dtype local_rate);
@@ -50,7 +50,7 @@ void RMSPropSolver<Dtype>::ComputeUpdateValue(int param_id, Dtype rate) {
         net_params[param_id]->mutable_cpu_diff());
     break;
   case Caffe::GPU:
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
     rmsprop_update_gpu(net_params[param_id]->count(),
         net_params[param_id]->mutable_gpu_diff(),
         this->history_[param_id]->mutable_gpu_data(),

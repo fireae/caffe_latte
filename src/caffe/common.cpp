@@ -49,7 +49,7 @@ void GlobalInit(int* pargc, char*** pargv) {
   ::google::InstallFailureSignalHandler();
 }
 
-#ifdef CPU_ONLY  // CPU-only Caffe.
+#ifndef USE_CUDA  // CPU-only Caffe.
 
 Caffe::Caffe()
     : random_generator_(), mode_(Caffe::CPU),
@@ -320,6 +320,6 @@ const char* curandGetErrorString(curandStatus_t error) {
   return "Unknown curand status";
 }
 
-#endif  // CPU_ONLY
+#endif  // USE_CUDA
 
 }  // namespace caffe

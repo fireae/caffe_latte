@@ -49,7 +49,7 @@ template <typename Dtype>
 class CPUDeviceTest : public MultiDeviceTest<CPUDevice<Dtype> > {
 };
 
-#ifdef CPU_ONLY
+#ifndef USE_CUDA
 
 typedef ::testing::Types<CPUDevice<float>,
                          CPUDevice<double> > TestDtypesAndDevices;

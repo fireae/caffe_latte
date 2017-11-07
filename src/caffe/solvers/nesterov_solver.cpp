@@ -4,7 +4,7 @@
 
 namespace caffe {
 
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
 template <typename Dtype>
 void nesterov_update_gpu(int N, Dtype* g, Dtype* h, Dtype momentum,
     Dtype local_rate);
@@ -40,7 +40,7 @@ void NesterovSolver<Dtype>::ComputeUpdateValue(int param_id, Dtype rate) {
     break;
   }
   case Caffe::GPU: {
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
     nesterov_update_gpu(net_params[param_id]->count(),
         net_params[param_id]->mutable_gpu_diff(),
         this->history_[param_id]->mutable_gpu_data(),

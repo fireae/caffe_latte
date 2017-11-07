@@ -119,7 +119,7 @@ TYPED_TEST(CPUMathFunctionsTest, TestCopy) {
   }
 }
 
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
 
 template <typename Dtype>
 class GPUMathFunctionsTest : public MathFunctionsTest<GPUDevice<Dtype> > {

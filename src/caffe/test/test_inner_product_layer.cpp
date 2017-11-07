@@ -12,7 +12,7 @@
 
 namespace caffe {
 
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
 extern cudaDeviceProp CAFFE_TEST_CUDA_PROP;
 #endif
 
@@ -108,7 +108,7 @@ TYPED_TEST(InnerProductLayerTest, TestForward) {
   typedef typename TypeParam::Dtype Dtype;
   this->blob_bottom_vec_.push_back(this->blob_bottom_);
   bool IS_VALID_CUDA = false;
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
   IS_VALID_CUDA = CAFFE_TEST_CUDA_PROP.major >= 2;
 #endif
   if (Caffe::mode() == Caffe::CPU ||
@@ -146,7 +146,7 @@ TYPED_TEST(InnerProductLayerTest, TestForwardTranspose) {
   typedef typename TypeParam::Dtype Dtype;
   this->blob_bottom_vec_.push_back(this->blob_bottom_);
   bool IS_VALID_CUDA = false;
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
   IS_VALID_CUDA = CAFFE_TEST_CUDA_PROP.major >= 2;
 #endif
   if (Caffe::mode() == Caffe::CPU ||
@@ -212,7 +212,7 @@ TYPED_TEST(InnerProductLayerTest, TestForwardNoBatch) {
   typedef typename TypeParam::Dtype Dtype;
   this->blob_bottom_vec_.push_back(this->blob_bottom_nobatch_);
   bool IS_VALID_CUDA = false;
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
   IS_VALID_CUDA = CAFFE_TEST_CUDA_PROP.major >= 2;
 #endif
   if (Caffe::mode() == Caffe::CPU ||
@@ -243,7 +243,7 @@ TYPED_TEST(InnerProductLayerTest, TestGradient) {
   typedef typename TypeParam::Dtype Dtype;
   this->blob_bottom_vec_.push_back(this->blob_bottom_);
   bool IS_VALID_CUDA = false;
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
   IS_VALID_CUDA = CAFFE_TEST_CUDA_PROP.major >= 2;
 #endif
   if (Caffe::mode() == Caffe::CPU ||
@@ -269,7 +269,7 @@ TYPED_TEST(InnerProductLayerTest, TestGradientTranspose) {
   typedef typename TypeParam::Dtype Dtype;
   this->blob_bottom_vec_.push_back(this->blob_bottom_);
   bool IS_VALID_CUDA = false;
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
   IS_VALID_CUDA = CAFFE_TEST_CUDA_PROP.major >= 2;
 #endif
   if (Caffe::mode() == Caffe::CPU ||
@@ -296,7 +296,7 @@ TYPED_TEST(InnerProductLayerTest, TestBackwardTranspose) {
   typedef typename TypeParam::Dtype Dtype;
   this->blob_bottom_vec_.push_back(this->blob_bottom_);
   bool IS_VALID_CUDA = false;
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
   IS_VALID_CUDA = CAFFE_TEST_CUDA_PROP.major >= 2;
 #endif
   if (Caffe::mode() == Caffe::CPU ||

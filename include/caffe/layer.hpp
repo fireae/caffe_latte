@@ -427,7 +427,7 @@ inline Dtype Layer<Dtype>::Forward(const vector<Blob<Dtype>*>& bottom,
     break;
   case Caffe::GPU:
     Forward_gpu(bottom, top);
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
     for (int top_id = 0; top_id < top.size(); ++top_id) {
       if (!this->loss(top_id)) { continue; }
       const int count = top[top_id]->count();

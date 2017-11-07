@@ -8,7 +8,7 @@ Caffe packages are available for several Debian versions, as shown in the
 following chart:
 
 ```
-Your Distro     |  CPU_ONLY  |  CUDA  | Codename
+Your Distro     |  USE_CUDA  |  CUDA  | Codename
 ----------------+------------+--------+-------------------
 Debian/oldstable|     ✘      |   ✘    | Jessie (8.0)
 Debian/stable   |     ✔      |   ✔    | Stretch (9.0)

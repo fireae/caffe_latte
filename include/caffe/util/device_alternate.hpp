@@ -1,7 +1,7 @@
 #ifndef CAFFE_UTIL_DEVICE_ALTERNATE_H_
 #define CAFFE_UTIL_DEVICE_ALTERNATE_H_
 
-#ifdef CPU_ONLY  // CPU-only Caffe.
+#ifndef USE_CUDA  // CPU-only Caffe.
 
 #include <vector>
 
@@ -91,6 +91,6 @@ inline int CAFFE_GET_BLOCKS(const int N) {
 
 }  // namespace caffe
 
-#endif  // CPU_ONLY
+#endif  // USE_CUDA
 
 #endif  // CAFFE_UTIL_DEVICE_ALTERNATE_H_

@@ -49,7 +49,7 @@ Classifier::Classifier(const string& model_file,
                        const string& trained_file,
                        const string& mean_file,
                        const string& label_file) {
-#ifdef CPU_ONLY
+#ifndef USE_CUDA
   Caffe::set_mode(Caffe::CPU);
 #else
   Caffe::set_mode(Caffe::GPU);
