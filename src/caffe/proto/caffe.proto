@@ -360,51 +360,99 @@ message LayerParameter {
   // for their implementation. These layers include an Engine type and
   // engine parameter for selecting the implementation.
   // The default for the engine is set by the ENGINE switch at compile-time.
+  //102 -109
   optional AccuracyParameter accuracy_param = 102;
   optional ArgMaxParameter argmax_param = 103;
-  optional BatchNormParameter batch_norm_param = 139;
-  optional BiasParameter bias_param = 141;
-  optional ConcatParameter concat_param = 104;
-  optional ContrastiveLossParameter contrastive_loss_param = 105;
-  optional ConvolutionParameter convolution_param = 106;
-  optional CropParameter crop_param = 144;
-  optional DataParameter data_param = 107;
-  optional DropoutParameter dropout_param = 108;
-  optional DummyDataParameter dummy_data_param = 109;
-  optional EltwiseParameter eltwise_param = 110;
-  optional ELUParameter elu_param = 140;
-  optional EmbedParameter embed_param = 137;
-  optional ExpParameter exp_param = 111;
-  optional FlattenParameter flatten_param = 135;
-  optional HDF5DataParameter hdf5_data_param = 112;
-  optional HDF5OutputParameter hdf5_output_param = 113;
-  optional HingeLossParameter hinge_loss_param = 114;
-  optional ImageDataParameter image_data_param = 115;
-  optional InfogainLossParameter infogain_loss_param = 116;
-  optional InnerProductParameter inner_product_param = 117;
-  optional InputParameter input_param = 143;
-  optional LogParameter log_param = 134;
-  optional LRNParameter lrn_param = 118;
-  optional MemoryDataParameter memory_data_param = 119;
-  optional MVNParameter mvn_param = 120;
-  optional ParameterParameter parameter_param = 145;
-  optional PoolingParameter pooling_param = 121;
-  optional PowerParameter power_param = 122;
-  optional PReLUParameter prelu_param = 131;
-  optional PythonParameter python_param = 130;
-  optional RecurrentParameter recurrent_param = 146;
-  optional ReductionParameter reduction_param = 136;
-  optional ReLUParameter relu_param = 123;
-  optional ReshapeParameter reshape_param = 133;
-  optional ScaleParameter scale_param = 142;
-  optional SigmoidParameter sigmoid_param = 124;
-  optional SoftmaxParameter softmax_param = 125;
-  optional SPPParameter spp_param = 132;
-  optional SliceParameter slice_param = 126;
-  optional TanHParameter tanh_param = 127;
-  optional ThresholdParameter threshold_param = 128;
-  optional TileParameter tile_param = 138;
-  optional WindowDataParameter window_data_param = 129;
+  optional BatchNormParameter batch_norm_param = 104;
+  optional BiasParameter bias_param = 105;
+  optional ConcatParameter concat_param = 106;
+  optional ContrastiveLossParameter contrastive_loss_param = 107;
+  optional ConvolutionParameter convolution_param = 108;
+  optional CropParameter crop_param = 109;
+
+  // 110 - 119
+  optional DataParameter data_param = 110;
+  optional DropoutParameter dropout_param = 111;
+  optional DummyDataParameter dummy_data_param = 112;
+  optional EltwiseParameter eltwise_param = 113;
+  optional ELUParameter elu_param = 114;
+  optional EmbedParameter embed_param = 115;
+  optional ExpParameter exp_param = 116;
+  optional FlattenParameter flatten_param = 117;
+  optional HDF5DataParameter hdf5_data_param = 118;
+  optional HDF5OutputParameter hdf5_output_param = 119;
+
+  // 120 - 129
+  optional HingeLossParameter hinge_loss_param = 120;
+  optional ImageDataParameter image_data_param = 121;
+  optional InfogainLossParameter infogain_loss_param = 122;
+  optional InnerProductParameter inner_product_param = 123;
+  optional InputParameter input_param = 124;
+  optional LogParameter log_param = 125;
+  optional LRNParameter lrn_param = 126;
+  optional MemoryDataParameter memory_data_param = 127;
+  optional MVNParameter mvn_param = 128;
+  optional ParameterParameter parameter_param = 129;
+
+  // 130 - 139
+  optional PoolingParameter pooling_param = 130;
+  optional PowerParameter power_param = 131;
+  optional PReLUParameter prelu_param = 132;
+  optional PythonParameter python_param = 133;
+  optional RecurrentParameter recurrent_param = 134;
+  optional ReductionParameter reduction_param = 135;
+  optional ReLUParameter relu_param = 136;
+  optional ReshapeParameter reshape_param = 137;
+  optional ScaleParameter scale_param = 138;
+  optional SigmoidParameter sigmoid_param = 139;
+
+  //140 - 149
+  optional SoftmaxParameter softmax_param = 140;
+  optional SPPParameter spp_param = 141;
+  optional SliceParameter slice_param = 142;
+  optional TanHParameter tanh_param = 143;
+  optional ThresholdParameter threshold_param = 144;
+  optional TileParameter tile_param = 145;
+  optional WindowDataParameter window_data_param = 146;
+
+  // 150 - 159
+  optional ROIPoolingParameter roi_pooling_param = 150;
+  optional SmoothL1LossParameter smooth_l1_loss_param = 151;
+  optional SpatialDropoutParameter spatial_dropout_param = 152;
+  optional RCNNProposalParameter rcnn_proposal_param = 153;
+
+}
+
+message RCNNProposalParameter {
+  optional int32 feat_stride = 1 [default = 16];
+  optional int32 anchor_base_size = 2 [default = 16];
+  optional int32 anchor_scale = 3 [default = 3];
+  optional int32 anchor_ratio = 4 [default = 3];
+  optional int32 max_rois = 5 [default = 300];
+}
+
+message SpatialDropoutParameter {
+  // probability that drop-out an entire feature map
+  optional float dropout_ratio = 1 [default = 0.5]; // dropout ratio
+  optional float dropout_scale = 2 [default = 1.0]; // dropout scale
+}
+
+message SmoothL1LossParameter {
+  // SmoothL1Loss(x) =
+  //   0.5 * (sigma * x) ** 2    -- if x < 1.0 / sigma / sigma
+  //   |x| - 0.5 / sigma / sigma -- otherwise
+  optional float sigma = 1 [default = 1];
+}
+
+
+message ROIPoolingParameter {
+  // Pad, kernel size, and stride are all given as a single value for equal
+  // dimensions in height and width or as Y, X pairs.
+  optional uint32 pooled_h = 1 [default = 0]; // The pooled output height
+  optional uint32 pooled_w = 2 [default = 0]; // The pooled output width
+  // Multiplicative spatial scale factor to translate ROI coords from their
+  // input scale to the scale used when pooling
+  optional float spatial_scale = 3 [default = 1];
 }
 
 // Message that stores parameters used to apply transformation
