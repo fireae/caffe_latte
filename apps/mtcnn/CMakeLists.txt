@@ -1,10 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 project(FaceDetectAlign)
 
-add_definitions(-DCPU_ONLY)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-set(CAFFE_ROOT /home/wencc/workspace/caffe/)
+set(CAFFE_ROOT /home/wencc/Myplace/caffe_latte/)
 include_directories(${PROJECT_SOURCE_DIR}/detect)
 include_directories(${PROJECT_SOURCE_DIR}/alignment/include)
 link_directories(${PROJECT_SOURCE_DIR}/alignment/build)
