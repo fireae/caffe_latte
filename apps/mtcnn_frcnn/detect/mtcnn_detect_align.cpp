@@ -12,11 +12,13 @@ bool MTCNNDetectAlign::Init(const string& model_dir) {
   FILE* fd = fopen(lbf_regress_model.c_str(), "rb");
   lbf_cascador->Read(fd);
   fclose(fd);
+  std::cout << "init mtcnn" << std::endl;
   return true;
 }
 
 int MTCNNDetectAlign::Detect(const cv::Mat& image,
                              vector<JDFaceInfo>& face_infos) {
+  std::cout << "flip 1" << std::endl;
   cv::Mat image2 = image;
   cv::Mat image_left = image2.clone();
   cv::transpose(image2, image_left);
@@ -35,10 +37,11 @@ int MTCNNDetectAlign::Detect(const cv::Mat& image,
   images.push_back(image_left);
   images.push_back(image_b);
   images.push_back(image_r);
-
+  vector<FaceInfo> fi;
+  mtcnn->Detect(image, fi);
   vector<vector<FaceInfo> > faceinfos;
   mtcnn->Detect(images, faceinfos);
-
+  std::cout << "face count is" << faceinfos.size();
   int face_count = 0;
   for (int t = 0; t < faceinfos.size(); t++) {
     vector<FaceInfo>& faceInfo = faceinfos[t];
@@ -47,6 +50,10 @@ int MTCNNDetectAlign::Detect(const cv::Mat& image,
       float y = faceInfo[i].bbox.y1;
       float h = faceInfo[i].bbox.x2 - faceInfo[i].bbox.x1 + 1;
       float w = faceInfo[i].bbox.y2 - faceInfo[i].bbox.y1 + 1;
+      std::cout << x << " " << y << " " << w << " " << h << std::endl;
+      if (w <= 0 || h <= 0 || faceInfo[i].bbox.score < 0.5) {
+        continue;
+      }
       JDFaceInfo jd_face_info;
       jd_face_info.face_bbox = cv::Rect(y, x, w, h);
       jd_face_info.score = faceInfo[i].bbox.score;
@@ -56,21 +63,22 @@ int MTCNNDetectAlign::Detect(const cv::Mat& image,
 
     face_count += faceinfos[t].size();
   }
-  if (face_count == 0) {
-    vector<FrcnnFaceInfo> frcnn_face_infos;
-    frcnn_detector->Detect(image, frcnn_face_infos);
+  // std::cout << "face count is" << face_count;
+  // if (face_count == 0) {
+  //   vector<FrcnnFaceInfo> frcnn_face_infos;
+  //   frcnn_detector->Detect(image, frcnn_face_infos);
 
-    for (int k = 0; k < frcnn_face_infos.size(); k++) {
-      float x = frcnn_face_infos[k].x1;
-      float y = frcnn_face_infos[k].y1;
-      float h = frcnn_face_infos[k].x2 - frcnn_face_infos[k].x1 + 1;
-      float w = frcnn_face_infos[k].y2 - frcnn_face_infos[k].y1 + 1;
-      JDFaceInfo jd_face_info;
-      jd_face_info.face_bbox = cv::Rect(y, x, w, h);
-      jd_face_info.score = frcnn_face_infos[k].score;
-      jd_face_info.type = frcnn_face_infos[k].type;
-    }
-  }
+  //   for (int k = 0; k < frcnn_face_infos.size(); k++) {
+  //     float x = frcnn_face_infos[k].x1;
+  //     float y = frcnn_face_infos[k].y1;
+  //     float h = frcnn_face_infos[k].x2 - frcnn_face_infos[k].x1 + 1;
+  //     float w = frcnn_face_infos[k].y2 - frcnn_face_infos[k].y1 + 1;
+  //     JDFaceInfo jd_face_info;
+  //     jd_face_info.face_bbox = cv::Rect(y, x, w, h);
+  //     jd_face_info.score = frcnn_face_infos[k].score;
+  //     jd_face_info.type = frcnn_face_infos[k].type;
+  //   }
+  // }
 
   //   cv::Mat gray;
   //   cvtColor(image, gray, cv::COLOR_BGR2GRAY);

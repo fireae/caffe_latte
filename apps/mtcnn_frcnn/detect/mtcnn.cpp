@@ -1,14 +1,14 @@
 #include "mtcnn.h"
 
 MTCNN::MTCNN(const std::string& proto_model_dir) {
-#ifdef CPU_ONLY
+  //#ifdef CPU_ONLY
   Caffe::set_mode(Caffe::CPU);
-#else
-  Caffe::set_mode(Caffe::GPU);
-#endif
-  pnet_thresh_ = 0.3;  // 0.6;
-  rnet_thresh_ = 0.4;  // 0.7;
-  onet_thresh_ = 0.4;  // 0.7;
+  //#else
+  //  Caffe::set_mode(Caffe::GPU);
+  //#endif
+  pnet_thresh_ =  0.6;
+  rnet_thresh_ = 0.7;
+  onet_thresh_ = 0.7;
   factor_ = 0.709;
   min_size_ = 40;
   /* Load the network. */
@@ -20,24 +20,27 @@ MTCNN::MTCNN(const std::string& proto_model_dir) {
       << "Network should have exactly two output, one"
          " is bbox and another is confidence.";
 
-#ifdef CPU_ONLY
+  //#ifdef CPU_ONLY
   RNet_.reset(new Net<float>((proto_model_dir + "/det2.prototxt"), TEST));
-#else
-  RNet_.reset(new Net<float>((proto_model_dir + "/det2_input.prototxt"), TEST));
-#endif
+  //#else
+  //  RNet_.reset(new Net<float>((proto_model_dir + "/det2_input.prototxt"),
+  //  TEST));
+  //#endif
   RNet_->CopyTrainedLayersFrom(proto_model_dir + "/det2.caffemodel");
 
-//  CHECK_EQ(RNet_->num_inputs(), 0) << "Network should have exactly one
-//  input.";
-//  CHECK_EQ(RNet_->num_outputs(),3) << "Network should have exactly two output,
-//  one"
-//                                     " is bbox and another is confidence.";
+  //  CHECK_EQ(RNet_->num_inputs(), 0) << "Network should have exactly one
+  //  input.";
+  //  CHECK_EQ(RNet_->num_outputs(),3) << "Network should have exactly two
+  //  output,
+  //  one"
+  //                                     " is bbox and another is confidence.";
 
-#ifdef CPU_ONLY
+  //#ifdef CPU_ONLY
   ONet_.reset(new Net<float>((proto_model_dir + "/det3.prototxt"), TEST));
-#else
-  ONet_.reset(new Net<float>((proto_model_dir + "/det3_input.prototxt"), TEST));
-#endif
+  //#else
+  //  ONet_.reset(new Net<float>((proto_model_dir + "/det3_input.prototxt"),
+  //  TEST));
+  //#endif
   ONet_->CopyTrainedLayersFrom(proto_model_dir + "/det3.caffemodel");
 
   //  CHECK_EQ(ONet_->num_inputs(), 1) << "Network should have exactly one

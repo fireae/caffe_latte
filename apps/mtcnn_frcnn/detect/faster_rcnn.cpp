@@ -17,6 +17,7 @@ float NMS_THRESH = 0.7;
 * =====================================================================================
 */
 FRCNNDetector::FRCNNDetector(const string& model_dir) {
+  Caffe::set_mode(Caffe::CPU);
   string model_file = model_dir + "/vgg16_faster_rcnn_face.prototxt";
   string weights_file = model_dir + "/vgg16_faster_rcnn_face.caffemodel";
   net_ =
