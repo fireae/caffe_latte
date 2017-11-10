@@ -16,7 +16,7 @@ using namespace std;
 // background and car
 const int CLASS_NUM = 5;
 
-float CONF_THRESH = 0.95;
+float CONF_THRESH = 0.7;
 float NMS_THRESH = 0.7;
 
 /*
@@ -80,8 +80,8 @@ bool compare_score(const Info& Info1, const Info& Info2) {
 // perform detection operation
 // input image max size 1000*600
 void Detector::Detect(string im_name) {
-  const int max_input_side = 500;
-  const int min_input_side = 300;
+  const int max_input_side = 1000;
+  const int min_input_side = 600;
   cv::Mat cv_img = cv::imread(im_name);
   cv::Mat cv_new(cv_img.rows, cv_img.cols, CV_32FC3, cv::Scalar(0, 0, 0));
   if (cv_img.empty()) {
@@ -199,7 +199,7 @@ void Detector::Detect(string im_name) {
     vis_detections(cv_img, pred_boxes, confidence, CONF_THRESH);
   }
 
-  cv::imwrite("vis.jpg", cv_img);
+  cv::imwrite("frcnn.jpg", cv_img);
   delete[] boxes;
   delete[] pred;
   delete[] pred_per_class;
@@ -475,10 +475,11 @@ void Detector::apply_nms(vector<vector<float> >& pred_boxes,
 
 int main(int argc, char* argv[]) {
   string model_file =
-      "/home/wencc/Myplace/caffe_latte/apps/rcnn/faster_rcnn_test.pt";
+      "/home/wencc/Myplace/caffe_latte/apps/mtcnn_frcnn/model/"
+      "vgg16_faster_rcnn_face.prototxt";
   string weights_file =
-      "/home/wencc/Myplace/caffe_latte/apps/rcnn/"
-      "vgg16_faster_rcnn_iter_20000.caffemodel";
+      "/home/wencc/Myplace/caffe_latte/apps/mtcnn_frcnn/model/"
+      "vgg16_faster_rcnn_face.caffemodel";
   int GPUID = 0;
   // Caffe::SetDevice(GPUID);
   // Caffe::set_mode(Caffe::GPU);

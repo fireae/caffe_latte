@@ -6,7 +6,7 @@
 // background and car
 const int CLASS_NUM = 5;
 
-float CONF_THRESH = 0.95;
+float CONF_THRESH = 0.7;
 float NMS_THRESH = 0.7;
 
 /*
@@ -291,7 +291,7 @@ void FRCNNDetector::Detect(const cv::Mat& cv_img,
     }
 
     apply_nms(pred_boxes, confidence);
-    // vis_detections(cv_img, pred_boxes, confidence, CONF_THRESH);
+     vis_detections(cv_img, pred_boxes, confidence, CONF_THRESH);
     for (int k = 0; k < confidence.size(); k++) {
       if (confidence[k] > CONF_THRESH) {
         FrcnnFaceInfo faceinfo;
@@ -305,6 +305,7 @@ void FRCNNDetector::Detect(const cv::Mat& cv_img,
       }
     }
   }
+  cv::imwrite("vis.jpg", cv_img);
   delete[] boxes;
   delete[] pred;
   delete[] pred_per_class;

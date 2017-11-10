@@ -329,7 +329,7 @@ layer {
   reshape_param { shape { dim: 0 dim: 18 dim: -1 dim: 0 } }
 }
 layer {
-  name: 'proposal'
+  name: 'rois'
   type: 'Proposal'
   bottom: 'rpn_cls_prob_reshape'
   bottom: 'rpn_bbox_pred'
@@ -340,7 +340,7 @@ layer {
    anchor_base_size: 16;
    anchor_scale: 3;
    anchor_ratio: 3;
-   max_rois: 300;
+   max_rois: 20;
   }
 }
 

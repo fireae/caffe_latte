@@ -1,5 +1,6 @@
 set(name rcnn)
-set(source_file "${PROJECT_SOURCE_DIR}/apps/rcnn/faster_rcnn.cpp")
+file(GLOB source_file ${PROJECT_SOURCE_DIR}/apps/rcnn/*.cpp)
+
 add_executable(${name} ${source_file})
 target_link_libraries(${name} ${Caffe_LINK} opencv_videoio opencv_video)
 caffe_default_properties(${name})
