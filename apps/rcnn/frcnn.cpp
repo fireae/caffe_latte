@@ -235,7 +235,7 @@ void FasterRCNN::Detect(const cv::Mat& im, vector<FrcnnBox>& detect_boxes,
       tmp_box.push_back(pred_per_cls[m * 5 + 3]);
       pred_boxes.push_back(tmp_box);
       confidence.push_back(pred_per_cls[m * 5 + 4]);
-      // std::cout << m << " : " << pred_per_cls[m * 5 + 4] << std::endl;
+      std::cout << m << " : " << pred_per_cls[m * 5 + 4] << std::endl;
     }
 
     ApplyNMS(pred_boxes, confidence, nms_thresh_);

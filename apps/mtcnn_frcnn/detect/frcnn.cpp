@@ -150,8 +150,8 @@ void FasterRCNN::Detect(const cv::Mat& image_org,
 
 void FasterRCNN::Detect(const cv::Mat& im, vector<FrcnnBox>& detect_boxes,
                         bool vis_result) {
-  const int kTestMaxSize = 1000;
-  const int kTestTagetSize = 600;
+  const int kTestMaxSize = 500;
+  const int kTestTagetSize = 300;
 
   cv::Mat img_org;
   im.convertTo(img_org, CV_32FC3);

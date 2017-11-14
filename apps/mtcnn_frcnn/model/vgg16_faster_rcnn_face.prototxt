@@ -335,12 +335,18 @@ layer {
   bottom: 'rpn_bbox_pred'
   bottom: 'im_info'
   top: 'rois'
-  rcnn_proposal_param {
+  proposal_param {
    feat_stride: 16;
-   anchor_base_size: 16;
-   anchor_scale: 3;
-   anchor_ratio: 3;
-   max_rois: 20;
+   base_size: 16;
+ratio: 2.0;
+ratio: 1.0;
+ratio: 0.5;
+   scale: 0.5;
+scale: 1.0;
+scale: 2.0;
+   
+post_nms_topn: 10;
+nms_thresh: 0.4;
   }
 }
 

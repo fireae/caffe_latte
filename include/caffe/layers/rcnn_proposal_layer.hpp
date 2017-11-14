@@ -43,10 +43,8 @@ class ProposalLayer : public Layer<Dtype> {
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
                            const vector<Blob<Dtype>*>& top);
   /// @brief Not implemented
-  // virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-  //   const vector<Blob<Dtype>*>& top){
-  //  NOT_IMPLEMENTED;
-  //}
+  virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
+    const vector<Blob<Dtype>*>& top);
   virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
                             const vector<bool>& propagate_down,
                             const vector<Blob<Dtype>*>& bottom) {
@@ -84,6 +82,7 @@ class ProposalLayer : public Layer<Dtype> {
 
   int max_rois_;
   vector<float> anchor_boxes_;
+
 };
 
 }  // namespace caffe

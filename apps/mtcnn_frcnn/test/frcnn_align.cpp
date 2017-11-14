@@ -1,8 +1,10 @@
-#include "detect/frcnn.h"
+#include "frcnn.h"
 #include <string>
 #include <vector>
+#include "boost/shared_ptr.hpp"
 #include "caffe/caffe.hpp"
 #include "glog/logging.h"
+#include "lbf/lbf.hpp"
 #include "opencv2/core.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
@@ -10,6 +12,9 @@
 using namespace std;
 using namespace frcnn;
 using namespace caffe;
+using namespace boost;
+using namespace lbf;
+
 int main(int argc, char* argv[]) {
   ::google::InitGoogleLogging(argv[0]);
   cv::Mat image = cv::imread(argv[1]);
@@ -24,16 +29,20 @@ int main(int argc, char* argv[]) {
   det.Init(model_file, weights_file);
   vector<FrcnnBox> box;
   det.Detect(image, box, 5);
+  string model_dir = "/home/wencc/Myplace/caffe_latte/apps/mtcnn_frcnn/model";
   string lbf_regress_model = model_dir + "/LBF.model";
-  shared_ptr<LbfCascador> lbf_cascador;
+  boost::shared_ptr<LbfCascador> lbf_cascador;
   lbf_cascador.reset(new LbfCascador());
   FILE* fd = fopen(lbf_regress_model.c_str(), "rb");
   lbf_cascador->Read(fd);
   fclose(fd);
-
-  Rect face_box = box[0];
+  std::cout << "1" << std::endl;
+  cv::Rect face_box = cv::Rect(box[0].x, box[0].y, box[0].width, box[0].height);
   BBox facebox(std::max<int>(0, face_box.x), std::max<int>(0, face_box.y),
                face_box.width, face_box.height);
+  cv::Mat gray;
+  cv::cvtColor(image, gray, CV_RGB2GRAY);
+  cv::Mat show_image = image.clone();
   Mat face_shape = lbf_cascador->Predict(gray, facebox);
   cv::rectangle(show_image, face_box, cv::Scalar(0, 255, 0), 1);
   vector<cv::Point> face_points;
@@ -43,7 +52,7 @@ int main(int argc, char* argv[]) {
     face_points.push_back(cv::Point(xpt, ypt));
     cv::circle(show_image, cv::Point(xpt, ypt), 2, cv::Scalar(255));
   }
-  // cv::imwrite("det_align.jpg", show_image);
+   cv::imwrite("det_align.jpg", show_image);
   //   for (int i = 0; i < face_infos.size(); i++) {
   //     cv::Rect face_bbox = face_infos[i].face_bbox;
   //     int max_span = std::max(face_bbox.width, face_bbox.height);

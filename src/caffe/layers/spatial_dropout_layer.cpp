@@ -113,9 +113,9 @@ void SpatialDropoutLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 }
 
 
-#ifndef USE_CUDA
-STUB_GPU(SpatialDropoutLayer);
-#endif
+// #ifndef USE_CUDA
+// STUB_GPU(SpatialDropoutLayer);
+// #endif
 
 INSTANTIATE_CLASS(SpatialDropoutLayer);
 REGISTER_LAYER_CLASS(SpatialDropout);
