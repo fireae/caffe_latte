@@ -22,7 +22,7 @@ struct FrcnnBox {
 
 class FasterRCNN {
  public:
-  FasterRCNN(int class_num = 5, float nms_thresh = 0.85)
+  FasterRCNN(int class_num = 5, float nms_thresh = 0.7)
       : class_num_(class_num), nms_thresh_(nms_thresh) {}
   bool Init(const std::string& model_file, const std::string& weights_file);
   void Detect(const cv::Mat& image, vector<FrcnnBox>& detect_boxes,
