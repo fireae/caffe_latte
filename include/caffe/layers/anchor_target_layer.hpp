@@ -1,9 +1,3 @@
-// --------------------------------------------------------
-// Proposal Layer C++ Implement
-// Copyright (c) 2017 Lenovo
-// Written by Zou Jinyi
-// --------------------------------------------------------
-
 #ifndef CAFFE_PROPOSAL_LAYER_HPP_
 #define CAFFE_PROPOSAL_LAYER_HPP_
 
@@ -12,8 +6,7 @@
 #include "caffe/blob.hpp"
 #include "caffe/layer.hpp"
 #include "caffe/proto/caffe.pb.h"
-#define max(a, b) (((a) > (b)) ? (a) : (b))
-#define min(a, b) (((a) < (b)) ? (a) : (b))
+
 namespace caffe {
 
 /**
@@ -23,28 +16,29 @@ namespace caffe {
  * backward, and reshape are all no-ops.
  */
 template <typename Dtype>
-class ProposalLayer : public Layer<Dtype> {
+class AnchorTargetLayer : public Layer<Dtype> {
  public:
-  explicit ProposalLayer(const LayerParameter& param) : Layer<Dtype>(param) {}
+  explicit AnchorTargetLayer(const LayerParameter& param)
+      : Layer<Dtype>(param) {}
   virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
                           const vector<Blob<Dtype>*>& top);
   virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
                        const vector<Blob<Dtype>*>& top) {}
 
-  virtual inline const char* type() const { return "Proposal"; }
+  virtual inline const char* type() const { return "AnchorTarget"; }
   virtual inline int ExactNumBottomBlobs() const { return 3; }
   virtual inline int MinBottomBlobs() const { return 3; }
   virtual inline int MaxBottomBlobs() const { return 3; }
-  virtual inline int ExactNumTopBlobs() const { return 1; }
-  virtual inline int MinTopBlobs() const { return 1; }
-  virtual inline int MaxTopBlobs() const { return 1; }
+  virtual inline int ExactNumTopBlobs() const { return 4; }
+  virtual inline int MinTopBlobs() const { return 4; }
+  virtual inline int MaxTopBlobs() const { return 4; }
 
  protected:
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
                            const vector<Blob<Dtype>*>& top);
   /// @brief Not implemented
   virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-    const vector<Blob<Dtype>*>& top);
+                           const vector<Blob<Dtype>*>& top);
   virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
                             const vector<bool>& propagate_down,
                             const vector<Blob<Dtype>*>& bottom) {
@@ -76,13 +70,9 @@ class ProposalLayer : public Layer<Dtype> {
                          vector<float>& confidence);
 
   int feat_stride_;  // resolution
-  int anchor_base_size_;
-  vector<float> anchor_scale_;  // anchor scale
-  vector<float> anchor_ratio_;  // anchor_ratio
-
-  int max_rois_;
-  vector<float> anchor_boxes_;
-
+  Blob<Dtype> anchors_;
+  int num_anchors_;
+  int base_size_;
 };
 
 }  // namespace caffe

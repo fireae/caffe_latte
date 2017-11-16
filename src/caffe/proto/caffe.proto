@@ -416,9 +416,16 @@ message LayerParameter {
   optional ROIPoolingParameter roi_pooling_param = 150;
   optional SmoothL1LossParameter smooth_l1_loss_param = 151;
   optional SpatialDropoutParameter spatial_dropout_param = 152;
-  optional RCNNProposalParameter rcnn_proposal_param = 153;
+  optional AnchorTargetParameter anchor_target_param = 153;
   optional ProposalParameter proposal_param = 154;
 
+}
+
+message AnchorTargetParameter {
+  optional uint32 feat_stride = 1 [default=16];
+  repeated float scale = 2;
+  repeated float ratio = 3;
+  optional uint32 base_size = 4 [default = 16];
 }
 
 // Message that stores parameters used by ProposalLayer
