@@ -6,6 +6,7 @@
 #include "caffe/blob.hpp"
 #include "caffe/layer.hpp"
 #include "caffe/proto/caffe.pb.h"
+#include "caffe/util/frcnn_util.hpp"
 
 namespace caffe {
 
@@ -50,29 +51,48 @@ class AnchorTargetLayer : public Layer<Dtype> {
     NOT_IMPLEMENTED;
   }
 
-  virtual void Generate_anchors();
-
-  virtual void _whctrs(vector<float> anchor, vector<float>& ctrs);
-
-  virtual void _ratio_enum(vector<float> anchor, vector<float>& anchors_ratio);
-
-  virtual void _mkanchors(vector<float> ctrs, vector<float>& anchors);
-
-  virtual void _scale_enum(vector<float> anchors_ratio,
-                           vector<float>& anchor_boxes);
-
-  virtual void bbox_transform_inv(int img_width, int img_height,
-                                  vector<vector<float> > bbox,
-                                  vector<vector<float> > select_anchor,
-                                  vector<vector<float> >& pred);
-
-  virtual void apply_nms(vector<vector<float> >& pred_boxes,
-                         vector<float>& confidence);
-
   int feat_stride_;  // resolution
   Blob<Dtype> anchors_;
   int num_anchors_;
   int base_size_;
+
+  // For Debug
+  inline void Info_Stds_Means_AvePos(const vector<Point4f<Dtype> >& targets,
+                                     const vector<int>& labels) {
+//#ifdef DEBUG
+#if 0
+    CHECK_EQ(targets.size(), labels.size());
+    const int n = targets.size();
+    for (int index = 0; index < n; index++) {
+      if (labels[index] == 1) {
+        this->_counts++;
+        for (int j = 0; j < 4; j++) {
+          this->_sum[j] = this->_sum[j] + targets[index][j];
+          this->_squared_sum[j] =
+              this->_squared_sum[j] + targets[index][j] * targets[index][j];
+        }
+      }
+      _fg_sum += labels[index] == 1;
+      _bg_sum += labels[index] == 0;
+    }
+    Point4f<Dtype> means, stds;
+    for (int j = 0; j < 4; j++)
+      if (this->_counts > 0) {
+        means[j] = this->_sum[j] / this->_counts;
+        stds[j] =
+            sqrt(this->_squared_sum[j] / this->_counts - means[j] * means[j]);
+      }
+    LOG_EVERY_N(INFO, 1000) << "Info_Stds_Means_AvePos : COUNT : "
+                            << this->_counts;
+    LOG_EVERY_N(INFO, 1000) << "STDS   : " << stds[0] << ", " << stds[1] << ", "
+                            << stds[2] << ", " << stds[3];
+    LOG_EVERY_N(INFO, 1000) << "MEANS  : " << means[0] << ", " << means[1]
+                            << ", " << means[2] << ", " << means[3];
+    this->_count++;
+    LOG_EVERY_N(INFO, 1000) << "num_positive ave : " << float(_fg_sum) / _count;
+    LOG_EVERY_N(INFO, 1000) << "num_negitive ave : " << float(_bg_sum) / _count;
+#endif
+  }
 };
 
 }  // namespace caffe

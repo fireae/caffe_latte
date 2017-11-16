@@ -1,184 +1,8 @@
 #include "caffe/layers/anchor_target_layer.hpp"
+#include "caffe/util/frcnn_util.hpp"
 #include "caffe/util/nms.hpp"
 
-#define ROUND(x) ((int)((x) + (Dtype)0.5))
-
 namespace caffe {
-
-template <typename Dtype>
-struct RPoint {
-  RPoint(Dtype x1_, Dtype y1_, Dtype x2_, Dtype y2_)
-      : x1(x1_), y1(y1_), x2(x2_), y2(y2_) {}
-  Dtype x1;
-  Dtype y1;
-  Dtype x2;
-  Dtype y2;
-};
-
-template <typename Dtype>
-static int transform_box(Dtype box[], const Dtype dx, const Dtype dy,
-                         const Dtype d_log_w, const Dtype d_log_h,
-                         const Dtype img_W, const Dtype img_H,
-                         const Dtype min_box_W, const Dtype min_box_H) {
-  // width & height of box
-  const Dtype w = box[2] - box[0] + (Dtype)1;
-  const Dtype h = box[3] - box[1] + (Dtype)1;
-  // center location of box
-  const Dtype ctr_x = box[0] + (Dtype)0.5 * w;
-  const Dtype ctr_y = box[1] + (Dtype)0.5 * h;
-
-  // new center location according to gradient (dx, dy)
-  const Dtype pred_ctr_x = dx * w + ctr_x;
-  const Dtype pred_ctr_y = dy * h + ctr_y;
-  // new width & height according to gradient d(log w), d(log h)
-  const Dtype pred_w = exp(d_log_w) * w;
-  const Dtype pred_h = exp(d_log_h) * h;
-
-  // update upper-left corner location
-  box[0] = pred_ctr_x - (Dtype)0.5 * pred_w;
-  box[1] = pred_ctr_y - (Dtype)0.5 * pred_h;
-  // update lower-right corner location
-  box[2] = pred_ctr_x + (Dtype)0.5 * pred_w;
-  box[3] = pred_ctr_y + (Dtype)0.5 * pred_h;
-
-  // adjust new corner locations to be within the image region,
-  box[0] = std::max((Dtype)0, std::min(box[0], img_W - (Dtype)1));
-  box[1] = std::max((Dtype)0, std::min(box[1], img_H - (Dtype)1));
-  box[2] = std::max((Dtype)0, std::min(box[2], img_W - (Dtype)1));
-  box[3] = std::max((Dtype)0, std::min(box[3], img_H - (Dtype)1));
-
-  // recompute new width & height
-  const Dtype box_w = box[2] - box[0] + (Dtype)1;
-  const Dtype box_h = box[3] - box[1] + (Dtype)1;
-
-  // check if new box's size >= threshold
-  return (box_w >= min_box_W) * (box_h >= min_box_H);
-}
-
-template <typename Dtype>
-static void sort_box(Dtype list_cpu[], const int start, const int end,
-                     const int num_top) {
-  const Dtype pivot_score = list_cpu[start * 5 + 4];
-  int left = start + 1, right = end;
-  Dtype temp[5];
-  while (left <= right) {
-    while (left <= end && list_cpu[left * 5 + 4] >= pivot_score) ++left;
-    while (right > start && list_cpu[right * 5 + 4] <= pivot_score) --right;
-    if (left <= right) {
-      for (int i = 0; i < 5; ++i) {
-        temp[i] = list_cpu[left * 5 + i];
-      }
-      for (int i = 0; i < 5; ++i) {
-        list_cpu[left * 5 + i] = list_cpu[right * 5 + i];
-      }
-      for (int i = 0; i < 5; ++i) {
-        list_cpu[right * 5 + i] = temp[i];
-      }
-      ++left;
-      --right;
-    }
-  }
-
-  if (right > start) {
-    for (int i = 0; i < 5; ++i) {
-      temp[i] = list_cpu[start * 5 + i];
-    }
-    for (int i = 0; i < 5; ++i) {
-      list_cpu[start * 5 + i] = list_cpu[right * 5 + i];
-    }
-    for (int i = 0; i < 5; ++i) {
-      list_cpu[right * 5 + i] = temp[i];
-    }
-  }
-
-  if (start < right - 1) {
-    sort_box(list_cpu, start, right - 1, num_top);
-  }
-  if (right + 1 < num_top && right + 1 < end) {
-    sort_box(list_cpu, right + 1, end, num_top);
-  }
-}
-
-template <typename Dtype>
-static void generate_anchors(int base_size, const Dtype ratios[],
-                             const Dtype scales[], const int num_ratios,
-                             const int num_scales, Dtype anchors[]) {
-  // base box's width & height & center location
-  const Dtype base_area = (Dtype)(base_size * base_size);
-  const Dtype center = (Dtype)0.5 * (base_size - (Dtype)1);
-
-  // enumerate all transformed boxes
-  Dtype* p_anchors = anchors;
-  for (int i = 0; i < num_ratios; ++i) {
-    // transformed width & height for given ratio factors
-    const Dtype ratio_w = (Dtype)ROUND(sqrt(base_area / ratios[i]));
-    const Dtype ratio_h = (Dtype)ROUND(ratio_w * ratios[i]);
-
-    for (int j = 0; j < num_scales; ++j) {
-      // transformed width & height for given scale factors
-      const Dtype scale_w = (Dtype)0.5 * (ratio_w * scales[j] - (Dtype)1);
-      const Dtype scale_h = (Dtype)0.5 * (ratio_h * scales[j] - (Dtype)1);
-
-      // (x1, y1, x2, y2) for transformed box
-      p_anchors[0] = center - scale_w;
-      p_anchors[1] = center - scale_h;
-      p_anchors[2] = center + scale_w;
-      p_anchors[3] = center + scale_h;
-      p_anchors += 4;
-    }  // endfor j
-  }
-}
-
-template <typename Dtype>
-static void enumerate_proposals_cpu(
-    const Dtype bottom4d[], const Dtype d_anchor4d[], const Dtype anchors[],
-    Dtype proposals[], const int num_anchors, const int bottom_H,
-    const int bottom_W, const Dtype img_H, const Dtype img_W,
-    const Dtype min_box_H, const Dtype min_box_W, const int feat_stride) {
-  Dtype* p_proposal = proposals;
-  const int bottom_area = bottom_H * bottom_W;
-
-  for (int h = 0; h < bottom_H; ++h) {
-    for (int w = 0; w < bottom_W; ++w) {
-      const Dtype x = w * feat_stride;
-      const Dtype y = h * feat_stride;
-      const Dtype* p_box = d_anchor4d + h * bottom_W + w;
-      const Dtype* p_score = bottom4d + h * bottom_W + w;
-      for (int k = 0; k < num_anchors; ++k) {
-        const Dtype dx = p_box[(k * 4 + 0) * bottom_area];
-        const Dtype dy = p_box[(k * 4 + 1) * bottom_area];
-        const Dtype d_log_w = p_box[(k * 4 + 2) * bottom_area];
-        const Dtype d_log_h = p_box[(k * 4 + 3) * bottom_area];
-
-        p_proposal[0] = x + anchors[k * 4 + 0];
-        p_proposal[1] = y + anchors[k * 4 + 1];
-        p_proposal[2] = x + anchors[k * 4 + 2];
-        p_proposal[3] = y + anchors[k * 4 + 3];
-        p_proposal[4] = transform_box(p_proposal, dx, dy, d_log_w, d_log_h,
-                                      img_W, img_H, min_box_W, min_box_H) *
-                        p_score[k * bottom_area];
-        p_proposal += 5;
-      }  // endfor k
-    }    // endfor w
-  }      // endfor h
-}
-
-template <typename Dtype>
-static void retrieve_rois_cpu(const int num_rois, const int item_index,
-                              const Dtype proposals[], const int roi_indices[],
-                              Dtype rois[], Dtype roi_scores[]) {
-  for (int i = 0; i < num_rois; ++i) {
-    const Dtype* const proposals_index = proposals + roi_indices[i] * 5;
-    rois[i * 5 + 0] = item_index;
-    rois[i * 5 + 1] = proposals_index[0];
-    rois[i * 5 + 2] = proposals_index[1];
-    rois[i * 5 + 3] = proposals_index[2];
-    rois[i * 5 + 4] = proposals_index[3];
-    if (roi_scores) {
-      roi_scores[i] = proposals_index[4];
-    }
-  }
-}
 
 template <typename Dtype>
 void AnchorTargetLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
@@ -235,6 +59,13 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
                                            const vector<Blob<Dtype>*>& top) {
   CHECK_EQ(bottom[0]->shape(0), 1) << "Only single item batches are supported";
 
+  FrcnnConfigParameter frcnn_config = this->layer_param_.frcnn_config_param();
+  bool train_rpn_clobber_positives = frcnn_config.train_rpn_clobber_positives();
+  float train_rpn_positive_overlap = frcnn_config.train_rpn_positive_overlap();
+  float train_rpn_negative_overlap = frcnn_config.train_rpn_negative_overlap();
+  float train_rpn_fg_fraction = frcnn_config.train_rpn_fg_fraction();
+  int train_rpn_batchsize = frcnn_config.train_rpn_batchsize();
+  float train_rpn_positive_weight = frcnn_config.train_rpn_positive_weight();
   // bottom[0] -> map of shape (..., H, W)
   // bottom[1] -> GT boxes (x1, y1, x2, y2, label)
   // bottom[2] -> im_info
@@ -248,30 +79,31 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   const Dtype im_height = bottom_im_info[0];
   const Dtype im_width = bottom_im_info[1];
 
-  vector<RPoint<Dtype> > gt_boxes;
+  vector<Point4f<Dtype>> gt_boxes;
   for (int i = 0; i < bottom[1]->num(); i++) {
-    gt_boxes.push_back(RPoint<Dtype>(
-        bottom_gt_boxes[i * 4 + 0], bottom_gt_boxes[i * 4 + 1],
-        bottom_gt_boxes[i * 4 + 2], bottom_gt_boxes[i * 4 + 3], ));
+    gt_boxes.push_back(
+        Point4f<Dtype>(bottom_gt_boxes[i * 4 + 0], bottom_gt_boxes[i * 4 + 1],
+                       bottom_gt_boxes[i * 4 + 2], bottom_gt_boxes[i * 4 + 3]));
   }
 
   vector<int> inds_inside;
-  vector<RPoint<Dtype> > anchors;
+  vector<Point4f<Dtype>> anchors;
   int border_ = 0;
   Dtype bounds[4] = {-border_, -border_, im_width + border_,
                      im_height + border_};
+  const Dtype* anchors_data = anchors_.cpu_data();
   // Generate anchors
   for (int h = 0; h < height; h++) {
     for (int w = 0; w < width; w++) {
       for (int k = 0; k < num_anchors_; k++) {
-        float x1 = w * feat_stride_ + anchors_[k * 4 + 0];
-        float y1 = h * feat_stride_ + anchors_[k * 4 + 1];
-        float x2 = w * feat_stride_ + anchors_[k * 4 + 2];
-        float y2 = h * feat_stride_ + anchors_[k * 4 + 3];
+        float x1 = w * feat_stride_ + anchors_data[k * 4 + 0];
+        float y1 = h * feat_stride_ + anchors_data[k * 4 + 1];
+        float x2 = w * feat_stride_ + anchors_data[k * 4 + 2];
+        float y2 = h * feat_stride_ + anchors_data[k * 4 + 3];
         if (x1 >= bounds[0] && y1 >= bounds[1] && x2 < bounds[2] &&
             y2 < bounds[3]) {
           inds_inside.push_back((h * width + w) * num_anchors_ + k);
-          anchors.push_back(RPoint(x1, y1, x2, y2));
+          anchors.push_back(Point4f<Dtype>(x1, y1, x2, y2));
         }
       }
     }
@@ -283,22 +115,196 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 
   vector<int> labels(n_anchors, -1);
   vector<Dtype> max_overlaps(n_anchors, -1);
-  vector<int> argmax_max_overlaps(n_anchors, -1);
+  vector<int> argmax_overlaps(n_anchors, -1);
   vector<Dtype> gt_max_overlaps(gt_boxes.size(), -1);
   vector<int> gt_argmax_overlaps(gt_boxes.size(), -1);
 
-  vector<vector<Dtype >> ious = get_ious(anchors, gt_boxes);
+  vector<vector<Dtype>> ious = get_ious(anchors, gt_boxes);
   for (int ia = 0; ia < n_anchors; ia++) {
-      for (int igt = 0; igt < gt_boxes.size(); igt++) {
-            if (ious[ia][igt] > max_overlaps[ia]) {
-                max_overlaps[ia] = ious[ia][igt];
-                argmax_overlaps[ia] = igt;
-            } 
-            if (ious[ia][igt] > gt_max_overlaps[ia]) {
-                gt_max_overlaps[igt] = ious[ia][igt];
-                argmax_overlaps[igt] = ia;
-            } 
+    for (int igt = 0; igt < gt_boxes.size(); igt++) {
+      if (ious[ia][igt] > max_overlaps[ia]) {
+        max_overlaps[ia] = ious[ia][igt];
+        argmax_overlaps[ia] = igt;
       }
+      if (ious[ia][igt] > gt_max_overlaps[ia]) {
+        gt_max_overlaps[igt] = ious[ia][igt];
+        gt_argmax_overlaps[igt] = ia;
+      }
+    }
+  }
+
+  if (train_rpn_clobber_positives == false) {
+    for (int i = 0; i < max_overlaps.size(); ++i) {
+      if (max_overlaps[i] < train_rpn_negative_overlap) {
+        labels[i] = 0;
+      }
+    }
+  }
+
+  // fg label: for each gt, anchors with highest overlap
+  int debug_for_highest_over = 0;
+  for (int j = 0; j < gt_max_overlaps.size(); ++j) {
+    for (int i = 0; i < max_overlaps.size(); ++i) {
+      if (std::abs(gt_max_overlaps[j] - ious[i][j]) <= kEPS) {
+        labels[i] = 1;
+        debug_for_highest_over++;
+      }
+    }
+  }
+
+  // fg label: above thresh IOU
+  for (int i = 0; i < max_overlaps.size(); ++i) {
+    if (max_overlaps[i] >= train_rpn_positive_overlap) {
+      labels[i] = 1;
+    }
+  }
+
+  if (train_rpn_clobber_positives) {
+    for (int i = 0; i < max_overlaps.size(); ++i) {
+      if (max_overlaps[i] < train_rpn_negative_overlap) {
+        labels[i] = 0;
+      }
+    }
+  }
+
+  // subsample fg labels if we have too many
+  int num_fg = float(train_rpn_fg_fraction) * train_rpn_batchsize;
+  const int fg_inds_size = std::count(labels.begin(), labels.end(), 1);
+  if (fg_inds_size > num_fg) {
+    vector<int> fg_inds;
+    for (size_t index = 0; index < labels.size(); index++) {
+      if (labels[index] == 1) fg_inds.push_back(index);
+
+      std::set<int> ind_set;
+      while (ind_set.size() < fg_inds.size() - num_fg) {
+        int tmp_idx = caffe::caffe_rng_rand() % fg_inds.size();
+        ind_set.insert(fg_inds[tmp_idx]);
+      }
+      for (std::set<int>::iterator it = ind_set.begin(); it != ind_set.end();
+           it++) {
+        labels[*it] = -1;
+      }
+    }
+  }
+
+  // subsample negative labels if we have too many
+  int num_bg =
+      train_rpn_batchsize - std::count(labels.begin(), labels.end(), 1);
+  const int bg_inds_size = std::count(labels.begin(), labels.end(), 0);
+  if (bg_inds_size > num_bg) {
+    vector<int> bg_inds;
+    for (int i = 0; i < labels.size(); i++) {
+      if (labels[i] == 0) {
+        bg_inds.push_back(i);
+      }
+
+      std::set<int> ind_set;
+      while (ind_set.size() < bg_inds.size() - num_bg) {
+        int tmp_idx = caffe::caffe_rng_rand() % bg_inds.size();
+        ind_set.insert(bg_inds[tmp_idx]);
+      }
+      for (std::set<int>::iterator it = ind_set.begin(); it != ind_set.end();
+           it++) {
+        labels[*it] = -1;
+      }
+    }
+  }
+
+  vector<Point4f<Dtype>> bbox_targets;
+  for (int i = 0; i < argmax_overlaps.size(); i++) {
+    if (argmax_overlaps[i] < 0) {
+      bbox_targets.push_back(Point4f<Dtype>());
+    } else {
+      bbox_targets.push_back(
+          bbox_transform(anchors[i], gt_boxes[argmax_overlaps[i]]));
+    }
+  }
+
+  vector<Point4f<Dtype>> bbox_inside_weights(n_anchors, Point4f<Dtype>());
+  for (int i = 0; i < n_anchors; i++) {
+    if (labels[i] == 1) {
+      bbox_inside_weights[i][0] = 1.0;
+      bbox_inside_weights[i][1] = 1.0;
+      bbox_inside_weights[i][2] = 1.0;
+      bbox_inside_weights[i][3] = 1.0;
+    }
+  }
+
+  Dtype positive_weights, negative_weights;
+  if (train_rpn_positive_weight < 0) {
+    int num_examples =
+        labels.size() - std::count(labels.begin(), labels.end(), -1);
+    positive_weights = Dtype(1) / num_examples;
+    negative_weights = Dtype(1) / num_examples;
+  } else {
+    CHECK_LT(train_rpn_positive_weight, 1) << "ilegal rpn_positive_weight";
+    CHECK_GT(train_rpn_positive_weight, 0) << "ilegal rpn_positive_weight";
+    positive_weights = Dtype(train_rpn_positive_weight) /
+                       std::count(labels.begin(), labels.end(), 1);
+    negative_weights = Dtype(1 - train_rpn_positive_weight) /
+                       std::count(labels.begin(), labels.end(), 0);
+  }
+
+  vector<Point4f<Dtype>> bbox_outside_weights(n_anchors, Point4f<Dtype>());
+  for (int i = 0; i < n_anchors; i++) {
+    if (labels[i] == 1) {
+      bbox_outside_weights[i] =
+          Point4f<Dtype>(positive_weights, positive_weights, positive_weights,
+                         positive_weights);
+    } else if (labels[i] == 0) {
+      bbox_outside_weights[i] =
+          Point4f<Dtype>(negative_weights, negative_weights, negative_weights,
+                         negative_weights);
+    }
+  }
+
+  Info_Stds_Means_AvePos(bbox_targets, labels);
+
+  // top[0] -> labels
+  vector<int> top0_shape(4);
+  top0_shape[0] = 1;
+  top0_shape[1] = 1;
+  top0_shape[2] = num_anchors_ * height;
+  top0_shape[3] = width;
+  top[0]->Reshape(top0_shape);
+
+  // top[1] -> bbox_targets
+  vector<int> top1_shape(4);
+  top1_shape[0] = 1;
+  top1_shape[1] = num_anchors_ * 4;
+  top1_shape[2] = height;
+  top1_shape[3] = width;
+  top[1]->Reshape(top1_shape);
+
+  // top[2] -> bbox_inside_weights
+  top[2]->Reshape(top1_shape);
+
+  // top[3] -> bbox_outside_weights
+  top[3]->Reshape(top1_shape);
+
+  Dtype* top_labels = top[0]->mutable_cpu_data();
+  Dtype* top_bbox_targets = top[1]->mutable_cpu_data();
+  Dtype* top_bbox_inside_weights = top[2]->mutable_cpu_data();
+  Dtype* top_bbox_outside_weights = top[3]->mutable_cpu_data();
+  caffe_set(top[0]->count(), Dtype(-1), top[0]->mutable_cpu_data());
+  caffe_set(top[1]->count(), Dtype(0), top[1]->mutable_cpu_data());
+  caffe_set(top[2]->count(), Dtype(0), top[2]->mutable_cpu_data());
+  caffe_set(top[3]->count(), Dtype(0), top[3]->mutable_cpu_data());
+
+  for (size_t i = 0; i < inds_inside.size(); i++) {
+    const int _anchor = inds_inside[i] % num_anchors_;
+    const int _height = inds_inside[i] / num_anchors_ / width;
+    const int _width = (inds_inside[i] / num_anchors_) % width;
+    top_labels[top[0]->offset(0, 0, _anchor * height + _height, _width)] =
+        labels[i];
+    for (int c = 0; c < 4; ++c) {
+      top_bbox_targets[top[1]->offset(0, _anchor * 4 + c, _height, _width)] =
+          bbox_targets[i][c];
+      top_bbox_inside_weights[top[2]->offset(
+          0, _anchor * 4 + c, _height, _width)] = bbox_inside_weights[i][c];
+      top_bbox_outside_weights[top[3]->offset(
+          0, _anchor * 4 + c, _height, _width)] = bbox_outside_weights[i][c];
+    }
   }
 }
 
