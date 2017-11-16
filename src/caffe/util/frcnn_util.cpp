@@ -2,6 +2,10 @@
 #include "caffe/common.hpp"
 
 namespace caffe {
+
+template struct Point4f<float>;
+template struct Point4f<double>;
+
 #define ROUND(x) ((int)((x) + (Dtype)0.5))
 void BBoxTransformInv(int box_count, const float* box_deltas,
                       const float* pred_cls, const float* boxes, float* pred,
@@ -79,7 +83,18 @@ void ApplyNMS(vector<vector<float>>& pred_boxes, vector<float>& confidence,
     }
   }
 }
+float get_scale_factor(int width, int height, int short_size,
+                       int max_long_size) {
+  float im_size_min = std::min(width, height);
+  float im_size_max = std::max(width, height);
 
+  float scale_factor = static_cast<float>(short_size) / im_size_min;
+  // Prevent the biggest axis from being more than max_size
+  if (scale_factor * im_size_max > max_long_size) {
+    scale_factor = static_cast<float>(max_long_size) / im_size_max;
+  }
+  return scale_factor;
+}
 template <typename Dtype>
 Dtype get_iou(const Point4f<Dtype>& A, const Point4f<Dtype>& B) {
   const Dtype xx1 = std::max(A[0], B[0]);
@@ -123,19 +138,6 @@ template vector<float> get_ious(const Point4f<float>& A,
                                 const vector<Point4f<float>>& B);
 template vector<double> get_ious(const Point4f<double>& A,
                                  const vector<Point4f<double>>& B);
-
-float get_scale_factor(int width, int height, int short_size,
-                       int max_long_size) {
-  float im_size_min = std::min(width, height);
-  float im_size_max = std::max(width, height);
-
-  float scale_factor = static_cast<float>(short_size) / im_size_min;
-  // Prevent the biggest axis from being more than max_size
-  if (scale_factor * im_size_max > max_long_size) {
-    scale_factor = static_cast<float>(max_long_size) / im_size_max;
-  }
-  return scale_factor;
-}
 
 template <typename Dtype>
 Point4f<Dtype> bbox_transform_inv(const Point4f<Dtype>& box,

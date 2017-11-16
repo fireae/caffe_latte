@@ -308,12 +308,6 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   }
 }
 
-#ifndef USE_CUDA
-template <typename Dtype>
-void AnchorTargetLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-                                           const vector<Blob<Dtype>*>& top) {}
-#endif
-
 INSTANTIATE_CLASS(AnchorTargetLayer);
 REGISTER_LAYER_CLASS(AnchorTarget);
 

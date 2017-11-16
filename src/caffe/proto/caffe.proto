@@ -420,6 +420,13 @@ message LayerParameter {
   optional ProposalParameter proposal_param = 154;
   optional FrcnnConfigParameter frcnn_config_param = 155;
 
+  optional ProposalTargetParameter proposal_target_param = 156;
+  optional ROIDataParameter roi_data_param = 157;
+
+}
+
+message ProposalTargetParameter {
+  optional uint32 n_classes = 1 [default = 21];
 }
 
 message FrcnnConfigParameter {
@@ -490,6 +497,10 @@ message FrcnnConfigParameter {
   // # and give negatives a weight of (1 - p)
   //# Set to -1.0 to use uniform example weighting
   optional float train_rpn_positive_weight = 23 [default = -1.0];
+
+  repeated float train_bbox_normalize_mean = 24;
+  repeated float train_bbox_normalize_std = 25;
+  repeated float train_bbox_inside_weight = 26;
 }
 
 message AnchorTargetParameter {
@@ -1334,6 +1345,45 @@ message WindowDataParameter {
   optional string root_folder = 13 [default = ""];
 }
 
+message ROIDataParameter {
+  // Specify the data source.
+  optional string source = 1;
+  // For data pre-processing, we can do simple scaling and subtracting the
+  // data mean, if provided. Note that the mean subtraction is always carried
+  // out before scaling.
+  optional float scale = 2 [default = 1];
+  optional string mean_file = 3;
+  // Specify the batch size.
+  optional uint32 batch_size = 4;
+  // Specify if we would like to randomly crop an image.
+  optional uint32 crop_size = 5 [default = 0];
+  // Specify if we want to randomly mirror data.
+  optional bool mirror = 6 [default = false];
+  // Foreground (object) overlap threshold
+  optional float fg_threshold = 7 [default = 0.5];
+  // Background (non-object) overlap threshold
+  optional float bg_threshold = 8 [default = 0.5];
+  // Fraction of batch that should be foreground objects
+  optional float fg_fraction = 9 [default = 0.25];
+  // Amount of contextual padding to add around a window
+  // (used only by the window_data_layer)
+  optional uint32 context_pad = 10 [default = 0];
+  // Mode for cropping out a detection window
+  // warp: cropped window is warped to a fixed size and aspect ratio
+  // square: the tightest square around the window is cropped
+  optional string crop_mode = 11 [default = "warp"];
+  // cache_images: will load all images in memory for faster access
+  optional bool cache_images = 12 [default = false];
+  // append root_folder to locate images
+  optional string root_folder = 13 [default = ""];
+  repeated uint32 train_scale = 14;
+  optional uint32 max_size = 15 [default=1000];
+  optional uint32 rng_seed = 16 [default=3];
+  optional bool use_flipped = 17 [default = true];
+  repeated float pixel_mean = 18;
+
+  
+}
 message SPPParameter {
   enum PoolMethod {
     MAX = 0;
