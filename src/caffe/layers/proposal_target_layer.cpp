@@ -1,38 +1,35 @@
 
 #include "caffe/layers/proposal_target_layer.hpp"
 #include "caffe/common.hpp"
+#include "caffe/net_config.hpp"
 #include "caffe/util/frcnn_util.hpp"
 #include "caffe/util/rng.hpp"
-namespace caffe {
 
-using std::vector;
+namespace caffe {
 
 template <typename Dtype>
 void ProposalTargetLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype> *> &bottom,
                                             const vector<Blob<Dtype> *> &top) {
   ProposalTargetParameter proposal_target_param =
       this->layer_param_.proposal_target_param();
-  FrcnnConfigParameter frcnn_config = this->layer_param_.frcnn_config_param();
-  fg_thresh_ = frcnn_config.train_fg_thresh();
-  bg_thresh_hi_ = frcnn_config.train_bg_thresh_hi();
-  bg_thresh_lo_ = frcnn_config.train_bg_thresh_lo();
-  bbox_normalize_targets_ = frcnn_config.train_bbox_normalize_targets();
-  bbox_normalize_means_.resize(4, 0.0);
-  for (int i = 0; i < frcnn_config.train_bbox_normalize_mean_size(); i++) {
-    bbox_normalize_means_[i] = frcnn_config.train_bbox_normalize_mean(i);
-  }
-  bbox_normalize_stds_.resize(4, 1.0);
-  for (int i = 0; i < frcnn_config.train_bbox_normalize_std_size(); i++) {
-    bbox_normalize_stds_[i] = frcnn_config.train_bbox_normalize_std(i);
-  }
-  bbox_inside_weights_.resize(4, 1.0);
 
   this->rng_.reset(new Caffe::RNG(static_cast<unsigned int>(3)));
   this->count_ = 0;
   this->bg_num_ = 0;
   this->fg_num_ = 0;
-
-  n_classes_ = proposal_target_param.n_classes();
+  fg_thresh_ = NetConfig::fg_thresh;
+  bg_thresh_hi_ = NetConfig::bg_thresh_hi;
+  bg_thresh_lo_ = NetConfig::bg_thresh_lo;
+  bbox_normalize_targets_ = NetConfig::bbox_normalize_targets;
+  bbox_normalize_means_.resize(4, 0.0);
+  bbox_normalize_stds_.resize(4, 0.1);
+  bbox_inside_weights_.resize(4, 0.0);
+  for (int i = 0; i < 4; i++) {
+    bbox_normalize_means_[i] = Dtype(NetConfig::bbox_normalize_means[i]);
+    bbox_inside_weights_[i] = NetConfig::bbox_inside_weights[i];
+    bbox_normalize_stds_[i] = NetConfig::bbox_normalize_stds[i];
+  }
+  n_classes_ = NetConfig::n_classes;
 
   LOG(INFO) << "ProposalTargetLayer :: " << n_classes_ << " classes";
   LOG(INFO) << "ProposalTargetLayer :: LayerSetUp";
@@ -51,10 +48,6 @@ void ProposalTargetLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype> *> &bottom,
 template <typename Dtype>
 void ProposalTargetLayer<Dtype>::Forward_cpu(
     const vector<Blob<Dtype> *> &bottom, const vector<Blob<Dtype> *> &top) {
-  FrcnnConfigParameter frcnn_config = this->layer_param_.frcnn_config_param();
-  int train_batch_size = frcnn_config.train_batch_size();
-  float train_fg_fraction = frcnn_config.train_fg_fraction();
-
   vector<Point4f<Dtype> > all_rois;
   for (int i = 0; i < bottom[0]->num(); i++) {
     all_rois.push_back(Point4f<Dtype>(
@@ -78,8 +71,8 @@ void ProposalTargetLayer<Dtype>::Forward_cpu(
 
   DLOG(ERROR) << "gt boxes size: " << gt_boxes.size();
   const int num_images = 1;
-  const int rois_per_image = train_batch_size / num_images;
-  const int fg_rois_per_image = rois_per_image * train_fg_fraction;
+  const int rois_per_image = NetConfig::batch_size / num_images;
+  const int fg_rois_per_image = rois_per_image * NetConfig::fg_fraction;
 
   // Sample rois with classification labels and bounding box regression
   // targets

@@ -10,6 +10,7 @@
 #include "caffe/common.hpp"
 #include "caffe/layer.hpp"
 #include "caffe/net.hpp"
+#include "caffe/net_config.hpp"
 #include "caffe/parallel.hpp"
 #include "caffe/proto/caffe.pb.h"
 #include "caffe/util/hdf5.hpp"
@@ -25,8 +26,8 @@ Net<Dtype>::Net(const NetParameter& param) {
 }
 
 template <typename Dtype>
-Net<Dtype>::Net(const string& param_file, Phase phase,
-    const int level, const vector<string>* stages) {
+Net<Dtype>::Net(const string& param_file, Phase phase, const int level,
+                const vector<string>* stages) {
   NetParameter param;
   ReadNetParamsFromTextFileOrDie(param_file, &param);
   // Set phase, stages and level
@@ -42,6 +43,7 @@ Net<Dtype>::Net(const string& param_file, Phase phase,
 
 template <typename Dtype>
 void Net<Dtype>::Init(const NetParameter& in_param) {
+  NetConfig::LoadParam(in_param);
   // Set phase from the state.
   phase_ = in_param.state().phase();
   // Filter layers based on their include/exclude rules and
@@ -74,15 +76,14 @@ void Net<Dtype>::Init(const NetParameter& in_param) {
     // Setup layer.
     const LayerParameter& layer_param = param.layer(layer_id);
     if (layer_param.propagate_down_size() > 0) {
-      CHECK_EQ(layer_param.propagate_down_size(),
-          layer_param.bottom_size())
+      CHECK_EQ(layer_param.propagate_down_size(), layer_param.bottom_size())
           << "propagate_down param must be specified "
           << "either 0 or bottom_size times ";
     }
     layers_.push_back(LayerRegistry<Dtype>::CreateLayer(layer_param));
     layer_names_.push_back(layer_param.name());
-    LOG_IF(INFO, Caffe::root_solver())
-        << "Creating Layer " << layer_param.name();
+    LOG_IF(INFO, Caffe::root_solver()) << "Creating Layer "
+                                       << layer_param.name();
     bool need_backward = false;
 
     // Figure out this layer's input and output
@@ -119,8 +120,8 @@ void Net<Dtype>::Init(const NetParameter& in_param) {
     }
     // After this layer is connected, set it up.
     layers_[layer_id]->SetUp(bottom_vecs_[layer_id], top_vecs_[layer_id]);
-    LOG_IF(INFO, Caffe::root_solver())
-        << "Setting up " << layer_names_[layer_id];
+    LOG_IF(INFO, Caffe::root_solver()) << "Setting up "
+                                       << layer_names_[layer_id];
     for (int top_id = 0; top_id < top_vecs_[layer_id].size(); ++top_id) {
       if (blob_loss_weights_.size() <= top_id_vecs_[layer_id][top_id]) {
         blob_loss_weights_.resize(top_id_vecs_[layer_id][top_id] + 1, Dtype(0));
@@ -129,21 +130,22 @@ void Net<Dtype>::Init(const NetParameter& in_param) {
       LOG_IF(INFO, Caffe::root_solver())
           << "Top shape: " << top_vecs_[layer_id][top_id]->shape_string();
       if (layer->loss(top_id)) {
-        LOG_IF(INFO, Caffe::root_solver())
-            << "    with loss weight " << layer->loss(top_id);
+        LOG_IF(INFO, Caffe::root_solver()) << "    with loss weight "
+                                           << layer->loss(top_id);
       }
       memory_used_ += top_vecs_[layer_id][top_id]->count();
     }
-    LOG_IF(INFO, Caffe::root_solver())
-        << "Memory required for data: " << memory_used_ * sizeof(Dtype);
+    LOG_IF(INFO, Caffe::root_solver()) << "Memory required for data: "
+                                       << memory_used_ * sizeof(Dtype);
     const int param_size = layer_param.param_size();
     const int num_param_blobs = layers_[layer_id]->blobs().size();
     CHECK_LE(param_size, num_param_blobs)
         << "Too many params specified for layer " << layer_param.name();
     ParamSpec default_param_spec;
     for (int param_id = 0; param_id < num_param_blobs; ++param_id) {
-      const ParamSpec* param_spec = (param_id < param_size) ?
-          &layer_param.param(param_id) : &default_param_spec;
+      const ParamSpec* param_spec = (param_id < param_size)
+                                        ? &layer_param.param(param_id)
+                                        : &default_param_spec;
       const bool param_need_backward = param_spec->lr_mult() != 0;
       need_backward |= param_need_backward;
       layers_[layer_id]->set_param_propagate_down(param_id,
@@ -180,25 +182,26 @@ void Net<Dtype>::Init(const NetParameter& in_param) {
       if (blobs_skip_backp.find(blob_name) == blobs_skip_backp.end()) {
         layer_skip_propagate_down = false;
       }
-      if (layer_contributes_loss && !layer_skip_propagate_down)
-        break;
+      if (layer_contributes_loss && !layer_skip_propagate_down) break;
     }
     // If this layer can skip backward computation, also all his bottom blobs
     // don't need backpropagation
     if (layer_need_backward_[layer_id] && layer_skip_propagate_down) {
       layer_need_backward_[layer_id] = false;
       for (int bottom_id = 0; bottom_id < bottom_vecs_[layer_id].size();
-               ++bottom_id) {
+           ++bottom_id) {
         bottom_need_backward_[layer_id][bottom_id] = false;
       }
     }
-    if (!layer_contributes_loss) { layer_need_backward_[layer_id] = false; }
+    if (!layer_contributes_loss) {
+      layer_need_backward_[layer_id] = false;
+    }
     if (Caffe::root_solver()) {
       if (layer_need_backward_[layer_id]) {
         LOG(INFO) << layer_names_[layer_id] << " needs backward computation.";
       } else {
         LOG(INFO) << layer_names_[layer_id]
-            << " does not need backward computation.";
+                  << " does not need backward computation.";
       }
     }
     for (int bottom_id = 0; bottom_id < bottom_vecs_[layer_id].size();
@@ -212,7 +215,7 @@ void Net<Dtype>::Init(const NetParameter& in_param) {
       }
       if (!bottom_need_backward_[layer_id][bottom_id]) {
         const string& blob_name =
-                   blob_names_[bottom_id_vecs_[layer_id][bottom_id]];
+            blob_names_[bottom_id_vecs_[layer_id][bottom_id]];
         blobs_skip_backp.insert(blob_name);
       }
     }
@@ -238,9 +241,9 @@ void Net<Dtype>::Init(const NetParameter& in_param) {
   }
   // In the end, all remaining blobs are considered output blobs.
   for (set<string>::iterator it = available_blobs.begin();
-      it != available_blobs.end(); ++it) {
-    LOG_IF(INFO, Caffe::root_solver())
-        << "This network produces output " << *it;
+       it != available_blobs.end(); ++it) {
+    LOG_IF(INFO, Caffe::root_solver()) << "This network produces output "
+                                       << *it;
     net_output_blobs_.push_back(blobs_[blob_name_to_idx[*it]].get());
     net_output_blob_indices_.push_back(blob_name_to_idx[*it]);
   }
@@ -257,7 +260,7 @@ void Net<Dtype>::Init(const NetParameter& in_param) {
 
 template <typename Dtype>
 void Net<Dtype>::FilterNet(const NetParameter& param,
-    NetParameter* param_filtered) {
+                           NetParameter* param_filtered) {
   NetState net_state(param.state());
   param_filtered->CopyFrom(param);
   param_filtered->clear_layer();
@@ -265,7 +268,7 @@ void Net<Dtype>::FilterNet(const NetParameter& param,
     const LayerParameter& layer_param = param.layer(i);
     const string& layer_name = layer_param.name();
     CHECK(layer_param.include_size() == 0 || layer_param.exclude_size() == 0)
-          << "Specify either include rules or exclude rules; not both.";
+        << "Specify either include rules or exclude rules; not both.";
     // If no include rules are specified, the layer is included by default and
     // only excluded if it meets one of the exclude rules.
     bool layer_included = (layer_param.include_size() == 0);
@@ -286,17 +289,17 @@ void Net<Dtype>::FilterNet(const NetParameter& param,
 }
 
 template <typename Dtype>
-bool Net<Dtype>::StateMeetsRule(const NetState& state,
-    const NetStateRule& rule, const string& layer_name) {
+bool Net<Dtype>::StateMeetsRule(const NetState& state, const NetStateRule& rule,
+                                const string& layer_name) {
   // Check whether the rule is broken due to phase.
   if (rule.has_phase()) {
-      if (rule.phase() != state.phase()) {
-        LOG_IF(INFO, Caffe::root_solver())
-            << "The NetState phase (" << state.phase()
-            << ") differed from the phase (" << rule.phase()
-            << ") specified by a rule in layer " << layer_name;
-        return false;
-      }
+    if (rule.phase() != state.phase()) {
+      LOG_IF(INFO, Caffe::root_solver())
+          << "The NetState phase (" << state.phase()
+          << ") differed from the phase (" << rule.phase()
+          << ") specified by a rule in layer " << layer_name;
+      return false;
+    }
   }
   // Check whether the rule is broken due to min level.
   if (rule.has_min_level()) {
@@ -324,7 +327,9 @@ bool Net<Dtype>::StateMeetsRule(const NetState& state,
     // Check that the NetState contains the rule's ith stage.
     bool has_stage = false;
     for (int j = 0; !has_stage && j < state.stage_size(); ++j) {
-      if (rule.stage(i) == state.stage(j)) { has_stage = true; }
+      if (rule.stage(i) == state.stage(j)) {
+        has_stage = true;
+      }
     }
     if (!has_stage) {
       LOG_IF(INFO, Caffe::root_solver())
@@ -339,7 +344,9 @@ bool Net<Dtype>::StateMeetsRule(const NetState& state,
     // Check that the NetState contains the rule's ith not_stage.
     bool has_stage = false;
     for (int j = 0; !has_stage && j < state.stage_size(); ++j) {
-      if (rule.not_stage(i) == state.stage(j)) { has_stage = true; }
+      if (rule.not_stage(i) == state.stage(j)) {
+        has_stage = true;
+      }
     }
     if (has_stage) {
       LOG_IF(INFO, Caffe::root_solver())
@@ -358,14 +365,15 @@ void Net<Dtype>::AppendTop(const NetParameter& param, const int layer_id,
                            map<string, int>* blob_name_to_idx) {
   shared_ptr<LayerParameter> layer_param(
       new LayerParameter(param.layer(layer_id)));
-  const string& blob_name = (layer_param->top_size() > top_id) ?
-      layer_param->top(top_id) : "(automatic)";
+  const string& blob_name = (layer_param->top_size() > top_id)
+                                ? layer_param->top(top_id)
+                                : "(automatic)";
   // Check if we are doing in-place computation
   if (blob_name_to_idx && layer_param->bottom_size() > top_id &&
       blob_name == layer_param->bottom(top_id)) {
     // In-place computation
-    LOG_IF(INFO, Caffe::root_solver())
-        << layer_param->name() << " -> " << blob_name << " (in-place)";
+    LOG_IF(INFO, Caffe::root_solver()) << layer_param->name() << " -> "
+                                       << blob_name << " (in-place)";
     top_vecs_[layer_id].push_back(blobs_[(*blob_name_to_idx)[blob_name]].get());
     top_id_vecs_[layer_id].push_back((*blob_name_to_idx)[blob_name]);
   } else if (blob_name_to_idx &&
@@ -384,18 +392,22 @@ void Net<Dtype>::AppendTop(const NetParameter& param, const int layer_id,
     blobs_.push_back(blob_pointer);
     blob_names_.push_back(blob_name);
     blob_need_backward_.push_back(false);
-    if (blob_name_to_idx) { (*blob_name_to_idx)[blob_name] = blob_id; }
+    if (blob_name_to_idx) {
+      (*blob_name_to_idx)[blob_name] = blob_id;
+    }
     top_id_vecs_[layer_id].push_back(blob_id);
     top_vecs_[layer_id].push_back(blob_pointer.get());
   }
-  if (available_blobs) { available_blobs->insert(blob_name); }
+  if (available_blobs) {
+    available_blobs->insert(blob_name);
+  }
 }
 
 // Helper for Net::Init: add a new bottom blob to the net.
 template <typename Dtype>
 int Net<Dtype>::AppendBottom(const NetParameter& param, const int layer_id,
-    const int bottom_id, set<string>* available_blobs,
-    map<string, int>* blob_name_to_idx) {
+                             const int bottom_id, set<string>* available_blobs,
+                             map<string, int>* blob_name_to_idx) {
   const LayerParameter& layer_param = param.layer(layer_id);
   const string& blob_name = layer_param.bottom(bottom_id);
   if (available_blobs->find(blob_name) == available_blobs->end()) {
@@ -403,8 +415,8 @@ int Net<Dtype>::AppendBottom(const NetParameter& param, const int layer_id,
                << layer_param.name() << "', bottom index " << bottom_id << ")";
   }
   const int blob_id = (*blob_name_to_idx)[blob_name];
-  LOG_IF(INFO, Caffe::root_solver())
-      << layer_names_[layer_id] << " <- " << blob_name;
+  LOG_IF(INFO, Caffe::root_solver()) << layer_names_[layer_id] << " <- "
+                                     << blob_name;
   bottom_vecs_[layer_id].push_back(blobs_[blob_id].get());
   bottom_id_vecs_[layer_id].push_back(blob_id);
   available_blobs->erase(blob_name);
@@ -436,10 +448,12 @@ void Net<Dtype>::AppendParam(const NetParameter& param, const int layer_id,
   param_id_vecs_[layer_id].push_back(net_param_id);
   param_layer_indices_.push_back(make_pair(layer_id, param_id));
   ParamSpec default_param_spec;
-  const ParamSpec* param_spec = (layer_param.param_size() > param_id) ?
-      &layer_param.param(param_id) : &default_param_spec;
-  if (!param_size || !param_name.size() || (param_name.size() &&
-      param_names_index_.find(param_name) == param_names_index_.end())) {
+  const ParamSpec* param_spec = (layer_param.param_size() > param_id)
+                                    ? &layer_param.param(param_id)
+                                    : &default_param_spec;
+  if (!param_size || !param_name.size() ||
+      (param_name.size() &&
+       param_names_index_.find(param_name) == param_names_index_.end())) {
     // This layer "owns" this parameter blob -- it is either anonymous
     // (i.e., not given a param_name) or explicitly given a name that we
     // haven't already seen.
@@ -462,8 +476,8 @@ void Net<Dtype>::AppendParam(const NetParameter& param, const int layer_id,
         param_layer_indices_[owner_net_param_id];
     const int owner_layer_id = owner_index.first;
     const int owner_param_id = owner_index.second;
-    LOG_IF(INFO, Caffe::root_solver()) << "Sharing parameters '" << param_name
-        << "' owned by "
+    LOG_IF(INFO, Caffe::root_solver())
+        << "Sharing parameters '" << param_name << "' owned by "
         << "layer '" << layer_names_[owner_layer_id] << "', param "
         << "index " << owner_param_id;
     Blob<Dtype>* this_blob = layers_[layer_id]->blobs()[param_id].get();
@@ -523,7 +537,9 @@ Dtype Net<Dtype>::ForwardFromTo(int start, int end) {
     }
     Dtype layer_loss = layers_[i]->Forward(bottom_vecs_[i], top_vecs_[i]);
     loss += layer_loss;
-    if (debug_info_) { ForwardDebugInfo(i); }
+    if (debug_info_) {
+      ForwardDebugInfo(i);
+    }
     for (int c = 0; c < after_forward_.size(); ++c) {
       after_forward_[c]->run(i);
     }
@@ -553,8 +569,9 @@ const vector<Blob<Dtype>*>& Net<Dtype>::Forward(Dtype* loss) {
 
 template <typename Dtype>
 const vector<Blob<Dtype>*>& Net<Dtype>::Forward(
-    const vector<Blob<Dtype>*> & bottom, Dtype* loss) {
-  LOG_EVERY_N(WARNING, 1000) << "DEPRECATED: Forward(bottom, loss) "
+    const vector<Blob<Dtype>*>& bottom, Dtype* loss) {
+  LOG_EVERY_N(WARNING, 1000)
+      << "DEPRECATED: Forward(bottom, loss) "
       << "will be removed in a future version. Use Forward(loss).";
   // Copy bottom to net bottoms
   for (int i = 0; i < bottom.size(); ++i) {
@@ -572,9 +589,11 @@ void Net<Dtype>::BackwardFromTo(int start, int end) {
       before_backward_[c]->run(i);
     }
     if (layer_need_backward_[i]) {
-      layers_[i]->Backward(
-          top_vecs_[i], bottom_need_backward_[i], bottom_vecs_[i]);
-      if (debug_info_) { BackwardDebugInfo(i); }
+      layers_[i]->Backward(top_vecs_[i], bottom_need_backward_[i],
+                           bottom_vecs_[i]);
+      if (debug_info_) {
+        BackwardDebugInfo(i);
+      }
     }
     for (int c = 0; c < after_backward_.size(); ++c) {
       after_backward_[c]->run(i);
@@ -588,11 +607,10 @@ void Net<Dtype>::ForwardDebugInfo(const int layer_id) {
     const Blob<Dtype>& blob = *top_vecs_[layer_id][top_id];
     const string& blob_name = blob_names_[top_id_vecs_[layer_id][top_id]];
     const Dtype data_abs_val_mean = blob.asum_data() / blob.count();
-    LOG_IF(INFO, Caffe::root_solver())
-        << "    [Forward] "
-        << "Layer " << layer_names_[layer_id]
-        << ", top blob " << blob_name
-        << " data: " << data_abs_val_mean;
+    LOG_IF(INFO, Caffe::root_solver()) << "    [Forward] "
+                                       << "Layer " << layer_names_[layer_id]
+                                       << ", top blob " << blob_name
+                                       << " data: " << data_abs_val_mean;
   }
   for (int param_id = 0; param_id < layers_[layer_id]->blobs().size();
        ++param_id) {
@@ -600,11 +618,10 @@ void Net<Dtype>::ForwardDebugInfo(const int layer_id) {
     const int net_param_id = param_id_vecs_[layer_id][param_id];
     const string& blob_name = param_display_names_[net_param_id];
     const Dtype data_abs_val_mean = blob.asum_data() / blob.count();
-    LOG_IF(INFO, Caffe::root_solver())
-        << "    [Forward] "
-        << "Layer " << layer_names_[layer_id]
-        << ", param blob " << blob_name
-        << " data: " << data_abs_val_mean;
+    LOG_IF(INFO, Caffe::root_solver()) << "    [Forward] "
+                                       << "Layer " << layer_names_[layer_id]
+                                       << ", param blob " << blob_name
+                                       << " data: " << data_abs_val_mean;
   }
 }
 
@@ -612,26 +629,28 @@ template <typename Dtype>
 void Net<Dtype>::BackwardDebugInfo(const int layer_id) {
   const vector<Blob<Dtype>*>& bottom_vec = bottom_vecs_[layer_id];
   for (int bottom_id = 0; bottom_id < bottom_vec.size(); ++bottom_id) {
-    if (!bottom_need_backward_[layer_id][bottom_id]) { continue; }
+    if (!bottom_need_backward_[layer_id][bottom_id]) {
+      continue;
+    }
     const Blob<Dtype>& blob = *bottom_vec[bottom_id];
     const string& blob_name = blob_names_[bottom_id_vecs_[layer_id][bottom_id]];
     const Dtype diff_abs_val_mean = blob.asum_diff() / blob.count();
-    LOG_IF(INFO, Caffe::root_solver())
-        << "    [Backward] "
-        << "Layer " << layer_names_[layer_id]
-        << ", bottom blob " << blob_name
-        << " diff: " << diff_abs_val_mean;
+    LOG_IF(INFO, Caffe::root_solver()) << "    [Backward] "
+                                       << "Layer " << layer_names_[layer_id]
+                                       << ", bottom blob " << blob_name
+                                       << " diff: " << diff_abs_val_mean;
   }
   for (int param_id = 0; param_id < layers_[layer_id]->blobs().size();
        ++param_id) {
-    if (!layers_[layer_id]->param_propagate_down(param_id)) { continue; }
+    if (!layers_[layer_id]->param_propagate_down(param_id)) {
+      continue;
+    }
     const Blob<Dtype>& blob = *layers_[layer_id]->blobs()[param_id];
     const Dtype diff_abs_val_mean = blob.asum_diff() / blob.count();
-    LOG_IF(INFO, Caffe::root_solver())
-        << "    [Backward] "
-        << "Layer " << layer_names_[layer_id]
-        << ", param blob " << param_id
-        << " diff: " << diff_abs_val_mean;
+    LOG_IF(INFO, Caffe::root_solver()) << "    [Backward] "
+                                       << "Layer " << layer_names_[layer_id]
+                                       << ", param blob " << param_id
+                                       << " diff: " << diff_abs_val_mean;
   }
 }
 
@@ -644,19 +663,17 @@ void Net<Dtype>::UpdateDebugInfo(const int param_id) {
   const Dtype diff_abs_val_mean = blob.asum_diff() / blob.count();
   if (param_owner < 0) {
     const Dtype data_abs_val_mean = blob.asum_data() / blob.count();
-    LOG_IF(INFO, Caffe::root_solver())
-        << "    [Update] Layer " << layer_name
-        << ", param " << param_display_name
-        << " data: " << data_abs_val_mean
-        << "; diff: " << diff_abs_val_mean;
+    LOG_IF(INFO, Caffe::root_solver()) << "    [Update] Layer " << layer_name
+                                       << ", param " << param_display_name
+                                       << " data: " << data_abs_val_mean
+                                       << "; diff: " << diff_abs_val_mean;
   } else {
     const string& owner_layer_name =
         layer_names_[param_layer_indices_[param_owner].first];
     LOG_IF(INFO, Caffe::root_solver())
-        << "    [Update] Layer " << layer_name
-        << ", param blob " << param_display_name
-        << " (owned by layer " << owner_layer_name << ", " << "param "
-        << param_display_names_[param_owners_[param_id]] << ")"
+        << "    [Update] Layer " << layer_name << ", param blob "
+        << param_display_name << " (owned by layer " << owner_layer_name << ", "
+        << "param " << param_display_names_[param_owners_[param_id]] << ")"
         << " diff: " << diff_abs_val_mean;
   }
 }
@@ -669,7 +686,7 @@ void Net<Dtype>::ShareTrainedLayersWith(const Net* other) {
     const string& source_layer_name = other->layer_names()[i];
     int target_layer_id = 0;
     while (target_layer_id != layer_names_.size() &&
-        layer_names_[target_layer_id] != source_layer_name) {
+           layer_names_[target_layer_id] != source_layer_name) {
       ++target_layer_id;
     }
     if (target_layer_id == layer_names_.size()) {
@@ -737,7 +754,7 @@ void Net<Dtype>::CopyTrainedLayersFrom(const NetParameter& param) {
     const string& source_layer_name = source_layer.name();
     int target_layer_id = 0;
     while (target_layer_id != layer_names_.size() &&
-        layer_names_[target_layer_id] != source_layer_name) {
+           layer_names_[target_layer_id] != source_layer_name) {
       ++target_layer_id;
     }
     if (target_layer_id == layer_names_.size()) {
@@ -754,7 +771,8 @@ void Net<Dtype>::CopyTrainedLayersFrom(const NetParameter& param) {
         Blob<Dtype> source_blob;
         const bool kReshape = true;
         source_blob.FromProto(source_layer.blobs(j), kReshape);
-        LOG(FATAL) << "Cannot copy param " << j << " weights from layer '"
+        LOG(FATAL)
+            << "Cannot copy param " << j << " weights from layer '"
             << source_layer_name << "'; shape mismatch.  Source param shape is "
             << source_blob.shape_string() << "; target param shape is "
             << target_blobs[j]->shape_string() << ". "
@@ -786,8 +804,8 @@ void Net<Dtype>::CopyTrainedLayersFromBinaryProto(
 
 template <typename Dtype>
 void Net<Dtype>::CopyTrainedLayersFromHDF5(const string trained_filename) {
-  hid_t file_hid = H5Fopen(trained_filename.c_str(), H5F_ACC_RDONLY,
-                           H5P_DEFAULT);
+  hid_t file_hid =
+      H5Fopen(trained_filename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
   CHECK_GE(file_hid, 0) << "Couldn't open " << trained_filename;
   hid_t data_hid = H5Gopen2(file_hid, "data", H5P_DEFAULT);
   CHECK_GE(data_hid, 0) << "Error reading weights from " << trained_filename;
@@ -802,10 +820,9 @@ void Net<Dtype>::CopyTrainedLayersFromHDF5(const string trained_filename) {
     DLOG(INFO) << "Copying source layer " << source_layer_name;
     vector<shared_ptr<Blob<Dtype> > >& target_blobs =
         layers_[target_layer_id]->blobs();
-    hid_t layer_hid = H5Gopen2(data_hid, source_layer_name.c_str(),
-        H5P_DEFAULT);
-    CHECK_GE(layer_hid, 0)
-        << "Error reading weights from " << trained_filename;
+    hid_t layer_hid =
+        H5Gopen2(data_hid, source_layer_name.c_str(), H5P_DEFAULT);
+    CHECK_GE(layer_hid, 0) << "Error reading weights from " << trained_filename;
     // Check that source layer doesn't have more params than target layer
     int num_source_params = hdf5_get_num_links(layer_hid);
     CHECK_LE(num_source_params, target_blobs.size())
@@ -822,11 +839,11 @@ void Net<Dtype>::CopyTrainedLayersFromHDF5(const string trained_filename) {
           continue;
         } else {
           LOG(FATAL) << "Incompatible number of blobs for layer "
-              << source_layer_name;
+                     << source_layer_name;
         }
       }
       hdf5_load_nd_dataset(layer_hid, dataset_name.c_str(), 0, kMaxBlobAxes,
-          target_blobs[j].get());
+                           target_blobs[j].get());
     }
     H5Gclose(layer_hid);
   }
@@ -848,32 +865,31 @@ void Net<Dtype>::ToProto(NetParameter* param, bool write_diff) const {
 
 template <typename Dtype>
 void Net<Dtype>::ToHDF5(const string& filename, bool write_diff) const {
-  hid_t file_hid = H5Fcreate(filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT,
-      H5P_DEFAULT);
-  CHECK_GE(file_hid, 0)
-      << "Couldn't open " << filename << " to save weights.";
-  hid_t data_hid = H5Gcreate2(file_hid, "data", H5P_DEFAULT, H5P_DEFAULT,
-      H5P_DEFAULT);
+  hid_t file_hid =
+      H5Fcreate(filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+  CHECK_GE(file_hid, 0) << "Couldn't open " << filename << " to save weights.";
+  hid_t data_hid =
+      H5Gcreate2(file_hid, "data", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
   CHECK_GE(data_hid, 0) << "Error saving weights to " << filename << ".";
   hid_t diff_hid = -1;
   if (write_diff) {
-    diff_hid = H5Gcreate2(file_hid, "diff", H5P_DEFAULT, H5P_DEFAULT,
-        H5P_DEFAULT);
+    diff_hid =
+        H5Gcreate2(file_hid, "diff", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     CHECK_GE(diff_hid, 0) << "Error saving weights to " << filename << ".";
   }
   for (int layer_id = 0; layer_id < layers_.size(); ++layer_id) {
     const LayerParameter& layer_param = layers_[layer_id]->layer_param();
     string layer_name = layer_param.name();
-    hid_t layer_data_hid = H5Gcreate2(data_hid, layer_name.c_str(),
-        H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    CHECK_GE(layer_data_hid, 0)
-        << "Error saving weights to " << filename << ".";
+    hid_t layer_data_hid = H5Gcreate2(data_hid, layer_name.c_str(), H5P_DEFAULT,
+                                      H5P_DEFAULT, H5P_DEFAULT);
+    CHECK_GE(layer_data_hid, 0) << "Error saving weights to " << filename
+                                << ".";
     hid_t layer_diff_hid = -1;
     if (write_diff) {
-      layer_diff_hid = H5Gcreate2(diff_hid, layer_name.c_str(),
-          H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-      CHECK_GE(layer_diff_hid, 0)
-          << "Error saving weights to " << filename << ".";
+      layer_diff_hid = H5Gcreate2(diff_hid, layer_name.c_str(), H5P_DEFAULT,
+                                  H5P_DEFAULT, H5P_DEFAULT);
+      CHECK_GE(layer_diff_hid, 0) << "Error saving weights to " << filename
+                                  << ".";
     }
     int num_params = layers_[layer_id]->blobs().size();
     for (int param_id = 0; param_id < num_params; ++param_id) {
@@ -883,12 +899,12 @@ void Net<Dtype>::ToHDF5(const string& filename, bool write_diff) const {
       if (param_owners_[net_param_id] == -1) {
         // Only save params that own themselves
         hdf5_save_nd_dataset<Dtype>(layer_data_hid, dataset_name.str(),
-            *params_[net_param_id]);
+                                    *params_[net_param_id]);
       }
       if (write_diff) {
         // Write diffs regardless of weight-sharing
         hdf5_save_nd_dataset<Dtype>(layer_diff_hid, dataset_name.str(),
-            *params_[net_param_id], true);
+                                    *params_[net_param_id], true);
       }
     }
     H5Gclose(layer_data_hid);
@@ -915,18 +931,18 @@ void Net<Dtype>::ClearParamDiffs() {
   for (int i = 0; i < learnable_params_.size(); ++i) {
     Blob<Dtype>* blob = learnable_params_[i];
     switch (Caffe::mode()) {
-    case Caffe::CPU:
-      caffe_set(blob->count(), static_cast<Dtype>(0),
-                blob->mutable_cpu_diff());
-      break;
-    case Caffe::GPU:
+      case Caffe::CPU:
+        caffe_set(blob->count(), static_cast<Dtype>(0),
+                  blob->mutable_cpu_diff());
+        break;
+      case Caffe::GPU:
 #ifdef USE_CUDA
-      caffe_gpu_set(blob->count(), static_cast<Dtype>(0),
-                    blob->mutable_gpu_diff());
+        caffe_gpu_set(blob->count(), static_cast<Dtype>(0),
+                      blob->mutable_gpu_diff());
 #else
-      NO_GPU;
+        NO_GPU;
 #endif
-      break;
+        break;
     }
   }
 }
@@ -934,7 +950,9 @@ void Net<Dtype>::ClearParamDiffs() {
 template <typename Dtype>
 void Net<Dtype>::ShareWeights() {
   for (int i = 0; i < params_.size(); ++i) {
-    if (param_owners_[i] < 0) { continue; }
+    if (param_owners_[i] < 0) {
+      continue;
+    }
     params_[i]->ShareData(*params_[param_owners_[i]]);
     params_[i]->ShareDiff(*params_[param_owners_[i]]);
   }

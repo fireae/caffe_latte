@@ -20,6 +20,7 @@
 #include "caffe/util/rng.hpp"
 
 #include "caffe/layers/roi_data_layer.hpp"
+#include "caffe/net_config.hpp"
 #include "caffe/util/frcnn_util.hpp"
 
 // caffe.proto > LayerParameter > RoiDataLayer
@@ -104,17 +105,13 @@ void RoiDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype> *> &bottom,
   }
 
   // image
-  vector<float> scales;
-  for (int i = 0; i < this->layer_param_.roi_data_param().train_scale_size();
-       i++) {
-    scales.push_back(this->layer_param_.roi_data_param().train_scale(i));
-  }
+  vector<float> scales = NetConfig::scales;
   max_short_ = *max_element(scales.begin(), scales.end());
   const int batch_size = 1;
 
   // data mean
   for (int i = 0; i < 3; i++) {
-    mean_values_[i] = this->layer_param_.roi_data_param().pixel_mean(i);
+    mean_values_[i] = NetConfig::pixel_means[i];
   }
 
   // data image Input ..
@@ -140,8 +137,7 @@ void RoiDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype> *> &bottom,
   }
 
   LOG(INFO) << "Shuffling data";
-  const unsigned int prefetch_rng_seed =
-      this->layer_param_.roi_data_param().rng_seed();
+  const unsigned int prefetch_rng_seed = NetConfig::rng_seed;
   prefetch_rng_.reset(new Caffe::RNG(prefetch_rng_seed));
   lines_id_ = 0;  // First Shuffle
   CHECK(prefetch_rng_);

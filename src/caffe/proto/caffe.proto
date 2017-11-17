@@ -87,12 +87,92 @@ message NetParameter {
   // Net::Backward, and Net::Update.
   optional bool debug_info = 7 [default = false];
 
+  optional NetConfigParameter net_config_param = 10;
+
   // The layers that make up the net.  Each of their configurations, including
   // connectivity and behavior, is specified as a LayerParameter.
   repeated LayerParameter layer = 100;  // ID 100 so layers are printed last.
 
   // DEPRECATED: use 'layer' instead.
   repeated V1LayerParameter layers = 2;
+}
+
+message NetConfigParameter {
+  // Faster RCNN Config 
+  //Max pixel size of the longest side of a scaled input image
+  optional uint32 max_size = 1 [default=1000];
+
+  //Images to use per minibatch
+  optional uint32 ims_per_batch = 2 [default = 2];
+
+  // Minibatch size (number of regions of interest [ROIs])
+  optional uint32 batch_size = 3 [default = 128];
+
+  //Fraction of minibatch that is labeled foreground (i.e. class > 0)
+  optional float fg_fraction = 4 [default = 0.25];
+
+  // Overlap threshold for a ROI to be considered foreground (if >= FG_THRESH)
+  optional float fg_thresh = 5 [default= 0.5];
+
+  // Overlap threshold for a ROI to be considered background (class = 0 if
+  // overlap in [LO, HI))
+  optional float bg_thresh_hi = 6 [default = 0.5];
+  optional float bg_thresh_lo = 7 [default = 0.1];
+
+  // Use horizontally-flipped images during training?
+  optional bool use_flipped = 8 [default = true];
+
+  // Train bounding-box regressors
+  optional bool bbox_reg = 9 [default = true];
+   
+  // Overlap required between a ROI and ground-truth box in order for that ROI to
+  // be used as a bounding-box regression training example
+  optional float bbox_thresh = 10 [default = 0.5];
+
+  // Normalize the targets (subtract empirical mean, divide by empirical stddev)
+  optional bool bbox_normalize_targets = 11 [default = true];
+
+  // Normalize the targets using "precomputed" (or made up) means and stdevs
+  // (BBOX_NORMALIZE_TARGETS must also be True)
+  optional bool bbox_normalize_targets_precomputed = 12 [default = false];
+
+  //# Make minibatches from images that have similar aspect ratios (i.e. both
+  //# tall and thin or both short and wide) in order to avoid wasting computation
+  //# on zero-padding.
+  optional bool aspect_grouping = 13 [default = true];
+
+
+  // # IOU >= thresh: positive example
+  optional float rpn_positive_overlap = 14 [default=0.7];
+  //# IOU < thresh: negative example
+  optional float rpn_negative_overlap = 15 [default = 0.3];
+
+  //# If an anchor statisfied by positive and negative conditions set to negative
+  optional bool rpn_clobber_positives = 16 [default = false];
+
+  //# Max number of foreground examples
+  optional float rpn_fg_fraction = 17 [default = 0.5];
+  //# Total number of examples
+  optional uint32 rpn_batchsize = 18 [default = 256];
+  // # NMS threshold used on RPN proposals
+  optional float rpn_nms_thresh = 19 [default = 0.7];
+  // # Number of top scoring boxes to keep before apply NMS to RPN proposals
+  optional uint32 rpn_pre_nms_top_n = 20 [default = 12000];
+  // # Number of top scoring boxes to keep after applying NMS to RPN proposals
+  optional uint32 rpn_post_nms_top_n = 21 [default = 2000]; 
+  // # Proposal height and width both need to be greater than RPN_MIN_SIZE (at orig image scale)
+  optional uint32 rpn_min_size = 22 [default = 16];
+  //# Give the positive RPN examples weight of p * 1 / {num positives}
+  // # and give negatives a weight of (1 - p)
+  //# Set to -1.0 to use uniform example weighting
+  optional float rpn_positive_weight = 23 [default = -1.0];
+  optional float rpn_allowed_border = 24 [default = 0.0];
+
+  repeated float bbox_normalize_mean = 25;
+  repeated float bbox_normalize_std = 26;
+  repeated float bbox_inside_weight = 27;
+
+
 }
 
 // NOTE

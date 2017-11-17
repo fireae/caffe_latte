@@ -380,57 +380,53 @@ void retrieve_rois_cpu(const int num_rois, const int item_index,
   }
 }
 
-template <>
-int transform_box<float>(float box[], const float dx, const float dy,
-                         const float d_log_w, const float d_log_h,
-                         const float img_W, const float img_H,
-                         const float min_box_W, const float min_box_H);
+template int transform_box<float>(float box[], const float dx, const float dy,
+                                  const float d_log_w, const float d_log_h,
+                                  const float img_W, const float img_H,
+                                  const float min_box_W, const float min_box_H);
 
-template <>
-void sort_box<float>(float list_cpu[], const int start, const int end,
-                     const int num_top);
+template void sort_box<float>(float list_cpu[], const int start, const int end,
+                              const int num_top);
 
 template void generate_anchors<float>(int base_size, const float ratios[],
                                       const float scales[],
                                       const int num_ratios,
                                       const int num_scales, float anchors[]);
 
-template <>
-void enumerate_proposals_cpu<float>(
+template void enumerate_proposals_cpu<float>(
     const float bottom4d[], const float d_anchor4d[], const float anchors[],
     float proposals[], const int num_anchors, const int bottom_H,
     const int bottom_W, const float img_H, const float img_W,
     const float min_box_H, const float min_box_W, const int feat_stride);
-template <>
-void retrieve_rois_cpu<float>(const int num_rois, const int item_index,
-                              const float proposals[], const int roi_indices[],
-                              float rois[], float roi_scores[]);
 
-template <>
-int transform_box<double>(double box[], const double dx, const double dy,
-                          const double d_log_w, const double d_log_h,
-                          const double img_W, const double img_H,
-                          const double min_box_W, const double min_box_H);
+template void retrieve_rois_cpu<float>(const int num_rois, const int item_index,
+                                       const float proposals[],
+                                       const int roi_indices[], float rois[],
+                                       float roi_scores[]);
 
-template <>
-void sort_box<double>(double list_cpu[], const int start, const int end,
-                      const int num_top);
+template int transform_box<double>(double box[], const double dx,
+                                   const double dy, const double d_log_w,
+                                   const double d_log_h, const double img_W,
+                                   const double img_H, const double min_box_W,
+                                   const double min_box_H);
+
+template void sort_box<double>(double list_cpu[], const int start,
+                               const int end, const int num_top);
 
 template void generate_anchors<double>(int base_size, const double ratios[],
                                        const double scales[],
                                        const int num_ratios,
                                        const int num_scales, double anchors[]);
 
-template <>
-void enumerate_proposals_cpu<double>(
+template void enumerate_proposals_cpu<double>(
     const double bottom4d[], const double d_anchor4d[], const double anchors[],
     double proposals[], const int num_anchors, const int bottom_H,
     const int bottom_W, const double img_H, const double img_W,
     const double min_box_H, const double min_box_W, const int feat_stride);
-template <>
-void retrieve_rois_cpu<double>(const int num_rois, const int item_index,
-                               const double proposals[],
-                               const int roi_indices[], double rois[],
-                               double roi_scores[]);
+template void retrieve_rois_cpu<double>(const int num_rois,
+                                        const int item_index,
+                                        const double proposals[],
+                                        const int roi_indices[], double rois[],
+                                        double roi_scores[]);
 
 }  // namespace caffe

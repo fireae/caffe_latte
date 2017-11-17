@@ -1,4 +1,5 @@
 #include "caffe/layers/anchor_target_layer.hpp"
+#include "caffe/net_config.hpp"
 #include "caffe/util/frcnn_util.hpp"
 #include "caffe/util/nms.hpp"
 
@@ -58,14 +59,6 @@ template <typename Dtype>
 void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
                                            const vector<Blob<Dtype>*>& top) {
   CHECK_EQ(bottom[0]->shape(0), 1) << "Only single item batches are supported";
-
-  FrcnnConfigParameter frcnn_config = this->layer_param_.frcnn_config_param();
-  bool train_rpn_clobber_positives = frcnn_config.train_rpn_clobber_positives();
-  float train_rpn_positive_overlap = frcnn_config.train_rpn_positive_overlap();
-  float train_rpn_negative_overlap = frcnn_config.train_rpn_negative_overlap();
-  float train_rpn_fg_fraction = frcnn_config.train_rpn_fg_fraction();
-  int train_rpn_batchsize = frcnn_config.train_rpn_batchsize();
-  float train_rpn_positive_weight = frcnn_config.train_rpn_positive_weight();
   // bottom[0] -> map of shape (..., H, W)
   // bottom[1] -> GT boxes (x1, y1, x2, y2, label)
   // bottom[2] -> im_info
@@ -74,7 +67,6 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   int num = bottom[0]->num();
 
   const Dtype* bottom_gt_boxes = bottom[1]->cpu_data();
-
   const Dtype* bottom_im_info = bottom[2]->cpu_data();
   const Dtype im_height = bottom_im_info[0];
   const Dtype im_width = bottom_im_info[1];
@@ -82,13 +74,13 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   vector<Point4f<Dtype>> gt_boxes;
   for (int i = 0; i < bottom[1]->num(); i++) {
     gt_boxes.push_back(
-        Point4f<Dtype>(bottom_gt_boxes[i * 4 + 0], bottom_gt_boxes[i * 4 + 1],
-                       bottom_gt_boxes[i * 4 + 2], bottom_gt_boxes[i * 4 + 3]));
+        Point4f<Dtype>(bottom_gt_boxes[i * 5 + 0], bottom_gt_boxes[i * 5 + 1],
+                       bottom_gt_boxes[i * 5 + 2], bottom_gt_boxes[i * 5 + 3]));
   }
 
   vector<int> inds_inside;
   vector<Point4f<Dtype>> anchors;
-  int border_ = 0;
+  int border_ = int(NetConfig::rpn_allowed_border);
   Dtype bounds[4] = {-border_, -border_, im_width + border_,
                      im_height + border_};
   const Dtype* anchors_data = anchors_.cpu_data();
@@ -110,7 +102,6 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   }
 
   //
-
   const int n_anchors = anchors.size();
 
   vector<int> labels(n_anchors, -1);
@@ -133,9 +124,9 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
     }
   }
 
-  if (train_rpn_clobber_positives == false) {
+  if (NetConfig::rpn_clobber_positives == false) {
     for (int i = 0; i < max_overlaps.size(); ++i) {
-      if (max_overlaps[i] < train_rpn_negative_overlap) {
+      if (max_overlaps[i] < NetConfig::rpn_negative_overlap) {
         labels[i] = 0;
       }
     }
@@ -145,7 +136,7 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   int debug_for_highest_over = 0;
   for (int j = 0; j < gt_max_overlaps.size(); ++j) {
     for (int i = 0; i < max_overlaps.size(); ++i) {
-      if (std::abs(gt_max_overlaps[j] - ious[i][j]) <= kEPS) {
+      if (std::abs(gt_max_overlaps[j] - ious[i][j]) <= NetConfig::eps) {
         labels[i] = 1;
         debug_for_highest_over++;
       }
@@ -154,21 +145,21 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 
   // fg label: above thresh IOU
   for (int i = 0; i < max_overlaps.size(); ++i) {
-    if (max_overlaps[i] >= train_rpn_positive_overlap) {
+    if (max_overlaps[i] >= NetConfig::rpn_positive_overlap) {
       labels[i] = 1;
     }
   }
 
-  if (train_rpn_clobber_positives) {
+  if (NetConfig::rpn_clobber_positives) {
     for (int i = 0; i < max_overlaps.size(); ++i) {
-      if (max_overlaps[i] < train_rpn_negative_overlap) {
+      if (max_overlaps[i] < NetConfig::rpn_negative_overlap) {
         labels[i] = 0;
       }
     }
   }
 
   // subsample fg labels if we have too many
-  int num_fg = float(train_rpn_fg_fraction) * train_rpn_batchsize;
+  int num_fg = float(NetConfig::rpn_fg_fraction) * NetConfig::rpn_batchsize;
   const int fg_inds_size = std::count(labels.begin(), labels.end(), 1);
   if (fg_inds_size > num_fg) {
     vector<int> fg_inds;
@@ -189,7 +180,7 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 
   // subsample negative labels if we have too many
   int num_bg =
-      train_rpn_batchsize - std::count(labels.begin(), labels.end(), 1);
+      NetConfig::rpn_batchsize - std::count(labels.begin(), labels.end(), 1);
   const int bg_inds_size = std::count(labels.begin(), labels.end(), 0);
   if (bg_inds_size > num_bg) {
     vector<int> bg_inds;
@@ -231,17 +222,17 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   }
 
   Dtype positive_weights, negative_weights;
-  if (train_rpn_positive_weight < 0) {
+  if (NetConfig::rpn_positive_weight < 0) {
     int num_examples =
         labels.size() - std::count(labels.begin(), labels.end(), -1);
     positive_weights = Dtype(1) / num_examples;
     negative_weights = Dtype(1) / num_examples;
   } else {
-    CHECK_LT(train_rpn_positive_weight, 1) << "ilegal rpn_positive_weight";
-    CHECK_GT(train_rpn_positive_weight, 0) << "ilegal rpn_positive_weight";
-    positive_weights = Dtype(train_rpn_positive_weight) /
+    CHECK_LT(NetConfig::rpn_positive_weight, 1) << "ilegal rpn_positive_weight";
+    CHECK_GT(NetConfig::rpn_positive_weight, 0) << "ilegal rpn_positive_weight";
+    positive_weights = Dtype(NetConfig::rpn_positive_weight) /
                        std::count(labels.begin(), labels.end(), 1);
-    negative_weights = Dtype(1 - train_rpn_positive_weight) /
+    negative_weights = Dtype(1 - NetConfig::rpn_positive_weight) /
                        std::count(labels.begin(), labels.end(), 0);
   }
 
