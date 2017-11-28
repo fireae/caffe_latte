@@ -1,4 +1,12 @@
 cmake_minimum_required(VERSION 2.8.7)
+if(MSVC)
+  # CMake 3.4 introduced a WINDOWS_EXPORT_ALL_SYMBOLS target property that makes it possible to
+  # build shared libraries without using the usual declspec() decoration.
+  # See: https://blog.kitware.com/create-dlls-on-windows-without-declspec-using-new-cmake-export-all-feature/
+  # and https://cmake.org/cmake/help/v3.5/prop_tgt/WINDOWS_EXPORT_ALL_SYMBOLS.html
+  # for details.
+  cmake_minimum_required(VERSION 3.4)
+endif()
 if(POLICY CMP0046)
   cmake_policy(SET CMP0046 NEW)
 endif()
@@ -32,7 +40,7 @@ caffe_option(USE_CUDA  "Build Caffe CUDA support" OFF) # TODO: rename to USE_CUD
 caffe_option(USE_CUDNN "Build Caffe with cuDNN library support" ON IF USE_CUDA)
 caffe_option(USE_NCCL "Build Caffe with NCCL library support" OFF)
 caffe_option(BUILD_SHARED_LIBS "Build shared libraries" ON)
-caffe_option(BUILD_python "Build Python wrapper" ON)
+caffe_option(BUILD_python "Build Python wrapper" OFF)
 set(python_version "2" CACHE STRING "Specify which Python version to use")
 caffe_option(BUILD_matlab "Build Matlab wrapper" OFF IF UNIX OR APPLE)
 caffe_option(BUILD_docs   "Build documentation" ON IF UNIX OR APPLE)
@@ -42,6 +50,32 @@ caffe_option(USE_LEVELDB "Build with levelDB" ON)
 caffe_option(USE_LMDB "Build with lmdb" ON)
 caffe_option(ALLOW_LMDB_NOLOCK "Allow MDB_NOLOCK when reading LMDB files (only if necessary)" OFF)
 caffe_option(USE_OPENMP "Link with OpenMP (when your BLAS wants OpenMP and you get linker errors)" OFF)
+caffe_option(protobuf_MODULE_COMPATIBLE "Make the protobuf-config.cmake compatible with the module mode" ON IF MSVC)
+caffe_option(COPY_PREREQUISITES "Copy the prerequisites next to each executable or shared library directory" ON IF MSVC)
+caffe_option(INSTALL_PREREQUISITES "Install the prerequisites next to each executable or shared library directory" ON IF MSVC)
+
+if(MSVC)
+  # default to static libs
+  caffe_option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
+else()
+  caffe_option(BUILD_SHARED_LIBS "Build shared libraries" ON)
+endif()
+
+if(MSVC AND BUILD_SHARED_LIBS)
+  if(CMAKE_GENERATOR MATCHES "Visual Studio")
+    # see issue https://gitlab.kitware.com/cmake/cmake/issues/16552#note_215236
+    message(FATAL_ERROR "The Visual Studio generator cannot build a shared library. Use the Ninja generator instead.")
+  endif()
+  # Some tests (solver tests) fail when caffe is built as a shared library. The problem comes
+  # from protobuf that has a global static empty_string_ variable. Since caffe and test.testbin
+  # link to a static protobuf library both end up with their own instance of the empty_string_
+  # variable. This causes some SEH exception to occur. In practice if the caffe executable does not link
+  # to protobuf this problem should not happen. Use at your own risk.
+  message(WARNING "Some tests (solvers) will fail when building as a shared library with MSVC")
+endif()
+
+# ---[ Prebuild dependencies on windows
+include(cmake/WindowsDownloadPrebuiltDependencies.cmake)
 
 # ---[ Dependencies
 include(cmake/Dependencies.cmake)
