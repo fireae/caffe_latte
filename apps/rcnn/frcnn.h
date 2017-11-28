@@ -22,11 +22,14 @@ struct FrcnnBox {
 
 class FasterRCNN {
  public:
-  FasterRCNN(int class_num = 5, float nms_thresh = 0.7)
-      : class_num_(class_num), nms_thresh_(nms_thresh) {}
+  FasterRCNN(int class_num = 5, float nms_thresh = 0.3,
+             float confidence_thresh = 0.8f)
+      : class_num_(class_num),
+        nms_thresh_(nms_thresh),
+        confidence_thresh_(confidence_thresh) {}
   bool Init(const std::string& model_file, const std::string& weights_file);
   void Detect(const cv::Mat& image, vector<FrcnnBox>& detect_boxes,
-              bool vis_result=false);
+              bool vis_result = false);
   void Detect(const string& image_name);
 
   void VisResult(cv::Mat& show_image, const vector<vector<float>>& pred_boxes,
@@ -36,5 +39,6 @@ class FasterRCNN {
   boost::shared_ptr<Net<float>> net_;
   int class_num_;
   float nms_thresh_;
+  float confidence_thresh_;
 };
 }

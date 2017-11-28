@@ -14,10 +14,10 @@ int main(int argc, char* argv[]) {
   ::google::InitGoogleLogging(argv[0]);
   cv::Mat image = cv::imread(argv[1]);
   string model_file =
-      "/home/wencc/Myplace/caffe_latte/apps/mtcnn_frcnn/model/"
+      "/home/wencc/Myplace/caffe_latte/apps/rcnn/model/"
       "vgg16_faster_rcnn_face.prototxt";
   string weights_file =
-      "/home/wencc/Myplace/caffe_latte/apps/mtcnn_frcnn/model/"
+      "/home/wencc/Myplace/caffe_latte/apps/rcnn/model/"
       "vgg16_faster_rcnn_face.caffemodel";
   // int GPUID = 0;
   // Caffe::SetDevice(GPUID);

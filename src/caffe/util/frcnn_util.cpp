@@ -23,18 +23,22 @@ void BBoxTransformInv(int box_count, const float* box_deltas,
       pred_width = width * std::exp(dw);
       pred_height = height * std::exp(dh);
 
-      pred[(cls * box_count + n) * 5 + 0] = std::max(
-          std::min(float(pred_center_x - 0.5 * pred_width), float(image_width - 1)),
-          0.0f);
-      pred[(cls * box_count + n) * 5 + 1] = std::max(
-          std::min(float(pred_center_y - 0.5 * pred_height), float(image_height - 1)),
-          0.0f);
-      pred[(cls * box_count + n) * 5 + 2] = std::max(
-          std::min(float(pred_center_x + 0.5 * pred_width), float(image_width - 1)),
-          0.0f);
-      pred[(cls * box_count + n) * 5 + 3] = std::max(
-          std::min(float(pred_center_y + 0.5 * pred_height), float(image_height - 1)),
-          0.0f);
+      pred[(cls * box_count + n) * 5 + 0] =
+          std::max(std::min(float(pred_center_x - 0.5 * pred_width),
+                            float(image_width - 1)),
+                   0.0f);
+      pred[(cls * box_count + n) * 5 + 1] =
+          std::max(std::min(float(pred_center_y - 0.5 * pred_height),
+                            float(image_height - 1)),
+                   0.0f);
+      pred[(cls * box_count + n) * 5 + 2] =
+          std::max(std::min(float(pred_center_x + 0.5 * pred_width),
+                            float(image_width - 1)),
+                   0.0f);
+      pred[(cls * box_count + n) * 5 + 3] =
+          std::max(std::min(float(pred_center_y + 0.5 * pred_height),
+                            float(image_height - 1)),
+                   0.0f);
       pred[(cls * box_count + n) * 5 + 4] = pred_cls[n * class_num + cls];
     }
   }
@@ -51,12 +55,12 @@ void ApplyNMS(vector<vector<float>>& pred_boxes, vector<float>& confidence,
 
       float x1 = std::max(pred_boxes[i][0], pred_boxes[j][0]);
       float y1 = std::max(pred_boxes[i][1], pred_boxes[j][1]);
-      float x2 = std::max(pred_boxes[i][2], pred_boxes[j][2]);
-      float y2 = std::max(pred_boxes[i][3], pred_boxes[j][3]);
-      float width = x2 - x1;
-      float height = y2 - y1;
+      float x2 = std::min(pred_boxes[i][2], pred_boxes[j][2]);
+      float y2 = std::min(pred_boxes[i][3], pred_boxes[j][3]);
+      float width = std::max(0.0f, x2 - x1);
+      float height = std::max(0.0f, y2 - y1);
       if (width > 0 && height > 0) {
-        float IOU = (width * height) / (s1 + s2 - width * height);
+        float IOU = 1.0 * ((width * height)) / (s1 + s2 - width * height);
         if (IOU > nms_thresh) {
           if (confidence[i] >= confidence[j]) {
             pred_boxes.erase(pred_boxes.begin() + j);
