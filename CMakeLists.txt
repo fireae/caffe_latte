@@ -21,7 +21,6 @@ project(Caffe C CXX)
 set(CAFFE_TARGET_VERSION "1.0.0" CACHE STRING "Caffe logical version")
 set(CAFFE_TARGET_SOVERSION "1.0.0" CACHE STRING "Caffe soname version")
 add_definitions(-DCAFFE_VERSION=${CAFFE_TARGET_VERSION})
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 # ---[ Using cmake scripts and modules
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/Modules)
@@ -34,19 +33,20 @@ include(cmake/Targets.cmake)
 include(cmake/Misc.cmake)
 include(cmake/Summary.cmake)
 include(cmake/ConfigGen.cmake)
+include(cmake/WindowsCreateLinkHeader.cmake)
+include(cmake/TargetResolvePrerequesites.cmake)
 
 # ---[ Options
-caffe_option(USE_CUDA  "Build Caffe CUDA support" OFF) # TODO: rename to USE_CUDA
+caffe_option(USE_CUDA  "Build Caffe without CUDA support" OFF) 
 caffe_option(USE_CUDNN "Build Caffe with cuDNN library support" ON IF USE_CUDA)
 caffe_option(USE_NCCL "Build Caffe with NCCL library support" OFF)
-caffe_option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 caffe_option(BUILD_python "Build Python wrapper" OFF)
 set(python_version "2" CACHE STRING "Specify which Python version to use")
-caffe_option(BUILD_matlab "Build Matlab wrapper" OFF IF UNIX OR APPLE)
-caffe_option(BUILD_docs   "Build documentation" ON IF UNIX OR APPLE)
+caffe_option(BUILD_matlab "Build Matlab wrapper" OFF)
+caffe_option(BUILD_docs   "Build documentation" OFF IF UNIX OR APPLE)
 caffe_option(BUILD_python_layer "Build the Caffe Python layer" ON)
-caffe_option(USE_OPENCV "Build with OpenCV support" ON)
-caffe_option(USE_LEVELDB "Build with levelDB" ON)
+caffe_option(USE_OPENCV "Build with OpenCV support" OFF)
+caffe_option(USE_LEVELDB "Build with levelDB" OFF)
 caffe_option(USE_LMDB "Build with lmdb" ON)
 caffe_option(ALLOW_LMDB_NOLOCK "Allow MDB_NOLOCK when reading LMDB files (only if necessary)" OFF)
 caffe_option(USE_OPENMP "Link with OpenMP (when your BLAS wants OpenMP and you get linker errors)" OFF)
@@ -60,7 +60,6 @@ if(MSVC)
 else()
   caffe_option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 endif()
-
 if(MSVC AND BUILD_SHARED_LIBS)
   if(CMAKE_GENERATOR MATCHES "Visual Studio")
     # see issue https://gitlab.kitware.com/cmake/cmake/issues/16552#note_215236
@@ -122,21 +121,32 @@ if(HAVE_CUDA)
 endif()
 
 # ---[ Subdirectories
-add_subdirectory(src/gtest)
-add_subdirectory(src/caffe)
-add_subdirectory(tools)
-add_subdirectory(examples)
+add_subdirectory(src)
 add_subdirectory(apps)
+
+if(BUILD_TOOLS)
+ add_subdirectory(tools)
+endif()
+
+if(BUILD_EXAMPLES)
+ add_subdirectory(examples)
+endif()
+
+if(BUILD_python)
 add_subdirectory(python)
-add_subdirectory(matlab)
-add_subdirectory(docs)
+endif()
 
 # ---[ Linter target
-add_custom_target(lint COMMAND ${CMAKE_COMMAND} -P ${PROJECT_SOURCE_DIR}/cmake/lint.cmake)
+add_custom_target(lint COMMAND ${CMAKE_COMMAND} -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE} -P ${PROJECT_SOURCE_DIR}/cmake/lint.cmake)
 
 # ---[ pytest target
 if(BUILD_python)
-  add_custom_target(pytest COMMAND python${python_version} -m unittest discover -s caffe/test WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/python )
+  if(UNIX)
+    set(python_executable python${python_version})
+  else()
+    set(python_executable ${PYTHON_EXECUTABLE})
+  endif()
+  add_custom_target(pytest COMMAND ${python_executable} -m unittest discover -s caffe/test WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/python )
   add_dependencies(pytest pycaffe)
 endif()
 
