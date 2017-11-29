@@ -101,6 +101,8 @@ if(NOT HAVE_CUDA)
       message(WARNING "-- CUDA is not detected by cmake. Building without it...")
     endif()
   endif()
+else()
+  list(APPEND Caffe_DEFINITIONS PUBLIC -DUSE_CUDA)
 endif()
 
 if(USE_NCCL)

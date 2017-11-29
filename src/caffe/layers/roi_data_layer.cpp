@@ -389,10 +389,6 @@ void RoiDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype> *> &bottom,
   this->prefetch_free_.push(batch);
 }
 
-#ifndef USE_CUDA
-STUB_GPU_FORWARD(RoiDataLayer, Forward);
-#endif
-
 INSTANTIATE_CLASS(RoiDataLayer);
 REGISTER_LAYER_CLASS(RoiData);
 

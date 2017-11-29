@@ -117,8 +117,8 @@ function(caffe_pickup_caffe_sources root)
   # convert to absolute paths
   caffe_convert_absolute_paths(srcs)
   caffe_convert_absolute_paths(cuda)
-  caffe_convert_absolute_paths(test_srcs)
-  caffe_convert_absolute_paths(test_cuda)
+  #caffe_convert_absolute_paths(test_srcs)
+  #caffe_convert_absolute_paths(test_cuda)
 
   # propagate to parent scope
   set(srcs ${srcs} PARENT_SCOPE)

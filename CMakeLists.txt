@@ -79,6 +79,7 @@ include(cmake/WindowsDownloadPrebuiltDependencies.cmake)
 # ---[ Dependencies
 include(cmake/Dependencies.cmake)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fpermissive")
 # ---[ Flags
 if(UNIX OR APPLE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -Wall")
@@ -101,6 +102,7 @@ configure_file(cmake/Templates/caffe_config.h.in "${PROJECT_BINARY_DIR}/caffe_co
 set(Caffe_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 set(Caffe_SRC_DIR ${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_BINARY_DIR})
+include_directories(${Caffe_INCLUDE_DIR} ${Caffe_SRC_DIR})
 
 # ---[ Includes & defines for CUDA
 

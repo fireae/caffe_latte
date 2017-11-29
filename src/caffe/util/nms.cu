@@ -1,4 +1,5 @@
 #include "caffe/util/nms.hpp"
+#include "caffe/util/device_alternate.hpp"
 
 #define DIV_THEN_CEIL(x, y)  (((x) + (y) - 1) / (y))
 
