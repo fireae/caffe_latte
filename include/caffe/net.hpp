@@ -24,8 +24,8 @@ template <typename Dtype>
 class Net {
  public:
   explicit Net(const NetParameter& param);
-  explicit Net(const string& param_file, Phase phase,
-      const int level = 0, const vector<string>* stages = NULL);
+  explicit Net(const string& param_file, Phase phase, const int level = 0,
+               const vector<string>* stages = NULL);
   virtual ~Net() {}
 
   /// @brief Initialize a network with a NetParameter.
@@ -38,7 +38,8 @@ class Net {
   const vector<Blob<Dtype>*>& Forward(Dtype* loss = NULL);
   /// @brief DEPRECATED; use Forward() instead.
   const vector<Blob<Dtype>*>& ForwardPrefilled(Dtype* loss = NULL) {
-    LOG_EVERY_N(WARNING, 1000) << "DEPRECATED: ForwardPrefilled() "
+    LOG_EVERY_N(WARNING, 1000)
+        << "DEPRECATED: ForwardPrefilled() "
         << "will be removed in a future version. Use Forward().";
     return Forward(loss);
   }
@@ -55,8 +56,8 @@ class Net {
   Dtype ForwardFrom(int start);
   Dtype ForwardTo(int end);
   /// @brief DEPRECATED; set input blobs then use Forward() instead.
-  const vector<Blob<Dtype>*>& Forward(const vector<Blob<Dtype>* > & bottom,
-      Dtype* loss = NULL);
+  const vector<Blob<Dtype>*>& Forward(const vector<Blob<Dtype>*>& bottom,
+                                      Dtype* loss = NULL);
 
   /**
    * @brief Zeroes out the diffs of all net parameters.
@@ -150,13 +151,13 @@ class Net {
     return top_vecs_;
   }
   /// @brief returns the ids of the top blobs of layer i
-  inline const vector<int> & top_ids(int i) const {
+  inline const vector<int>& top_ids(int i) const {
     CHECK_GE(i, 0) << "Invalid layer id";
     CHECK_LT(i, top_id_vecs_.size()) << "Invalid layer id";
     return top_id_vecs_[i];
   }
   /// @brief returns the ids of the bottom blobs of layer i
-  inline const vector<int> & bottom_ids(int i) const {
+  inline const vector<int>& bottom_ids(int i) const {
     CHECK_GE(i, 0) << "Invalid layer id";
     CHECK_LT(i, bottom_id_vecs_.size()) << "Invalid layer id";
     return bottom_id_vecs_[i];
@@ -214,18 +215,25 @@ class Net {
   bool has_layer(const string& layer_name) const;
   const shared_ptr<Layer<Dtype> > layer_by_name(const string& layer_name) const;
 
+  int layer_index_by_name(const string& name) {
+    int idx = -1;
+    if (has_layer(name)) idx = layer_names_index_[name];
+    return idx;
+  }
+
   void set_debug_info(const bool value) { debug_info_ = value; }
 
   // Helpers for Init.
   /**
-   * @brief Remove layers that the user specified should be excluded given the current
+   * @brief Remove layers that the user specified should be excluded given the
+   * current
    *        phase, level, and stage.
    */
   static void FilterNet(const NetParameter& param,
-      NetParameter* param_filtered);
+                        NetParameter* param_filtered);
   /// @brief return whether NetState state meets NetStateRule rule
   static bool StateMeetsRule(const NetState& state, const NetStateRule& rule,
-      const string& layer_name);
+                             const string& layer_name);
 
   // Invoked at specific points during an iteration
   class Callback {
@@ -236,21 +244,15 @@ class Net {
     friend class Net;
   };
   const vector<Callback*>& before_forward() const { return before_forward_; }
-  void add_before_forward(Callback* value) {
-    before_forward_.push_back(value);
-  }
+  void add_before_forward(Callback* value) { before_forward_.push_back(value); }
   const vector<Callback*>& after_forward() const { return after_forward_; }
-  void add_after_forward(Callback* value) {
-    after_forward_.push_back(value);
-  }
+  void add_after_forward(Callback* value) { after_forward_.push_back(value); }
   const vector<Callback*>& before_backward() const { return before_backward_; }
   void add_before_backward(Callback* value) {
     before_backward_.push_back(value);
   }
   const vector<Callback*>& after_backward() const { return after_backward_; }
-  void add_after_backward(Callback* value) {
-    after_backward_.push_back(value);
-  }
+  void add_after_backward(Callback* value) { after_backward_.push_back(value); }
 
  protected:
   // Helpers for Init.
@@ -336,9 +338,8 @@ class Net {
   vector<Callback*> before_backward_;
   vector<Callback*> after_backward_;
 
-DISABLE_COPY_AND_ASSIGN(Net);
+  DISABLE_COPY_AND_ASSIGN(Net);
 };
-
 
 }  // namespace caffe
 
