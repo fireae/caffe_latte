@@ -502,8 +502,8 @@ message LayerParameter {
 
   optional ProposalTargetParameter proposal_target_param = 156;
   optional ROIDataParameter roi_data_param = 157;
-
   optional CTCDecoderParameter ctc_decoder_param = 158;
+  optional CTCLossParameter ctc_loss_param = 159;
 
   optional ReverseParameter reverse_param = 160;
   optional ReverseTimeParameter reverse_time_param = 161;
@@ -513,6 +513,35 @@ message LayerParameter {
   optional TransposeParameter transpose_param=8266710;
   optional LSTMParameter lstm_param = 8266711;
 }
+
+message CTCLossParameter {
+  // Adds delayed output to the CTC loss calculation (untested!)
+  optional int32 output_delay = 1 [default = 0];
+
+  // The index of the blank index in the labels. A negative (default)
+  // value will use the last index
+  optional int32 blank_index = 2 [default = 0];
+
+  // Collapse repeating labels of the target sequence before calculating
+  // the loss and the gradients (e.g. collapse [01102] to [0102])
+  // The default behaviour is to keep repeated labels. Elsewise the
+  // network will not learn to predict repetitions.
+  optional bool preprocess_collapse_repeated = 3 [default = false];
+
+  // Collapse the repeated labels during the ctc calculation
+  // e.g collapse [0bbb11bb11bb0b2] to [01102] instead of [0111102],
+  // where b means blank label.
+  // The default behaviour is to merge repeated labels.
+  // Note: blank labels will be removed in any case.
+  optional bool ctc_merge_repeated = 4 [default = true];
+
+  /// This parameter is for test cases only!
+  /// The time for which to calculate the loss (see Graves Eq. (7.27) )
+  /// Note that the result must be the same for each 0 <= t < T
+  /// Therefore you can chose an arbitrary value, default 0
+  optional int32 loss_calculation_t = 5 [default = 0];
+}
+
 
 message ReverseParameter {
   // axis controls the data axis which shall be inverted.
