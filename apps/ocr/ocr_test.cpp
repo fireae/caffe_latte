@@ -51,7 +51,9 @@ void test_ocr_chinese(const string& imgfile, const string& model_folder) {
   vector<int> shape;
   vector<float> pred = pCNN->GetOutputFeatureMap(img, shape);
   for (int i = 0; i < pred.size(); i++) {
-    LOG(INFO) << pred[i] << " ";
+    if (pred[i] >= 0) {
+      LOG(INFO) << alphabets[pred[i]];
+    }
   }
   int end = clock();
   sumspend += (end - start);
