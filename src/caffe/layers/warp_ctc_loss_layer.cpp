@@ -250,7 +250,7 @@ void WarpCTCLossLayer<Dtype>::ExtractInputData(const Blob<Dtype>* seq_ind_blob,
   }
 }
 
-#ifdef CPU_ONLY
+#ifndef USE_CUDA
 STUB_GPU(WarpCTCLossLayer);
 #endif
 

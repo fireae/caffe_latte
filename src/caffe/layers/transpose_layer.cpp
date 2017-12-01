@@ -105,7 +105,7 @@ void TransposeLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
         bottom[0]->shape().size());
 }
 
-#ifdef CPU_ONLY
+#ifndef USE_CUDA
 STUB_GPU(TransposeLayer);
 #endif
 

@@ -24,7 +24,7 @@ int main(int argc,char **argv)
   //detector.Detect(image,faceInfo,minSize,threshold,factor);
   vector<FaceInfo> total_bboxes;
   detector.Detect(image2, total_bboxes);
-  #ifdef CPU_ONLY
+  #ifndef USE_CUDA
   std::cout<<" Time Using CPU: " << (clock() - t1)*1.0/1000<<std::endl;
   #else
   std::cout<<" Time Using GPU-CUDNN: " << (clock() - t1)*1.0/1000<<std::endl;

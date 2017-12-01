@@ -141,7 +141,7 @@ int main(int argc, char **argv) {
   detector.Detect(images, faceinfos);
 
   detector.Detect(image2, faceInfo);
-#ifdef CPU_ONLY
+#ifndef USE_CUDA
   std::cout << " Time Using CPU: " << (clock() - t1) * 1.0 / 1000 << std::endl;
 #else
   std::cout << " Time Using GPU-CUDNN: " << (clock() - t1) * 1.0 / 1000

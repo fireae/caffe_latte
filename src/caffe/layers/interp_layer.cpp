@@ -80,7 +80,7 @@ void InterpLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
     top[0]->cpu_diff(), 0, 0, height_out_, width_out_, height_out_, width_out_);
 }
 
-#ifndef CPU_ONLY
+#ifdef USE_CUDA
 template <typename Dtype>
 void InterpLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
@@ -100,7 +100,7 @@ void InterpLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 }
 #endif
 
-#ifdef CPU_ONLY
+#ifndef USE_CUDA
 STUB_GPU(InterpLayer);
 #endif
 

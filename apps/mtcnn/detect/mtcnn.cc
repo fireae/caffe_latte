@@ -1,7 +1,7 @@
 #include "mtcnn.h"
 
 MTCNN::MTCNN(const std::string& proto_model_dir) {
-#ifdef CPU_ONLY
+#ifndef USE_CUDA
   Caffe::set_mode(Caffe::CPU);
 #else
   Caffe::set_mode(Caffe::GPU);
@@ -20,7 +20,7 @@ MTCNN::MTCNN(const std::string& proto_model_dir) {
       << "Network should have exactly two output, one"
          " is bbox and another is confidence.";
 
-#ifdef CPU_ONLY
+#ifndef USE_CUDA
   RNet_.reset(new Net<float>((proto_model_dir + "/det2.prototxt"), TEST));
 #else
   RNet_.reset(new Net<float>((proto_model_dir + "/det2_input.prototxt"), TEST));
@@ -33,7 +33,7 @@ MTCNN::MTCNN(const std::string& proto_model_dir) {
 //  one"
 //                                     " is bbox and another is confidence.";
 
-#ifdef CPU_ONLY
+#ifndef USE_CUDA
   ONet_.reset(new Net<float>((proto_model_dir + "/det3.prototxt"), TEST));
 #else
   ONet_.reset(new Net<float>((proto_model_dir + "/det3_input.prototxt"), TEST));

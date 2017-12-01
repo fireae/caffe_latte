@@ -490,7 +490,7 @@ message LayerParameter {
   optional CropParameter crop_param = 144;
   optional ParameterParameter parameter_param = 145;
   optional RecurrentParameter recurrent_param = 146;
-
+  optional DenseBlockParameter denseblock_param = 147;
 
   // 150 - 159
   optional ROIPoolingParameter roi_pooling_param = 150;
@@ -509,9 +509,14 @@ message LayerParameter {
   optional ReverseTimeParameter reverse_time_param = 161;
   
   optional InterpParameter interp_param = 162;
+  optional ShuffleChannelParameter shuffle_channel_param = 164;
   
   optional TransposeParameter transpose_param=8266710;
   optional LSTMParameter lstm_param = 8266711;
+}
+
+message ShuffleChannelParameter {
+  optional uint32 group = 1[default = 1]; // The number of group
 }
 
 message CTCLossParameter {
@@ -1155,6 +1160,36 @@ message ImageDataParameter {
   
   //regression
   optional bool regression = 14 [default = false];
+}
+
+
+message DenseBlockParameter {
+  //if you don't use BC, BN-ReLU-Conv3 is one transition
+  //if you use BC, then BN-ReLU-Conv1-BN-ReLU-Conv3 is one transition
+  optional int32 numTransition = 1 [default = 40];
+  optional int32 initChannel = 2 [default = 16];
+  optional int32 growthRate = 3 [default = 12];
+  //Convolution related parameters
+  optional int32 pad_h = 4 [default = 1];
+  optional int32 pad_w = 5 [default = 1];
+  optional int32 conv_verticalStride = 6 [default = 1];
+  optional int32 conv_horizentalStride = 7 [default = 1];
+  optional int32 filter_H = 8 [default = 3];
+  optional int32 filter_W = 9 [default = 3];
+  optional FillerParameter Filter_Filler = 10;
+  //BN related parameters
+  optional FillerParameter BN_Scaler_Filler = 11;
+  optional FillerParameter BN_Bias_Filler = 12;
+  //Performance Related parameters
+  optional int32 gpuIdx = 15 [default = 0];
+  //Dropout related parameter
+  optional bool use_dropout = 16 [default = false];
+  optional float dropout_amount = 17 [default = 0];
+  optional bool use_BC = 18 [default = false];
+  //If it is not ultra space efficient, then it stores output data of conv1
+  optional bool BC_ultra_space_efficient = 19 [default = false];
+  optional int32 workspace_MB = 20 [default = 8];
+  optional float moving_average_fraction = 21 [default = 0.1];
 }
 
 message InfogainLossParameter {
