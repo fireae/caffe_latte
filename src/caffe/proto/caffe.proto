@@ -33,7 +33,7 @@ message Datum {
   optional int32 width = 3;
   // the actual image data, in bytes
   optional bytes data = 4;
-  optional int32 label = 5;
+  repeated int32 label = 5;
   // Optionally, the datum could also hold float data.
   repeated float float_data = 6;
   // If true data contains an encoded image that need to be decoded
@@ -502,8 +502,8 @@ message LayerParameter {
 
   optional ProposalTargetParameter proposal_target_param = 156;
   optional ROIDataParameter roi_data_param = 157;
-
   optional CTCDecoderParameter ctc_decoder_param = 158;
+  optional CTCLossParameter ctc_loss_param = 159;
 
   optional ReverseParameter reverse_param = 160;
   optional ReverseTimeParameter reverse_time_param = 161;
@@ -513,6 +513,35 @@ message LayerParameter {
   optional TransposeParameter transpose_param=8266710;
   optional LSTMParameter lstm_param = 8266711;
 }
+
+message CTCLossParameter {
+  // Adds delayed output to the CTC loss calculation (untested!)
+  optional int32 output_delay = 1 [default = 0];
+
+  // The index of the blank index in the labels. A negative (default)
+  // value will use the last index
+  optional int32 blank_index = 2 [default = 0];
+
+  // Collapse repeating labels of the target sequence before calculating
+  // the loss and the gradients (e.g. collapse [01102] to [0102])
+  // The default behaviour is to keep repeated labels. Elsewise the
+  // network will not learn to predict repetitions.
+  optional bool preprocess_collapse_repeated = 3 [default = false];
+
+  // Collapse the repeated labels during the ctc calculation
+  // e.g collapse [0bbb11bb11bb0b2] to [01102] instead of [0111102],
+  // where b means blank label.
+  // The default behaviour is to merge repeated labels.
+  // Note: blank labels will be removed in any case.
+  optional bool ctc_merge_repeated = 4 [default = true];
+
+  /// This parameter is for test cases only!
+  /// The time for which to calculate the loss (see Graves Eq. (7.27) )
+  /// Note that the result must be the same for each 0 <= t < T
+  /// Therefore you can chose an arbitrary value, default 0
+  optional int32 loss_calculation_t = 5 [default = 0];
+}
+
 
 message ReverseParameter {
   // axis controls the data axis which shall be inverted.
@@ -725,6 +754,17 @@ message TransformationParameter {
   optional bool force_color = 6 [default = false];
   // Force the decoded image to have 1 color channels.
   optional bool force_gray = 7 [default = false];
+  // add noise when train
+  optional bool add_noise = 8 [default = false];
+  // noise ratio
+  optional float noise_ratio = 9;
+
+  // If we want to do data augmentation, Scaling factor for randomly scaling input images
+  repeated float scale_factors = 10;
+  // the width for cropped region
+  optional uint32 crop_width = 11 [default = 0];
+  // the height for cropped region
+  optional uint32 crop_height = 12 [default = 0];
 }
 
 // Message that stores parameters shared by loss layers
@@ -818,6 +858,7 @@ message BatchNormParameter {
   // Small value to add to the variance estimate so that we don't divide by
   // zero.
   optional float eps = 3 [default = 1e-5];
+  optional bool update_global_stats = 4 [default = false];
 }
 
 message BiasParameter {
@@ -967,6 +1008,7 @@ message DataParameter {
   // Prefetch queue (Increase if data feeding bandwidth varies, within the
   // limit of device memory for GPU training)
   optional uint32 prefetch = 10 [default = 4];
+  optional uint32 task_class_num = 11 [default = 1];
 }
 
 message DropoutParameter {
@@ -1107,6 +1149,12 @@ message ImageDataParameter {
   // data.
   optional bool mirror = 6 [default = false];
   optional string root_folder = 12 [default = ""];
+  
+  //multi task
+  optional uint32 task_class_num = 13 [default = 1];
+  
+  //regression
+  optional bool regression = 14 [default = false];
 }
 
 message InfogainLossParameter {
@@ -1174,6 +1222,7 @@ message MemoryDataParameter {
   optional uint32 channels = 2;
   optional uint32 height = 3;
   optional uint32 width = 4;
+  optional uint32 label_size = 5;
 }
 
 message MVNParameter {

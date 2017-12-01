@@ -43,6 +43,8 @@ caffe_option(USE_NCCL "Build Caffe with NCCL library support" OFF)
 caffe_option(BUILD_python "Build Python wrapper" OFF)
 set(python_version "2" CACHE STRING "Specify which Python version to use")
 caffe_option(BUILD_matlab "Build Matlab wrapper" OFF)
+caffe_option(BUILD_tools  "Build tools" ON)
+caffe_option(BUILD_examples  "Build examples" ON)
 caffe_option(BUILD_docs   "Build documentation" OFF IF UNIX OR APPLE)
 caffe_option(BUILD_python_layer "Build the Caffe Python layer" ON)
 caffe_option(USE_OPENCV "Build with OpenCV support" OFF)
@@ -53,7 +55,7 @@ caffe_option(USE_OPENMP "Link with OpenMP (when your BLAS wants OpenMP and you g
 caffe_option(protobuf_MODULE_COMPATIBLE "Make the protobuf-config.cmake compatible with the module mode" ON IF MSVC)
 caffe_option(COPY_PREREQUISITES "Copy the prerequisites next to each executable or shared library directory" ON IF MSVC)
 caffe_option(INSTALL_PREREQUISITES "Install the prerequisites next to each executable or shared library directory" ON IF MSVC)
-
+caffe_option(USE_WARP_CTC "Build Caffe with Warp_ctc" ON)
 if(MSVC)
   # default to static libs
   caffe_option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
@@ -104,8 +106,12 @@ set(Caffe_SRC_DIR ${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_BINARY_DIR})
 include_directories(${Caffe_INCLUDE_DIR} ${Caffe_SRC_DIR})
 
-# ---[ Includes & defines for CUDA
+if(USE_WARP_CTC)
+include_directories(${PROJECT_SOURCE_DIR}/3rdparty/warp-ctc/include)
+#list(APPEND Caffe_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/3rdparty/warp-ctc/include)
+endif()
 
+# ---[ Includes & defines for CUDA
 # cuda_compile() does not have per-call dependencies or include pathes
 # (cuda_compile() has per-call flags, but we set them here too for clarity)
 #
@@ -125,17 +131,17 @@ endif()
 # ---[ Subdirectories
 add_subdirectory(src)
 add_subdirectory(apps)
-
-if(BUILD_TOOLS)
- add_subdirectory(tools)
+add_subdirectory(3rdparty/warp-ctc)
+if(BUILD_tools)
+  add_subdirectory(tools)
 endif()
 
-if(BUILD_EXAMPLES)
- add_subdirectory(examples)
+if(BUILD_examples)
+  add_subdirectory(examples)
 endif()
 
 if(BUILD_python)
-add_subdirectory(python)
+  add_subdirectory(python)
 endif()
 
 # ---[ Linter target

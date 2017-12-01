@@ -37,7 +37,7 @@ void read_image(std::ifstream* file, int* label, char* buffer) {
 }
 
 void convert_dataset(const string& input_folder, const string& output_folder,
-    const string& db_type) {
+                     const string& db_type) {
   scoped_ptr<db::DB> train_db(db::GetDB(db_type));
   train_db->Open(output_folder + "/cifar10_train_" + db_type, db::NEW);
   scoped_ptr<db::Transaction> txn(train_db->NewTransaction());
@@ -53,14 +53,14 @@ void convert_dataset(const string& input_folder, const string& output_folder,
   for (int fileid = 0; fileid < kCIFARTrainBatches; ++fileid) {
     // Open files
     LOG(INFO) << "Training Batch " << fileid + 1;
-    string batchFileName = input_folder + "/data_batch_"
-      + caffe::format_int(fileid+1) + ".bin";
+    string batchFileName =
+        input_folder + "/data_batch_" + caffe::format_int(fileid + 1) + ".bin";
     std::ifstream data_file(batchFileName.c_str(),
-        std::ios::in | std::ios::binary);
+                            std::ios::in | std::ios::binary);
     CHECK(data_file) << "Unable to open train file #" << fileid + 1;
     for (int itemid = 0; itemid < kCIFARBatchSize; ++itemid) {
       read_image(&data_file, &label, str_buffer);
-      datum.set_label(label);
+      datum.set_label(0, label);
       datum.set_data(str_buffer, kCIFARImageNBytes);
       string out;
       CHECK(datum.SerializeToString(&out));
@@ -76,11 +76,11 @@ void convert_dataset(const string& input_folder, const string& output_folder,
   txn.reset(test_db->NewTransaction());
   // Open files
   std::ifstream data_file((input_folder + "/test_batch.bin").c_str(),
-      std::ios::in | std::ios::binary);
+                          std::ios::in | std::ios::binary);
   CHECK(data_file) << "Unable to open test file.";
   for (int itemid = 0; itemid < kCIFARBatchSize; ++itemid) {
     read_image(&data_file, &label, str_buffer);
-    datum.set_label(label);
+    datum.set_label(0, label);
     datum.set_data(str_buffer, kCIFARImageNBytes);
     string out;
     CHECK(datum.SerializeToString(&out));
@@ -94,14 +94,15 @@ int main(int argc, char** argv) {
   FLAGS_alsologtostderr = 1;
 
   if (argc != 4) {
-    printf("This script converts the CIFAR dataset to the leveldb format used\n"
-           "by caffe to perform classification.\n"
-           "Usage:\n"
-           "    convert_cifar_data input_folder output_folder db_type\n"
-           "Where the input folder should contain the binary batch files.\n"
-           "The CIFAR dataset could be downloaded at\n"
-           "    http://www.cs.toronto.edu/~kriz/cifar.html\n"
-           "You should gunzip them after downloading.\n");
+    printf(
+        "This script converts the CIFAR dataset to the leveldb format used\n"
+        "by caffe to perform classification.\n"
+        "Usage:\n"
+        "    convert_cifar_data input_folder output_folder db_type\n"
+        "Where the input folder should contain the binary batch files.\n"
+        "The CIFAR dataset could be downloaded at\n"
+        "    http://www.cs.toronto.edu/~kriz/cifar.html\n"
+        "You should gunzip them after downloading.\n");
   } else {
     google::InitGoogleLogging(argv[0]);
     convert_dataset(string(argv[1]), string(argv[2]), string(argv[3]));
