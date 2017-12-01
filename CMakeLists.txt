@@ -131,7 +131,7 @@ endif()
 # ---[ Subdirectories
 add_subdirectory(src)
 add_subdirectory(apps)
-add_subdirectory(3rdparty/warp-ctc)
+add_subdirectory(3rdparty/warp_ctc)
 if(BUILD_tools)
   add_subdirectory(tools)
 endif()
