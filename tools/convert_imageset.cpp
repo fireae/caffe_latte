@@ -29,18 +29,20 @@ using std::pair;
 using boost::scoped_ptr;
 
 DEFINE_bool(gray, false,
-    "When this option is on, treat images as grayscale ones");
+            "When this option is on, treat images as grayscale ones");
 DEFINE_bool(shuffle, false,
-    "Randomly shuffle the order of images and their labels");
+            "Randomly shuffle the order of images and their labels");
 DEFINE_string(backend, "lmdb",
-        "The backend {lmdb, leveldb} for storing the result");
+              "The backend {lmdb, leveldb} for storing the result");
 DEFINE_int32(resize_width, 0, "Width images are resized to");
 DEFINE_int32(resize_height, 0, "Height images are resized to");
-DEFINE_bool(check_size, false,
+DEFINE_bool(
+    check_size, false,
     "When this option is on, check that all the datum have the same size");
 DEFINE_bool(encoded, false,
-    "When this option is on, the encoded image will be save in datum");
-DEFINE_string(encode_type, "",
+            "When this option is on, the encoded image will be save in datum");
+DEFINE_string(
+    encode_type, "",
     "Optional: What type should we encode the image as ('png','jpg',...).");
 
 int main(int argc, char** argv) {
@@ -53,12 +55,13 @@ int main(int argc, char** argv) {
   namespace gflags = google;
 #endif
 
-  gflags::SetUsageMessage("Convert a set of images to the leveldb/lmdb\n"
-        "format used as input for Caffe.\n"
-        "Usage:\n"
-        "    convert_imageset [FLAGS] ROOTFOLDER/ LISTFILE DB_NAME\n"
-        "The ImageNet dataset for the training demo is at\n"
-        "    http://www.image-net.org/download-images\n");
+  gflags::SetUsageMessage(
+      "Convert a set of images to the leveldb/lmdb\n"
+      "format used as input for Caffe.\n"
+      "Usage:\n"
+      "    convert_imageset [FLAGS] ROOTFOLDER/ LISTFILE DB_NAME\n"
+      "The ImageNet dataset for the training demo is at\n"
+      "    http://www.image-net.org/download-images\n");
   gflags::ParseCommandLineFlags(&argc, &argv, true);
 
   if (argc < 4) {
@@ -72,15 +75,26 @@ int main(int argc, char** argv) {
   const string encode_type = FLAGS_encode_type;
 
   std::ifstream infile(argv[2]);
-  std::vector<std::pair<std::string, int> > lines;
-  std::string line;
-  size_t pos;
+  std::vector<std::pair<std::string, vector<int> > > lines;
+  std::string filename;
   int label;
-  while (std::getline(infile, line)) {
-    pos = line.find_last_of(' ');
-    label = atoi(line.substr(pos + 1).c_str());
-    lines.push_back(std::make_pair(line.substr(0, pos), label));
+  string line;
+
+  while (getline(infile, line)) {
+    size_t postfixpos = line.rfind(".");
+    if (postfixpos == string::npos) {
+      LOG(INFO) << "wrong format:" << line;
+      continue;
+    }
+    size_t firstblank = line.find(' ', postfixpos + 1);
+    filename = line.substr(0, firstblank);
+    string strlabels = line.substr(firstblank + 1);
+    std::istringstream iss(strlabels);
+    vector<int> labels;
+    while (iss >> label) labels.push_back(label);
+    lines.push_back(std::make_pair(filename, labels));
   }
+
   if (FLAGS_shuffle) {
     // randomly shuffle data
     LOG(INFO) << "Shuffling data";
@@ -113,14 +127,14 @@ int main(int argc, char** argv) {
       // Guess the encoding type from the file name
       string fn = lines[line_id].first;
       size_t p = fn.rfind('.');
-      if ( p == fn.npos )
+      if (p == fn.npos)
         LOG(WARNING) << "Failed to guess the encoding of '" << fn << "'";
       enc = fn.substr(p);
       std::transform(enc.begin(), enc.end(), enc.begin(), ::tolower);
     }
     status = ReadImageToDatum(root_folder + lines[line_id].first,
-        lines[line_id].second, resize_height, resize_width, is_color,
-        enc, &datum);
+                              lines[line_id].second, resize_height,
+                              resize_width, is_color, enc, &datum);
     if (status == false) continue;
     if (check_size) {
       if (!data_size_initialized) {
@@ -129,7 +143,7 @@ int main(int argc, char** argv) {
       } else {
         const std::string& data = datum.data();
         CHECK_EQ(data.size(), data_size) << "Incorrect data field size "
-            << data.size();
+                                         << data.size();
       }
     }
     // sequential

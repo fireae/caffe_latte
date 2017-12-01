@@ -33,7 +33,7 @@ message Datum {
   optional int32 width = 3;
   // the actual image data, in bytes
   optional bytes data = 4;
-  optional int32 label = 5;
+  repeated int32 label = 5;
   // Optionally, the datum could also hold float data.
   repeated float float_data = 6;
   // If true data contains an encoded image that need to be decoded
@@ -754,6 +754,17 @@ message TransformationParameter {
   optional bool force_color = 6 [default = false];
   // Force the decoded image to have 1 color channels.
   optional bool force_gray = 7 [default = false];
+  // add noise when train
+  optional bool add_noise = 8 [default = false];
+  // noise ratio
+  optional float noise_ratio = 9;
+
+  // If we want to do data augmentation, Scaling factor for randomly scaling input images
+  repeated float scale_factors = 10;
+  // the width for cropped region
+  optional uint32 crop_width = 11 [default = 0];
+  // the height for cropped region
+  optional uint32 crop_height = 12 [default = 0];
 }
 
 // Message that stores parameters shared by loss layers
@@ -847,6 +858,7 @@ message BatchNormParameter {
   // Small value to add to the variance estimate so that we don't divide by
   // zero.
   optional float eps = 3 [default = 1e-5];
+  optional bool update_global_stats = 4 [default = false];
 }
 
 message BiasParameter {
@@ -996,6 +1008,7 @@ message DataParameter {
   // Prefetch queue (Increase if data feeding bandwidth varies, within the
   // limit of device memory for GPU training)
   optional uint32 prefetch = 10 [default = 4];
+  optional uint32 task_class_num = 11 [default = 1];
 }
 
 message DropoutParameter {
@@ -1136,6 +1149,12 @@ message ImageDataParameter {
   // data.
   optional bool mirror = 6 [default = false];
   optional string root_folder = 12 [default = ""];
+  
+  //multi task
+  optional uint32 task_class_num = 13 [default = 1];
+  
+  //regression
+  optional bool regression = 14 [default = false];
 }
 
 message InfogainLossParameter {
@@ -1203,6 +1222,7 @@ message MemoryDataParameter {
   optional uint32 channels = 2;
   optional uint32 height = 3;
   optional uint32 width = 4;
+  optional uint32 label_size = 5;
 }
 
 message MVNParameter {
