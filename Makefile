@@ -172,7 +172,7 @@ endif
 CUDA_LIB_DIR += $(CUDA_DIR)/lib
 
 INCLUDE_DIRS += $(BUILD_INCLUDE_DIR) ./src ./include
-ifneq ($(USE_CUDA), 0)
+ifneq ($(USE_CUDA), 1)
 	INCLUDE_DIRS += $(CUDA_INCLUDE_DIR)
 	LIBRARY_DIRS += $(CUDA_LIB_DIR)
 	LIBRARIES := cudart cublas curand
@@ -349,7 +349,7 @@ endif
 endif
 
 # CPU-only configuration
-ifeq ($(USE_CUDA), 0)
+ifeq ($(USE_CUDA), 1)
 	OBJS := $(PROTO_OBJS) $(CXX_OBJS)
 	TEST_OBJS := $(TEST_CXX_OBJS)
 	TEST_BINS := $(TEST_CXX_BINS)

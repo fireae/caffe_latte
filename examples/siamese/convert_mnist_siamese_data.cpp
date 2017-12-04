@@ -93,9 +93,9 @@ void convert_dataset(const char* image_filename, const char* label_filename,
         pixels + (rows * cols), &label_j);
     datum.set_data(pixels, 2*rows*cols);
     if (label_i  == label_j) {
-      datum.set_label(1);
+      datum.set_label(0, 1);
     } else {
-      datum.set_label(0);
+      datum.set_label(0, 0);
     }
     datum.SerializeToString(&value);
     std::string key_str = caffe::format_int(itemid, 8);
