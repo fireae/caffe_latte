@@ -24,7 +24,7 @@ if(MSVC AND NOT BUILD_SHARED_LIBS)
   set(_caffe_static_compile_def -DCAFFE_BUILDING_STATIC_LIB)
 endif()
 
-if(HAVE_CUDA)
+if(USE_CUDA)
   # collect any compile definitions from imported targets. This important so that
   # preprocessor macros such as GLOG_NO_ABBREVIATED_SEVERITIES are defined.
   # this is required since CUDA macros do not honor the INTERFACE_COMPILE_DEFINITIONS
