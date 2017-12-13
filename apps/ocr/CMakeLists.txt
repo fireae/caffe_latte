@@ -2,7 +2,7 @@ set(name ocr)
 file(GLOB source_file ${PROJECT_SOURCE_DIR}/apps/${name}/*.cpp)
 
 add_executable(${name} ${source_file})
-target_link_libraries(${name} ${Caffe_LINK} opencv_videoio opencv_video)
+target_link_libraries(${name} ${Caffe_LINK})
 caffe_default_properties(${name})
 
 # set back RUNTIME_OUTPUT_DIRECTORY
