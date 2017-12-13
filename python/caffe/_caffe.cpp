@@ -53,15 +53,15 @@ void set_mode_gpu() { Caffe::set_mode(Caffe::GPU); }
 
 void InitLog() {
   ::caffe::InitLogging("");
-  ::google::InstallFailureSignalHandler();
+  //::google::InstallFailureSignalHandler();
 }
 void InitLogLevel(int level) {
-  FLAGS_minloglevel = level;
+  //FLAGS_minloglevel = level;
   InitLog();
 }
 void InitLogLevelPipe(int level, bool stderr) {
-  FLAGS_minloglevel = level;
-  FLAGS_logtostderr = stderr;
+  //FLAGS_minloglevel = level;
+  //FLAGS_logtostderr = stderr;
   InitLog();
 }
 void Log(const string& s) {
