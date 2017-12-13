@@ -52,7 +52,7 @@ void set_mode_cpu() { Caffe::set_mode(Caffe::CPU); }
 void set_mode_gpu() { Caffe::set_mode(Caffe::GPU); }
 
 void InitLog() {
-  ::google::InitGoogleLogging("");
+  ::caffe::InitLogging("");
   ::google::InstallFailureSignalHandler();
 }
 void InitLogLevel(int level) {

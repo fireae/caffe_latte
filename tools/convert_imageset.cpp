@@ -15,8 +15,8 @@
 #include <vector>
 
 #include "boost/scoped_ptr.hpp"
-#include "gflags/gflags.h"
-#include "glog/logging.h"
+#include "caffe/flags.hpp"
+#include "caffe/logging.hpp"
 
 #include "caffe/proto/caffe.pb.h"
 #include "caffe/util/db.hpp"
@@ -28,44 +28,44 @@ using namespace caffe;  // NOLINT(build/namespaces)
 using std::pair;
 using boost::scoped_ptr;
 
-DEFINE_bool(gray, false,
+CAFFE_DEFINE_bool(gray, false,
             "When this option is on, treat images as grayscale ones");
-DEFINE_bool(shuffle, false,
+CAFFE_DEFINE_bool(shuffle, false,
             "Randomly shuffle the order of images and their labels");
-DEFINE_string(backend, "lmdb",
+CAFFE_DEFINE_string(backend, "lmdb",
               "The backend {lmdb, leveldb} for storing the result");
-DEFINE_int32(resize_width, 0, "Width images are resized to");
-DEFINE_int32(resize_height, 0, "Height images are resized to");
-DEFINE_bool(
+CAFFE_DEFINE_int32(resize_width, 0, "Width images are resized to");
+CAFFE_DEFINE_int32(resize_height, 0, "Height images are resized to");
+CAFFE_DEFINE_bool(
     check_size, false,
     "When this option is on, check that all the datum have the same size");
-DEFINE_bool(encoded, false,
+CAFFE_DEFINE_bool(encoded, false,
             "When this option is on, the encoded image will be save in datum");
-DEFINE_string(
+CAFFE_DEFINE_string(
     encode_type, "",
     "Optional: What type should we encode the image as ('png','jpg',...).");
 
 int main(int argc, char** argv) {
 #ifdef USE_OPENCV
-  ::google::InitGoogleLogging(argv[0]);
+  //::caffe::InitLogging(argv[0]);
   // Print output to stderr (while still logging)
-  FLAGS_alsologtostderr = 1;
+  //FLAGS_alsologtostderr = 1;
 
 #ifndef GFLAGS_GFLAGS_H_
-  namespace gflags = google;
+  //namespace gflags = google;
 #endif
 
-  gflags::SetUsageMessage(
+  caffe::SetUsageMessage(
       "Convert a set of images to the leveldb/lmdb\n"
       "format used as input for Caffe.\n"
       "Usage:\n"
       "    convert_imageset [FLAGS] ROOTFOLDER/ LISTFILE DB_NAME\n"
       "The ImageNet dataset for the training demo is at\n"
       "    http://www.image-net.org/download-images\n");
-  gflags::ParseCommandLineFlags(&argc, &argv, true);
+  caffe::ParseCommandLineFlags(&argc, &argv);
 
   if (argc < 4) {
-    gflags::ShowUsageWithFlagsRestrict(argv[0], "tools/convert_imageset");
+    caffe::ShowUsageWithFlagsRestrict(argv[0], "tools/convert_imageset");
     return 1;
   }
 

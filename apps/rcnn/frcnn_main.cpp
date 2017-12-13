@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include "caffe/caffe.hpp"
-#include "glog/logging.h"
+#include "caffe/logging.hpp"
 #include "opencv2/core.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
@@ -11,7 +11,7 @@ using namespace std;
 using namespace frcnn;
 using namespace caffe;
 int main(int argc, char* argv[]) {
-  ::google::InitGoogleLogging(argv[0]);
+  //::caffe::InitLogging(argv[0]);
   cv::Mat image = cv::imread(argv[1]);
   string model_file =
       "/home/wencc/Myplace/caffe_latte/apps/rcnn/model/"

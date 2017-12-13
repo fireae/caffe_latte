@@ -3,8 +3,8 @@
 namespace bp = boost::python;
 #endif
 
-#include <gflags/gflags.h>
-#include <glog/logging.h>
+#include <caffe/flags.hpp>
+#include <caffe/logging.hpp>
 
 #include <cstring>
 #include <map>
@@ -25,33 +25,34 @@ using caffe::string;
 using caffe::Timer;
 using caffe::vector;
 using std::ostringstream;
+using namespace caffe;  // NOLINT(build/namespaces)
 
-DEFINE_string(gpu, "",
+CAFFE_DEFINE_string(gpu, "",
     "Optional; run in GPU mode on given device IDs separated by ','."
     "Use '-gpu all' to run on all available GPUs. The effective training "
     "batch size is multiplied by the number of devices.");
-DEFINE_string(solver, "",
+CAFFE_DEFINE_string(solver, "",
     "The solver definition protocol buffer text file.");
-DEFINE_string(model, "",
+CAFFE_DEFINE_string(model, "",
     "The model definition protocol buffer text file.");
-DEFINE_string(phase, "",
+CAFFE_DEFINE_string(phase, "",
     "Optional; network phase (TRAIN or TEST). Only used for 'time'.");
-DEFINE_int32(level, 0,
+CAFFE_DEFINE_int32(level, 0,
     "Optional; network level.");
-DEFINE_string(stage, "",
+CAFFE_DEFINE_string(stage, "",
     "Optional; network stages (not to be confused with phase), "
     "separated by ','.");
-DEFINE_string(snapshot, "",
+CAFFE_DEFINE_string(snapshot, "",
     "Optional; the snapshot solver state to resume training.");
-DEFINE_string(weights, "",
+CAFFE_DEFINE_string(weights, "",
     "Optional; the pretrained weights to initialize finetuning, "
     "separated by ','. Cannot be set simultaneously with snapshot.");
-DEFINE_int32(iterations, 50,
+CAFFE_DEFINE_int32(iterations, 50,
     "The number of iterations to run.");
-DEFINE_string(sigint_effect, "stop",
+CAFFE_DEFINE_string(sigint_effect, "stop",
              "Optional; action to take when a SIGINT signal is received: "
               "snapshot, stop or none.");
-DEFINE_string(sighup_effect, "snapshot",
+CAFFE_DEFINE_string(sighup_effect, "snapshot",
              "Optional; action to take when a SIGHUP signal is received: "
              "snapshot, stop or none.");
 
@@ -428,11 +429,11 @@ RegisterBrewFunction(time);
 
 int main(int argc, char** argv) {
   // Print output to stderr (while still logging).
-  FLAGS_alsologtostderr = 1;
+  //FLAGS_alsologtostderr = 1;
   // Set version
-  gflags::SetVersionString(AS_STRING(CAFFE_VERSION));
+  //gflags::SetVersionString(AS_STRING(CAFFE_VERSION));
   // Usage message.
-  gflags::SetUsageMessage("command line brew\n"
+  caffe::SetUsageMessage("command line brew\n"
       "usage: caffe <command> <args>\n\n"
       "commands:\n"
       "  train           train or finetune a model\n"
@@ -440,7 +441,8 @@ int main(int argc, char** argv) {
       "  device_query    show GPU diagnostic information\n"
       "  time            benchmark model execution time");
   // Run tool or show usage.
-  caffe::GlobalInit(&argc, &argv);
+  //caffe::GlobalInit(&argc, &argv);
+  caffe::ParseCommandLineFlags(&argc, &argv);
   if (argc == 2) {
 #ifdef WITH_PYTHON_LAYER
     try {
@@ -453,6 +455,6 @@ int main(int argc, char** argv) {
     }
 #endif
   } else {
-    gflags::ShowUsageWithFlagsRestrict(argv[0], "tools/caffe");
+    caffe::ShowUsageWithFlagsRestrict(argv[0], "tools/caffe");
   }
 }

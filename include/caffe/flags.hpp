@@ -32,7 +32,7 @@ bool ShowUsageWithFlagsRestrict(const char* str, const char* str2);
  * commandline args that caffe2 does not deal with. Note that following
  * convention, argv[0] contains the binary name and is not parsed.
  */
-bool ParseCaffeCommandLineFlags(int* pargc, char*** pargv);
+bool ParseCommandLineFlags(int* pargc, char*** pargv);
 /**
  * Checks if the commandline flags has already been passed.
  */

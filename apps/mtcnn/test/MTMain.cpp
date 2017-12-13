@@ -8,7 +8,7 @@ int main(int argc,char **argv)
     std::cout << "MTMain.bin [model dir] [imagePath]"<<std::endl;
     return 0;
   }
-  ::google::InitGoogleLogging(argv[0]);
+  ::caffe::InitLogging(argv[0]);
   double threshold[3] = {0.6,0.7,0.7};
   double factor = 0.709;
   int minSize = 40;

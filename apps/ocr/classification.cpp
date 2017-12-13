@@ -6,7 +6,7 @@
 
 //#include "cblas.h"
 
-#include "glog/logging.h"
+#include "caffe/logging.hpp"
 
 /*
 For Windows

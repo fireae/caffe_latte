@@ -10,7 +10,7 @@
 #include <string>
 
 #include "boost/scoped_ptr.hpp"
-#include "glog/logging.h"
+#include "caffe/logging.hpp"
 #include "google/protobuf/text_format.h"
 #include "stdint.h"
 
@@ -91,7 +91,7 @@ void convert_dataset(const string& input_folder, const string& output_folder,
 }
 
 int main(int argc, char** argv) {
-  FLAGS_alsologtostderr = 1;
+  //FLAGS_alsologtostderr = 1;
 
   if (argc != 4) {
     printf(
@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
         "    http://www.cs.toronto.edu/~kriz/cifar.html\n"
         "You should gunzip them after downloading.\n");
   } else {
-    google::InitGoogleLogging(argv[0]);
+    caffe::InitLogging(argv[0]);
     convert_dataset(string(argv[1]), string(argv[2]), string(argv[3]));
   }
   return 0;

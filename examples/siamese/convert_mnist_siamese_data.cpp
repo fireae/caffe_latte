@@ -8,7 +8,7 @@
 #include <fstream>  // NOLINT(readability/streams)
 #include <string>
 
-#include "glog/logging.h"
+#include "caffe/logging.hpp"
 #include "google/protobuf/text_format.h"
 #include "stdint.h"
 
@@ -117,7 +117,7 @@ int main(int argc, char** argv) {
            "    http://yann.lecun.com/exdb/mnist/\n"
            "You should gunzip them after downloading.\n");
   } else {
-    google::InitGoogleLogging(argv[0]);
+    caffe::InitLogging(argv[0]);
     convert_dataset(argv[1], argv[2], argv[3]);
   }
   return 0;

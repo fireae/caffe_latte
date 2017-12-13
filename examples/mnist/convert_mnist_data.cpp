@@ -6,9 +6,9 @@
 // The MNIST dataset could be downloaded at
 //    http://yann.lecun.com/exdb/mnist/
 
-#include <gflags/gflags.h>
-#include <glog/logging.h>
 #include <google/protobuf/text_format.h>
+#include <caffe/flags.hpp>
+#include <caffe/logging.hpp>
 
 #if defined(USE_LEVELDB) && defined(USE_LMDB)
 #include <leveldb/db.h>
@@ -36,12 +36,12 @@ using std::string;
 DEFINE_string(backend, "lmdb", "The backend for storing the result");
 
 uint32_t swap_endian(uint32_t val) {
-    val = ((val << 8) & 0xFF00FF00) | ((val >> 8) & 0xFF00FF);
-    return (val << 16) | (val >> 16);
+  val = ((val << 8) & 0xFF00FF00) | ((val >> 8) & 0xFF00FF);
+  return (val << 16) | (val >> 16);
 }
 
 void convert_dataset(const char* image_filename, const char* label_filename,
-        const char* db_path, const string& db_backend) {
+                     const char* db_path, const string& db_backend) {
   // Open files
   std::ifstream image_file(image_filename, std::ios::in | std::ios::binary);
   std::ifstream label_file(label_filename, std::ios::in | std::ios::binary);
@@ -70,7 +70,6 @@ void convert_dataset(const char* image_filename, const char* label_filename,
   image_file.read(reinterpret_cast<char*>(&cols), 4);
   cols = swap_endian(cols);
 
-
   scoped_ptr<db::DB> db(db::GetDB(db_backend));
   db->Open(db_path, db::NEW);
   scoped_ptr<db::Transaction> txn(db->NewTransaction());
@@ -90,7 +89,7 @@ void convert_dataset(const char* image_filename, const char* label_filename,
   for (int item_id = 0; item_id < num_items; ++item_id) {
     image_file.read(pixels, rows * cols);
     label_file.read(&label, 1);
-    datum.set_data(pixels, rows*cols);
+    datum.set_data(pixels, rows * cols);
     datum.set_label(0, label);
     string key_str = caffe::format_int(item_id, 8);
     datum.SerializeToString(&value);
@@ -103,7 +102,7 @@ void convert_dataset(const char* image_filename, const char* label_filename,
   }
   // write the last batch
   if (count % 1000 != 0) {
-      txn->Commit();
+    txn->Commit();
   }
   LOG(INFO) << "Processed " << count << " files.";
   delete[] pixels;
@@ -115,33 +114,34 @@ int main(int argc, char** argv) {
   namespace gflags = google;
 #endif
 
-  FLAGS_alsologtostderr = 1;
+  //FLAGS_alsologtostderr = 1;
 
-  gflags::SetUsageMessage("This script converts the MNIST dataset to\n"
-        "the lmdb/leveldb format used by Caffe to load data.\n"
-        "Usage:\n"
-        "    convert_mnist_data [FLAGS] input_image_file input_label_file "
-        "output_db_file\n"
-        "The MNIST dataset could be downloaded at\n"
-        "    http://yann.lecun.com/exdb/mnist/\n"
-        "You should gunzip them after downloading,"
-        "or directly use data/mnist/get_mnist.sh\n");
-  gflags::ParseCommandLineFlags(&argc, &argv, true);
+  caffe::SetUsageMessage(
+      "This script converts the MNIST dataset to\n"
+      "the lmdb/leveldb format used by Caffe to load data.\n"
+      "Usage:\n"
+      "    convert_mnist_data [FLAGS] input_image_file input_label_file "
+      "output_db_file\n"
+      "The MNIST dataset could be downloaded at\n"
+      "    http://yann.lecun.com/exdb/mnist/\n"
+      "You should gunzip them after downloading,"
+      "or directly use data/mnist/get_mnist.sh\n");
+  caffe::ParseCommandLineFlags(&argc, &argv, true);
 
   const string& db_backend = FLAGS_backend;
 
   if (argc != 4) {
-    gflags::ShowUsageWithFlagsRestrict(argv[0],
-        "examples/mnist/convert_mnist_data");
+    caffe::ShowUsageWithFlagsRestrict(argv[0],
+                                       "examples/mnist/convert_mnist_data");
   } else {
-    google::InitGoogleLogging(argv[0]);
+    caffe::InitLogging(argv[0]);
     convert_dataset(argv[1], argv[2], argv[3], db_backend);
   }
   return 0;
 }
 #else
 int main(int argc, char** argv) {
-  LOG(FATAL) << "This example requires LevelDB and LMDB; " <<
-  "compile with USE_LEVELDB and USE_LMDB.";
+  LOG(FATAL) << "This example requires LevelDB and LMDB; "
+             << "compile with USE_LEVELDB and USE_LMDB.";
 }
 #endif  // USE_LEVELDB and USE_LMDB

@@ -47,14 +47,14 @@ namespace caffe {
 
 	void GlobalInit(int* pargc, char*** pargv) {
 		// Google flags.
-		::gflags::ParseCommandLineFlags(pargc, pargv, true);
+		//::caffe::ParseCommandLineFlags(pargc, pargv, true);
 		// Google logging.
-		::google::InitGoogleLogging(*(pargv)[0]);
+		//::caffe::InitLogging(*(pargv)[0]);
 		// Provide a backtrace on segfault.
 
 		// Windows port of glogs doesn't have this function built
 #if !defined(_MSC_VER)
-		::google::InstallFailureSignalHandler();
+		//::google::InstallFailureSignalHandler();
 #endif
 	}
 

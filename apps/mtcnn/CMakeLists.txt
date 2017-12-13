@@ -29,8 +29,8 @@ add_executable(mtmain ${PROJECT_SOURCE_DIR}/test/MTMain.cpp)
 add_executable(da ${PROJECT_SOURCE_DIR}/test/detect_alignment.cpp)
 add_executable(det_align_main ${PROJECT_SOURCE_DIR}/test/det_align_main.cc)
 
-target_link_libraries(mtmain face_detect caffe boost_system boost_thread glog gflags openblas opencv_core opencv_imgcodecs opencv_highgui opencv_imgproc)
+target_link_libraries(mtmain face_detect caffe boost_system boost_thread openblas opencv_core opencv_imgcodecs opencv_highgui opencv_imgproc)
 # target_link_libraries(lbfmain face_alignment opencv_core opencv_imgcodecs opencv_highgui opencv_imgproc opencv_ml opencv_objdetect)
 
-target_link_libraries(da face_detect lib3000fps liblinear caffe boost_system boost_thread glog gflags openblas opencv_core opencv_imgcodecs opencv_highgui opencv_imgproc opencv_ml opencv_objdetect)
+target_link_libraries(da face_detect lib3000fps liblinear caffe boost_system boost_thread openblas opencv_core opencv_imgcodecs opencv_highgui opencv_imgproc opencv_ml opencv_objdetect)
 target_link_libraries(det_align_main det_align lib3000fps liblinear face_detect caffe boost_system boost_thread glog gflags openblas opencv_core opencv_imgcodecs opencv_highgui opencv_imgproc opencv_ml opencv_objdetect)

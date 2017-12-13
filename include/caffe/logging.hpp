@@ -36,7 +36,7 @@ namespace caffe {
  * \param argv0 The arguments.
  */
 inline void InitLogging(const char* argv0) {
-  google::InitGoogleLogging(argv0);
+  goolge::InitGoogleLogging(argv0);
 }
 }  // namespace dmlc
 

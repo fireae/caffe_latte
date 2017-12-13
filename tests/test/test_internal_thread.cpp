@@ -1,4 +1,4 @@
-#include "glog/logging.h"
+#include "caffe/logging.hpp"
 #include "gtest/gtest.h"
 
 #include "caffe/internal_thread.hpp"
@@ -7,7 +7,6 @@
 #include "caffe/test/test_caffe_main.hpp"
 
 namespace caffe {
-
 
 class InternalThreadTest : public ::testing::Test {};
 
@@ -21,15 +20,11 @@ TEST_F(InternalThreadTest, TestStartAndExit) {
 }
 
 class TestThreadA : public InternalThread {
-  void InternalThreadEntry() {
-    EXPECT_EQ(4244559767, caffe_rng_rand());
-  }
+  void InternalThreadEntry() { EXPECT_EQ(4244559767, caffe_rng_rand()); }
 };
 
 class TestThreadB : public InternalThread {
-  void InternalThreadEntry() {
-    EXPECT_EQ(1726478280, caffe_rng_rand());
-  }
+  void InternalThreadEntry() { EXPECT_EQ(1726478280, caffe_rng_rand()); }
 };
 
 TEST_F(InternalThreadTest, TestRandomSeed) {
@@ -50,4 +45,3 @@ TEST_F(InternalThreadTest, TestRandomSeed) {
 }
 
 }  // namespace caffe
-
