@@ -4,7 +4,7 @@
 #endif
 
 #include <boost/thread.hpp>
-#include <glog/logging.h>
+#include <caffe/logging.hpp>
 #include <cmath>
 #include <cstdio>
 #include <ctime>

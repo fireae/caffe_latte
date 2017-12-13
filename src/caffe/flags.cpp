@@ -55,6 +55,7 @@ const char* UsageMessage() { return gUsageMessage.c_str(); }
 bool ShowUsageWithFlagsRestrict(const char *str, const char *str2) {
   std::cout << str << ": ";
   std::cout << UsageMessage() << std::endl;
+  return true;
 }
 
 bool ParseCommandLineFlags(int* pargc, char*** pargv) {
