@@ -995,5 +995,6 @@ const shared_ptr<Layer<Dtype> > Net<Dtype>::layer_by_name(
 }
 
 INSTANTIATE_CLASS(Net);
+template CAFFE_API class Net<float>;
 
 }  // namespace caffe

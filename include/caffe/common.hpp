@@ -19,7 +19,15 @@
 
 
 #include "caffe/util/device_alternate.hpp"
-
+#ifdef _WIN32
+#ifdef SIMPLE_EXPORT
+#define CAFFE_API __declspec(dllimport)
+#else
+#define CAFFE_API __declspec(dllexport)
+#endif 
+#else
+#define CAFFE_API
+#endif
 // Convert macro to string
 #define STRINGIFY(m) #m
 #define AS_STRING(m) STRINGIFY(m)
@@ -42,9 +50,9 @@ private:                                   \
 
 // Instantiate a class with float and double specifications.
 #define INSTANTIATE_CLASS(classname)   \
-  char gInstantiationGuard##classname; \
-  template class classname<float>;     \
-  template class classname<double>
+  CAFFE_API char gInstantiationGuard##classname; \
+  template CAFFE_API class classname<float>;     \
+  template CAFFE_API class classname<double>
 
 #define INSTANTIATE_LAYER_GPU_FORWARD(classname) \
   template void classname<float>::Forward_gpu(   \
@@ -104,7 +112,7 @@ void GlobalInit(int* pargc, char*** pargv);
 
 // A singleton class to hold common caffe stuff, such as the handler that
 // caffe is going to use for cublas, curand, etc.
-class Caffe {
+class CAFFE_API Caffe {
  public:
   ~Caffe();
 
