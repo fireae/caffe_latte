@@ -1,12 +1,11 @@
-#include <boost/shared_ptr.hpp>
 #include <caffe/caffe.hpp>
+#include <memory>
 #include <opencv2/core.hpp>
 #include <string>
 #include <vector>
 
 using namespace caffe;
 using namespace std;
-using namespace boost;
 using namespace cv;
 
 namespace frcnn {
