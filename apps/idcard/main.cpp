@@ -5,9 +5,9 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include "classification.hpp"
 #include "graph.hpp"
-#include "ltp/ner_dll.h"
-#include "ltp/postag_dll.h"
-#include "ltp/segment_dll.h"
+//#include "ltp/ner_dll.h"
+//#include "ltp/postag_dll.h"
+//#include "ltp/segment_dll.h"
 #include "ployfit.hpp"
 
 using namespace cv;
@@ -258,8 +258,8 @@ int main(int argc, char* argv[]) {
 
   string seg_model = "/home/wencc/Downloads/ltp_data_v3.4.0/cws.model";
   string tag_model = "/home/wencc/Downloads/ltp_data_v3.4.0/pos.model";
-  void* seg_engine = segmentor_create_segmentor(seg_model.c_str());
-  void* tag_engine = postagger_create_postagger(tag_model.c_str(), NULL);
+  //void* seg_engine = segmentor_create_segmentor(seg_model.c_str());
+  //void* tag_engine = postagger_create_postagger(tag_model.c_str(), NULL);
 
   vector<int> im_size(2);
   im_size[0] = height;
@@ -328,9 +328,9 @@ int main(int argc, char* argv[]) {
     LOG(INFO) << result;
 
     vector<string> words;
-    int len = segmentor_segment(seg_engine, result, words);
+    //int len = segmentor_segment(seg_engine, result, words);
     vector<string> tags;
-    postagger_postag(tag_engine, words, tags);
+    //postagger_postag(tag_engine, words, tags);
     for (int t = 0; t < tags.size(); t++) {
       std::cout << words[t] << " / " << tags[t] << std::endl;
       if (t == tags.size() - 1)

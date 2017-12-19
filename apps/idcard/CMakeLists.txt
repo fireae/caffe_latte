@@ -4,7 +4,7 @@ include_directories(/home/wencc/workspace/ltp/include)
 link_directories(/home/wencc/workspace/ltp/lib)
 
 add_executable(${name} ${source_file})
-target_link_libraries(${name} ${Caffe_LINK} segmentor postagger)
+target_link_libraries(${name} ${Caffe_LINK})# segmentor postagger)
 caffe_default_properties(${name})
 
 # set back RUNTIME_OUTPUT_DIRECTORY

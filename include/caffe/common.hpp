@@ -17,14 +17,13 @@
 #include "caffe/flags.hpp"
 #include "caffe/logging.hpp"
 
-
 #include "caffe/util/device_alternate.hpp"
 #ifdef _WIN32
 #ifdef SIMPLE_EXPORT
 #define CAFFE_API __declspec(dllimport)
 #else
 #define CAFFE_API __declspec(dllexport)
-#endif 
+#endif
 #else
 #define CAFFE_API
 #endif
@@ -38,7 +37,7 @@
 // TODO(Yangqing): Once gflags solves the problem in a more elegant way, let's
 // remove the following hack.
 #ifndef GFLAGS_GFLAGS_H_
-//namespace gflags = google;
+// namespace gflags = google;
 #endif  // GFLAGS_GFLAGS_H_
 
 // Disable the copy and assignment operator for a class.
@@ -49,7 +48,7 @@ private:                                   \
   classname& operator=(const classname&)
 
 // Instantiate a class with float and double specifications.
-#define INSTANTIATE_CLASS(classname)   \
+#define INSTANTIATE_CLASS(classname)             \
   CAFFE_API char gInstantiationGuard##classname; \
   template CAFFE_API class classname<float>;     \
   template CAFFE_API class classname<double>
@@ -94,8 +93,8 @@ using boost::shared_ptr;
 // Common functions and classes from std that caffe often uses.
 using std::fstream;
 using std::ios;
-using std::isnan;
 using std::isinf;
+using std::isnan;
 using std::iterator;
 using std::make_pair;
 using std::map;
@@ -125,9 +124,9 @@ class CAFFE_API Caffe {
 
   // This random number generator facade hides boost and CUDA rng
   // implementation from one another (for cross-platform compatibility).
-  class RNG {
+  CAFFE_API class RNG {
    public:
-    RNG();
+    CAFFE_API RNG();
     explicit RNG(unsigned int seed);
     explicit RNG(const RNG&);
     RNG& operator=(const RNG&);
