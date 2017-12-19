@@ -288,7 +288,7 @@ void MTCNN::PutImageToInputLayer(const cv::Mat& image, Blob<float>* input_layer,
   }
 }
 
-void MTCNN::PredictImage(boost::shared_ptr<Net<float>> net,
+void MTCNN::PredictImage(shared_ptr<Net<float>> net,
                          const cv::Mat& rgb_image, int width, int height,
                          vector<Blob<float>*>& output_blobs) {
   Blob<float>* input_layer = net->input_blobs()[0];
@@ -316,7 +316,7 @@ void MTCNN::PredictImage(boost::shared_ptr<Net<float>> net,
 
 void MTCNN::PNetDetect(const cv::Mat& rgb_image, double thresh, double factor,
                        int min_size, vector<FaceInfo>& pnet_bboxes) {
-  boost::shared_ptr<Net<float>> net = PNet_;
+  shared_ptr<Net<float>> net = PNet_;
   int min_wh = std::min(rgb_image.rows, rgb_image.cols);
   int factor_count = 0;
   double m = 12.0 / (1.0 * (min_size));
@@ -429,7 +429,7 @@ void FacePadding(std::vector<FaceInfo>& face_infos,
 void MTCNN::DetectFace(const cv::Mat& rgb_image, double thresh,
                        vector<FaceInfo>& candidate_bboxes, int type,
                        vector<FaceInfo>& rnet_bboxes) {
-  boost::shared_ptr<Net<float>> net = RNet_;
+  shared_ptr<Net<float>> net = RNet_;
   if (type == 1) {
     net = ONet_;
   }

@@ -1,7 +1,7 @@
 #ifndef CAFFE_COMMON_HPP_
 #define CAFFE_COMMON_HPP_
 
-#include <boost/shared_ptr.hpp>
+//#include <boost/shared_ptr.hpp>
 //#include <gflags/gflags.h>
 //#include <glog/logging.h>
 #include <climits>
@@ -9,6 +9,7 @@
 #include <fstream>   // NOLINT(readability/streams)
 #include <iostream>  // NOLINT(readability/streams)
 #include <map>
+#include <memory>
 #include <set>
 #include <sstream>
 #include <string>
@@ -17,14 +18,13 @@
 #include "caffe/flags.hpp"
 #include "caffe/logging.hpp"
 
-
 #include "caffe/util/device_alternate.hpp"
 #ifdef _WIN32
 #ifdef SIMPLE_EXPORT
 #define CAFFE_API __declspec(dllimport)
 #else
 #define CAFFE_API __declspec(dllexport)
-#endif 
+#endif
 #else
 #define CAFFE_API
 #endif
@@ -38,7 +38,7 @@
 // TODO(Yangqing): Once gflags solves the problem in a more elegant way, let's
 // remove the following hack.
 #ifndef GFLAGS_GFLAGS_H_
-//namespace gflags = google;
+// namespace gflags = google;
 #endif  // GFLAGS_GFLAGS_H_
 
 // Disable the copy and assignment operator for a class.
@@ -49,7 +49,7 @@ private:                                   \
   classname& operator=(const classname&)
 
 // Instantiate a class with float and double specifications.
-#define INSTANTIATE_CLASS(classname)   \
+#define INSTANTIATE_CLASS(classname)             \
   CAFFE_API char gInstantiationGuard##classname; \
   template CAFFE_API class classname<float>;     \
   template CAFFE_API class classname<double>
@@ -89,19 +89,19 @@ namespace caffe {
 
 // We will use the boost shared_ptr instead of the new C++11 one mainly
 // because cuda does not work (at least now) well with C++11 features.
-using boost::shared_ptr;
 
 // Common functions and classes from std that caffe often uses.
 using std::fstream;
 using std::ios;
-using std::isnan;
 using std::isinf;
+using std::isnan;
 using std::iterator;
 using std::make_pair;
 using std::map;
 using std::ostringstream;
 using std::pair;
 using std::set;
+using std::shared_ptr;
 using std::string;
 using std::stringstream;
 using std::vector;

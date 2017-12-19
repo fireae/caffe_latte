@@ -198,12 +198,12 @@ int main(int argc, char* argv[]) {
   string trained_file =
       "/home/wencc/Myplace/CTPN/models/ctpn_trained_model.caffemodel";
   string image_name = argv[1];  //"/home/wencc/Myplace/CTPN/demo_images/4.jpg";
-  boost::shared_ptr<Net<float>> net(new Net<float>(model_file, TEST));
+  shared_ptr<Net<float>> net(new Net<float>(model_file, TEST));
 
   net->CopyTrainedLayersFrom(trained_file);
 
-  boost::shared_ptr<Blob<float>> blob_data = net->blob_by_name("data");
-  boost::shared_ptr<Blob<float>> im_info = net->blob_by_name("im_info");
+  shared_ptr<Blob<float>> blob_data = net->blob_by_name("data");
+  shared_ptr<Blob<float>> im_info = net->blob_by_name("im_info");
   // 102.9801, 115.9465, 122.7717
 
   cv::Mat im_org = cv::imread(image_name);
@@ -232,8 +232,8 @@ int main(int argc, char* argv[]) {
   im_data[0] = height;
   im_data[1] = width;
   net->Forward();
-  boost::shared_ptr<Blob<float>> rois = net->blob_by_name("rois");
-  boost::shared_ptr<Blob<float>> scores = net->blob_by_name("scores");
+  shared_ptr<Blob<float>> rois = net->blob_by_name("rois");
+  shared_ptr<Blob<float>> scores = net->blob_by_name("scores");
   float min_score = 0.7;
   float* scores_data = scores->mutable_cpu_data();
   float* rois_data = rois->mutable_cpu_data();
@@ -315,10 +315,11 @@ int main(int argc, char* argv[]) {
     text_line[1] = std::min((lt_y), (rt_y));
     text_line[2] = (x1);
     text_line[3] = std::max((lb_y), (rb_y));
-    cv::rectangle(show_image, cv::Rect(text_line[0], text_line[1],
-                                       text_line[2] - text_line[0],
-                                       text_line[3] - text_line[1]),
-                  cv::Scalar(0, 255, 0), 2);
+    cv::rectangle(
+        show_image,
+        cv::Rect(text_line[0], text_line[1], text_line[2] - text_line[0],
+                 text_line[3] - text_line[1]),
+        cv::Scalar(0, 255, 0), 2);
 
     cv::Mat line_image =
         im(cv::Rect(text_line[0], text_line[1], text_line[2] - text_line[0],
