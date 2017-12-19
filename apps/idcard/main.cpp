@@ -5,11 +5,42 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include "classification.hpp"
 #include "graph.hpp"
+#include "ltp/ner_dll.h"
+#include "ltp/postag_dll.h"
+#include "ltp/segment_dll.h"
 #include "ployfit.hpp"
 
 using namespace cv;
 using namespace caffe;
 using namespace std;
+
+std::string ws2s(const std::wstring& ws) {
+  std::string curLocale = setlocale(LC_ALL, NULL);  // curLocale = "C";
+  setlocale(LC_ALL, "chs");
+  const wchar_t* _Source = ws.c_str();
+  size_t _Dsize = 2 * ws.size() + 1;
+  char* _Dest = new char[_Dsize];
+  memset(_Dest, 0, _Dsize);
+  wcstombs(_Dest, _Source, _Dsize);
+  std::string result = _Dest;
+  delete[] _Dest;
+  setlocale(LC_ALL, curLocale.c_str());
+  return result;
+}
+
+std::wstring s2ws(const std::string& s) {
+  setlocale(LC_ALL, "chs");
+  const char* _Source = s.c_str();
+  size_t _Dsize = s.size() + 1;
+  wchar_t* _Dest = new wchar_t[_Dsize];
+  wmemset(_Dest, 0, _Dsize);
+  mbstowcs(_Dest, _Source, _Dsize);
+  std::wstring result = _Dest;
+  delete[] _Dest;
+  setlocale(LC_ALL, "C");
+  return result;
+}
+
 void ocr_init(const string& model_folder, Classifier** cnn) {
   bool use_gpu = false;
 
@@ -37,7 +68,6 @@ void recognize_textline(const cv::Mat& image, string& result,
       find(alphabets.begin(), alphabets.end(), "blank");
   if (it != alphabets.end()) idxBlank = (int)(it - alphabets.begin());
 
-  map<wchar_t, int> mapLabel2IDs;
   for (size_t i = 0; i < alphabets.size(); i++) {
     wchar_t c = 0;
     if (alphabets[i] == "blank") continue;
@@ -66,9 +96,10 @@ void recognize_textline(const cv::Mat& image, string& result,
   vector<float> pred = pCNN->GetOutputFeatureMap(img, shape);
   for (int i = 0; i < pred.size(); i++) {
     if (pred[i] >= 0) {
-      LOG(INFO) << alphabets[pred[i]];
+      result += alphabets[pred[i]];
     }
   }
+
   int end = clock();
   sumspend += (end - start);
 }
@@ -161,12 +192,12 @@ void clipBoxes(vector<float>& box, int height, int width) {
   }
 }
 
-int main(int argc, char* argv) {
+int main(int argc, char* argv[]) {
   Caffe::set_mode(Caffe::CPU);
   string model_file = "/home/wencc/Myplace/CTPN/models/deploy.prototxt";
   string trained_file =
       "/home/wencc/Myplace/CTPN/models/ctpn_trained_model.caffemodel";
-  string image_name = "/home/wencc/Myplace/CTPN/demo_images/4.jpg";
+  string image_name = argv[1];  //"/home/wencc/Myplace/CTPN/demo_images/4.jpg";
   boost::shared_ptr<Net<float>> net(new Net<float>(model_file, TEST));
 
   net->CopyTrainedLayersFrom(trained_file);
@@ -221,6 +252,11 @@ int main(int argc, char* argv) {
   Classifier* ocr_cls;
   string model_folder = "/home/wencc/models/ChineseOCR/inception-bn-res-blstm/";
   ocr_init(model_folder, &ocr_cls);
+
+  string seg_model = "/home/wencc/Downloads/ltp_data_v3.4.0/cws.model";
+  string tag_model = "/home/wencc/Downloads/ltp_data_v3.4.0/pos.model";
+  void* seg_engine = segmentor_create_segmentor(seg_model.c_str());
+  void* tag_engine = postagger_create_postagger(tag_model.c_str(), NULL);
 
   vector<int> im_size(2);
   im_size[0] = height;
@@ -286,7 +322,20 @@ int main(int argc, char* argv) {
                     text_line[3] - text_line[1]));
     string result;
     recognize_textline(line_image, result, ocr_cls);
-    std::cout << result;
+    LOG(INFO) << result;
+
+    vector<string> words;
+    int len = segmentor_segment(seg_engine, result, words);
+    vector<string> tags;
+    postagger_postag(tag_engine, words, tags);
+    for (int t = 0; t < tags.size(); t++) {
+      std::cout << words[t] << " / " << tags[t] << std::endl;
+      if (t == tags.size() - 1)
+        std::cout << std::endl;
+      else
+        std::cout << " ";
+    }
+
     double sum = 0.0;
     for (int j = 0; j < tp_group.size(); j++) {
       sum += vec_scores[tp_group[j]];
