@@ -206,7 +206,10 @@ int main(int argc, char* argv[]) {
   boost::shared_ptr<Blob<float>> im_info = net->blob_by_name("im_info");
   // 102.9801, 115.9465, 122.7717
 
-  cv::Mat im = cv::imread(image_name);
+  cv::Mat im_org = cv::imread(image_name);
+  cv::Mat im;
+  float ratio = 800.0 / std::max(im_org.rows, im_org.cols);
+  cv::resize(im_org, im, cv::Size(), ratio, ratio);
   cv::Mat image;
   im.convertTo(image, CV_32FC3);
 

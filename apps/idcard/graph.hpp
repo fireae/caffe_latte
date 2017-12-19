@@ -3,9 +3,9 @@
 #include <algorithm>
 #include <vector>
 #include "cfg.hpp"
-//const int kMAX_HORIZONTAL_GAP = 50;
-//const float kMIN_V_OVERLAPS = 0.7;
-//const float kMIN_SIZE_SIM = 0.7;
+// const int kMAX_HORIZONTAL_GAP = 50;
+// const float kMIN_V_OVERLAPS = 0.7;
+// const float kMIN_SIZE_SIM = 0.7;
 namespace caffe {
 using namespace std;
 class Graph {
@@ -26,7 +26,7 @@ class Graph {
         }
       }
     }
-	return false;
+    return false;
   }
 
   vector<vector<int>> sub_graphs_connected() {
@@ -37,7 +37,7 @@ class Graph {
         v = index;
         vector<int> sub_graph;
         sub_graph.push_back(v);
-		sub_graphs.push_back(sub_graph);
+        sub_graphs.push_back(sub_graph);
         while (is_any(v, 1)) {
           int v_index = 0;
           for (int i = 0; i < graph_.size(); i++) {
@@ -45,13 +45,13 @@ class Graph {
               v_index = i;
             }
           }
-	
-		  sub_graphs[sub_graphs.size() - 1].push_back(v_index);
-		  v = v_index;
+
+          sub_graphs[sub_graphs.size() - 1].push_back(v_index);
+          v = v_index;
         }
       }
     }
-	return sub_graphs;
+    return sub_graphs;
   }
   vector<vector<bool>> graph_;
 };
@@ -133,8 +133,8 @@ class TextProposalGraphBuilder {
     return (std::min(h1, h2)) / (std::max(h1, h2));
   }
 
-  Graph build_graph(vector<vector<float>>& text_proposals, vector<float>& scores,
-                    vector<int>& im_size) {
+  Graph build_graph(vector<vector<float>>& text_proposals,
+                    vector<float>& scores, vector<int>& im_size) {
     text_proposals_ = text_proposals;
     scores_ = scores;
     im_size_ = im_size;
@@ -172,7 +172,7 @@ class TextProposalGraphBuilder {
       }
     }
 
-	return Graph(graph_);
+    return Graph(graph_);
   }
 
   vector<vector<float>> text_proposals_;
