@@ -25,7 +25,9 @@ typedef struct FaceRect {
   float score; /**< Larger score should mean higher confidence. */
 } FaceRect;
 
-typedef struct FacePts { float x[5], y[5]; } FacePts;
+typedef struct FacePts {
+  float x[5], y[5];
+} FacePts;
 
 typedef struct FaceInfo {
   FaceRect bbox;
@@ -56,16 +58,16 @@ class MTCNN {
   void ONetDetect(const cv::Mat& rgb_image, double thresh,
                   vector<FaceInfo>& candidate_bboxes,
                   vector<FaceInfo>& onet_bboxes);
-  void PredictImage(boost::shared_ptr<Net<float>> net, const cv::Mat& rgb_image,
+  void PredictImage(shared_ptr<Net<float>> net, const cv::Mat& rgb_image,
                     int width, int height, vector<Blob<float>*>& output_blobs);
   void DetectFace(const cv::Mat& rgb_image, double thresh,
                   vector<FaceInfo>& candidate_bboxes, int type,
                   vector<FaceInfo>& rnet_bboxes);
 
  private:
-  boost::shared_ptr<Net<float>> PNet_;
-  boost::shared_ptr<Net<float>> RNet_;
-  boost::shared_ptr<Net<float>> ONet_;
+  shared_ptr<Net<float>> PNet_;
+  shared_ptr<Net<float>> RNet_;
+  shared_ptr<Net<float>> ONet_;
   float pnet_thresh_;
   float rnet_thresh_;
   float onet_thresh_;

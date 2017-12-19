@@ -36,7 +36,7 @@ class FasterRCNN {
                  const vector<float>& confidence);
 
  private:
-  boost::shared_ptr<Net<float>> net_;
+  shared_ptr<Net<float>> net_;
   int class_num_;
   float nms_thresh_;
   float confidence_thresh_;

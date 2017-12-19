@@ -68,7 +68,8 @@ bool Classifier::Init(const string& model_path, bool gpu_mode) {
     std::ifstream labels(label_file.c_str());
     CHECK(labels) << "Unable to open labels file " << label_file;
     string line;
-    while (std::getline(labels, line)) labels_.push_back(string(line));
+    while (std::getline(labels, line))
+      labels_.push_back(string(line.substr(0, line.size() - 1)));
   } else {
     Blob<float>* output_layer = net_->output_blobs()[0];
     char szlabel[100];

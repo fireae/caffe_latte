@@ -27,8 +27,8 @@ public:
     int Detect(const cv::Mat& image, vector<JDFaceInfo>& face_infos);
  private:
     
-    boost::shared_ptr<MTCNN> mtcnn;
-    boost::shared_ptr<LbfCascador> lbf_cascador;;
+    shared_ptr<MTCNN> mtcnn;
+    shared_ptr<LbfCascador> lbf_cascador;;
 
 };
 

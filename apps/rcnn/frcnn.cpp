@@ -2,11 +2,14 @@
 #include "caffe/util/frcnn_util.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
+#include <memory>
+using namespace std;
 
 namespace frcnn {
+	using std::shared_ptr;
 
 bool FasterRCNN::Init(const string& model_file, const string& weights_file) {
-  net_ = boost::shared_ptr<Net<float>>(new Net<float>(model_file, caffe::TEST));
+  net_ = shared_ptr<Net<float>>(new Net<float>(model_file, caffe::TEST));
   net_->CopyTrainedLayersFrom(weights_file);
   return true;
 }
@@ -35,7 +38,7 @@ void FasterRCNN::Detect(const cv::Mat& im, vector<FrcnnBox>& detect_boxes,
   int height = int(image.rows);
   int width = int(image.cols);
 
-  boost::shared_ptr<Blob<float>> blob_data = net_->blob_by_name("data");
+  shared_ptr<Blob<float>> blob_data = net_->blob_by_name("data");
   blob_data->Reshape(1, 3, height, width);
   float* blob_data_ptr = blob_data->mutable_cpu_data();
   printf("%d %d %f\n", width, height, im_scale);
