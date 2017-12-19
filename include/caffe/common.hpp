@@ -125,9 +125,9 @@ class CAFFE_API Caffe {
 
   // This random number generator facade hides boost and CUDA rng
   // implementation from one another (for cross-platform compatibility).
-  class RNG {
+  CAFFE_API class RNG {
    public:
-    RNG();
+    CAFFE_API RNG();
     explicit RNG(unsigned int seed);
     explicit RNG(const RNG&);
     RNG& operator=(const RNG&);
