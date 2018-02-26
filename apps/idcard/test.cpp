@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) {
   string model_file = "D:\\BaiduNetdiskDownload\\ctpn/deploy.prototxt";
   string weight_file =
       "D:\\BaiduNetdiskDownload\\ctpn/ctpn_trained_model.caffemodel";
-  string image_name = "D:\\tests\\b5.png";
+  string image_name = "D:\\tests\\6.jpg";
   // std::string model_file = "";
   // std::string weight_file = "";
   // std::string image_name = "";
@@ -40,13 +40,13 @@ int main(int argc, char* argv[]) {
 
     cv::rectangle(
         show_image,
-        cv::Rect(text_line[0], text_line[1], text_line[2] - text_line[0],
-                 text_line[3] - text_line[1]),
+        cv::Rect(text_line[0], text_line[1], text_line[2] - text_line[0]+2,
+                 text_line[3] - text_line[1]+2),
         cv::Scalar(0, 255, 0), 2);
 
     cv::Mat ocr_image =
-        image(cv::Rect(text_line[0], text_line[1], text_line[2] - text_line[0],
-                       text_line[3] - text_line[1]));
+        image(cv::Rect(text_line[0], text_line[1], text_line[2] - text_line[0]+2,
+                       text_line[3] - text_line[1]+2));
     int w = ocr_image.cols, h = ocr_image.rows;
     if (2 * w <= h) {
       cv::transpose(ocr_image, ocr_image);
