@@ -1,4 +1,3 @@
-#include <boost/shared_ptr.hpp>
 #include <caffe/caffe.hpp>
 #include <opencv2/core.hpp>
 #include <string>
@@ -6,7 +5,6 @@
 
 using namespace caffe;
 using namespace std;
-using namespace boost;
 using namespace cv;
 
 namespace frcnn {

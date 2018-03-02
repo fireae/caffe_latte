@@ -490,7 +490,9 @@ message LayerParameter {
   optional CropParameter crop_param = 144;
   optional ParameterParameter parameter_param = 145;
   optional RecurrentParameter recurrent_param = 146;
-  optional DenseBlockParameter denseblock_param = 147;
+  optional MarginInnerProductParameter margin_inner_product_param = 147;
+  optional DenseBlockParameter denseblock_param = 148;
+  optional RankHardLossParameter rank_hard_loss_param = 149;
 
   // 150 - 159
   optional ROIPoolingParameter roi_pooling_param = 150;
@@ -507,12 +509,53 @@ message LayerParameter {
 
   optional ReverseParameter reverse_param = 160;
   optional ReverseTimeParameter reverse_time_param = 161;
-  
   optional InterpParameter interp_param = 162;
   optional ShuffleChannelParameter shuffle_channel_param = 164;
+  optional PairImageDataParameter pair_image_data_param= 165;
   
   optional TransposeParameter transpose_param=8266710;
   optional LSTMParameter lstm_param = 8266711;
+}
+
+message PairImageDataParameter {
+  // Specify the data source.
+  optional string source = 1;
+  // Specify the batch size.
+  optional uint32 batch_size = 4 [default = 1];
+  // The rand_skip variable is for the data layer to skip a few data points
+  // to avoid all asynchronous sgd clients to start at the same point. The skip
+  // point would be set as rand_skip * rand(0,1). Note that rand_skip should not
+  // be larger than the number of keys in the database.
+  optional uint32 rand_skip = 7 [default = 0];
+  // Whether or not ImageLayer should shuffle the list of files at every epoch.
+  optional bool shuffle = 8 [default = false];
+  // It will also resize images if new_height or new_width are not zero.
+  optional uint32 new_height = 9 [default = 0];
+  optional uint32 new_width = 10 [default = 0];
+  // Specify if the images are color or gray
+  optional bool is_color = 11 [default = true];
+  // DEPRECATED. See TransformationParameter. For data pre-processing, we can do
+  // simple scaling and subtracting the data mean, if provided. Note that the
+  // mean subtraction is always carried out before scaling.
+  optional float scale = 2 [default = 1];
+  optional string mean_file = 3;
+  // DEPRECATED. See TransformationParameter. Specify if we would like to randomly
+  // crop an image.
+  optional uint32 crop_size = 5 [default = 0];
+  // DEPRECATED. See TransformationParameter. Specify if we want to randomly mirror
+  // data.
+  optional bool mirror = 6 [default = false];
+  optional string root_folder = 12 [default = ""];
+  //用于构造配对函数
+  optional uint32 pair_size = 13 [default = 1];
+}
+
+message RankHardLossParameter {
+  optional uint32 neg_num = 1 [default = 1]; 
+  optional uint32 pair_size = 2 [default = 1]; 
+  optional float hard_ratio = 3; 
+  optional float rand_ratio = 4;
+  optional float margin = 5 [default = 0.5];
 }
 
 message ShuffleChannelParameter {
@@ -1829,4 +1872,26 @@ message PReLUParameter {
   optional FillerParameter filler = 1;
   // Whether or not slope parameters are shared across channels.
   optional bool channel_shared = 2 [default = false];
+}
+
+message MarginInnerProductParameter {
+  optional uint32 num_output = 1; // The number of outputs for the layer
+  enum MarginType {
+    SINGLE = 0;
+    DOUBLE = 1;
+    TRIPLE = 2;
+    QUADRUPLE = 3;
+  }
+  optional MarginType type = 2 [default = SINGLE]; 
+  optional FillerParameter weight_filler = 3; // The filler for the weight
+
+  // The first axis to be lumped into a single inner product computation;
+  // all preceding axes are retained in the output.
+  // May be negative to index from the end (e.g., -1 for the last axis).
+  optional int32 axis = 4 [default = 1];
+  optional float base = 5 [default = 1];
+  optional float gamma = 6 [default = 0];
+  optional float power = 7 [default = 1];
+  optional int32 iteration = 8 [default = 0];
+  optional float lambda_min = 9 [default = 0];
 }

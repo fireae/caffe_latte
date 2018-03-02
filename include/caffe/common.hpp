@@ -1,9 +1,6 @@
 #ifndef CAFFE_COMMON_HPP_
 #define CAFFE_COMMON_HPP_
 
-//#include <boost/shared_ptr.hpp>
-//#include <gflags/gflags.h>
-//#include <glog/logging.h>
 #include <climits>
 #include <cmath>
 #include <fstream>   // NOLINT(readability/streams)
