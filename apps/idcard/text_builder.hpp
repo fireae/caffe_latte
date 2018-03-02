@@ -6,7 +6,7 @@
 // const int kMAX_HORIZONTAL_GAP = 50;
 // const float kMIN_V_OVERLAPS = 0.7;
 // const float kMIN_SIZE_SIM = 0.7;
-namespace caffe {
+namespace jdcn {
 using namespace std;
 class Graph {
  public:
@@ -29,7 +29,7 @@ class Graph {
     return false;
   }
 
-  vector<vector<int>> sub_graphs_connected() {
+  vector<vector<int>> SubGraphsConnected() {
     int v = 0;
     vector<vector<int>> sub_graphs;
     for (int index = 0; index < graph_.size(); index++) {
@@ -133,8 +133,8 @@ class TextProposalGraphBuilder {
     return (std::min(h1, h2)) / (std::max(h1, h2));
   }
 
-  Graph build_graph(vector<vector<float>>& text_proposals,
-                    vector<float>& scores, vector<int>& im_size) {
+  Graph BuildGraph(vector<vector<float>>& text_proposals, vector<float>& scores,
+                   vector<int>& im_size) {
     text_proposals_ = text_proposals;
     scores_ = scores;
     im_size_ = im_size;
@@ -183,6 +183,6 @@ class TextProposalGraphBuilder {
   vector<vector<bool>> graph_;
 };
 
-}  // namespace caffe
+}  // namespace jdcn
 
 #endif  // GRAPH_HPP_

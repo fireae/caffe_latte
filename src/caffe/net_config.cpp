@@ -73,6 +73,7 @@ int NetConfig::n_classes = 21;
 int NetConfig::iter_test = 1000;
 
 void NetConfig::LoadParam(const NetParameter& net_param) {
+#if 0
   const NetConfigParameter& config = net_param.net_config_param();
   max_size = config.max_size();
   batch_size = config.batch_size();
@@ -107,6 +108,7 @@ void NetConfig::LoadParam(const NetParameter& net_param) {
       bbox_inside_weights[i] = config.bbox_inside_weight(i);
     }
   }
+#endif
 }
 
 }  // namespace caffe

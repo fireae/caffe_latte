@@ -10,7 +10,7 @@
 #include "caffe/common.hpp"
 #include "caffe/layer.hpp"
 #include "caffe/net.hpp"
-#include "caffe/net_config.hpp"
+//#include "caffe/net_config.hpp"
 #include "caffe/parallel.hpp"
 #include "caffe/proto/caffe.pb.h"
 #include "caffe/util/hdf5.hpp"
@@ -43,7 +43,7 @@ Net<Dtype>::Net(const string& param_file, Phase phase, const int level,
 
 template <typename Dtype>
 void Net<Dtype>::Init(const NetParameter& in_param) {
-  NetConfig::LoadParam(in_param);
+  //NetConfig::LoadParam(in_param);
   // Set phase from the state.
   phase_ = in_param.state().phase();
   // Filter layers based on their include/exclude rules and
@@ -995,6 +995,5 @@ const shared_ptr<Layer<Dtype> > Net<Dtype>::layer_by_name(
 }
 
 INSTANTIATE_CLASS(Net);
-//template CAFFE_API class Net<float>;
 
 }  // namespace caffe

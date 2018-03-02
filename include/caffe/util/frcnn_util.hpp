@@ -111,10 +111,10 @@ struct Point4f {
   const Dtype& operator[](const int id) const { return point[id]; }
 };
 
-void BBoxTransformInv(int box_count, const float* box_deltas,
+CAFFE_API void BBoxTransformInv(int box_count, const float* box_deltas,
                       const float* pred_cls, const float* boxes, float* pred,
                       int image_height, int image_width, int class_num);
-void ApplyNMS(vector<vector<float> >& pred_boxes, vector<float>& confidence,
+CAFFE_API void ApplyNMS(vector<vector<float> >& pred_boxes, vector<float>& confidence,
               float nms_thresh);
 
 template <typename Dtype>
