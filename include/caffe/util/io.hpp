@@ -18,8 +18,8 @@
 
 namespace caffe {
 
-using ::google::protobuf::Message;
 using ::boost::filesystem::path;
+using ::google::protobuf::Message;
 
 inline void MakeTempDir(string* temp_dirname) {
   temp_dirname->clear();
@@ -59,7 +59,8 @@ inline void ReadProtoFromTextFileOrDie(const char* filename, Message* proto) {
   CHECK(ReadProtoFromTextFile(filename, proto));
 }
 
-CAFFE_API inline void ReadProtoFromTextFileOrDie(const string& filename, Message* proto) {
+CAFFE_API inline void ReadProtoFromTextFileOrDie(const string& filename,
+                                                 Message* proto) {
   ReadProtoFromTextFileOrDie(filename.c_str(), proto);
 }
 
@@ -83,7 +84,8 @@ inline void ReadProtoFromBinaryFileOrDie(const string& filename,
   ReadProtoFromBinaryFileOrDie(filename.c_str(), proto);
 }
 
-CAFFE_API void WriteProtoToBinaryFile(const Message& proto, const char* filename);
+CAFFE_API void WriteProtoToBinaryFile(const Message& proto,
+                                      const char* filename);
 inline void WriteProtoToBinaryFile(const Message& proto,
                                    const string& filename) {
   WriteProtoToBinaryFile(proto, filename.c_str());
@@ -134,6 +136,9 @@ bool DecodeDatumNative(Datum* datum);
 bool DecodeDatum(Datum* datum, bool is_color);
 
 #ifdef USE_OPENCV
+cv::Mat ReadImageToCVMat(const string& filename, const int height,
+  const int width, const bool is_color, int* img_height,
+  int* img_width);
 cv::Mat ReadImageToCVMat(const string& filename, const int height,
                          const int width, const bool is_color);
 

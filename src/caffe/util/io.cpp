@@ -28,13 +28,13 @@ const int kProtoReadBytesLimit = INT_MAX;  // Max size of 2 GB minus 1 byte.
 
 namespace caffe {
 
+using google::protobuf::Message;
+using google::protobuf::io::CodedInputStream;
+using google::protobuf::io::CodedOutputStream;
 using google::protobuf::io::FileInputStream;
 using google::protobuf::io::FileOutputStream;
 using google::protobuf::io::ZeroCopyInputStream;
-using google::protobuf::io::CodedInputStream;
 using google::protobuf::io::ZeroCopyOutputStream;
-using google::protobuf::io::CodedOutputStream;
-using google::protobuf::Message;
 
 bool ReadProtoFromTextFile(const char* filename, Message* proto) {
   int fd = open(filename, O_RDONLY);
@@ -79,6 +79,31 @@ void WriteProtoToBinaryFile(const Message& proto, const char* filename) {
 }
 
 #ifdef USE_OPENCV
+cv::Mat ReadImageToCVMat(const string& filename, const int height,
+                         const int width, const bool is_color, int* img_height,
+                         int* img_width) {
+  cv::Mat cv_img;
+  int cv_read_flag = (is_color ? CV_LOAD_IMAGE_COLOR : CV_LOAD_IMAGE_GRAYSCALE);
+  cv::Mat cv_img_origin = cv::imread(filename, cv_read_flag);
+  if (!cv_img_origin.data) {
+    LOG(ERROR) << "Could not open or find file " << filename;
+    return cv_img_origin;
+  }
+  if (height > 0 && width > 0) {
+    cv::resize(cv_img_origin, cv_img, cv::Size(width, height));
+  } else {
+    cv_img = cv_img_origin;
+  }
+  if (img_height != NULL) {
+    *img_height = cv_img.rows;
+  }
+  if (img_width != NULL) {
+    *img_width = cv_img.cols;
+  }
+
+  return cv_img;
+}
+
 cv::Mat ReadImageToCVMat(const string& filename, const int height,
                          const int width, const bool is_color) {
   cv::Mat cv_img;

@@ -37,14 +37,14 @@ class DenseBlockLayer : public Layer<Dtype> {
                            const vector<bool>& propagate_down,
                            const vector<Blob<Dtype>*>& bottom);
 
-  virtual void syncBlobs(DenseBlockLayer<Dtype>* originLayer);
+  //virtual void syncBlobs(DenseBlockLayer<Dtype>* originLayer);
 
-  virtual void setLogId(int uid);
+  //virtual void setLogId(int uid);
 
-  virtual void logInternal_cpu(string dir);
+  //virtual void logInternal_cpu(string dir);
 
-  void logInternal_gpu(string dir, int transitionIdx, bool logDynamic,
-                       bool logDiff);
+  //void logInternal_gpu(string dir, int transitionIdx, bool logDynamic,
+  //                     bool logDiff);
 
   int initChannel, growthRate, numTransition;
   int N, H, W;  // N,H,W of the input tensor, inited in reshape phase
@@ -124,7 +124,7 @@ class DenseBlockLayer : public Layer<Dtype> {
 #ifdef USE_CUDA
   // start GPU specific data section
   // GPU ptr for efficient space usage only, these pointers not allocated when
-  // CPU_ONLY, these are not Blobs because Descriptor is not traditional
+  // not USE_CUDA, these are not Blobs because Descriptor is not traditional
   // bool gpuInited;
   Dtype* postConv_data_gpu;
   Dtype* postConv_grad_gpu;
@@ -196,8 +196,8 @@ class DenseBlockLayer : public Layer<Dtype> {
   cudnnActivationDescriptor_t* ReLUDesc;
   // conv descriptor for conv
   cudnnConvolutionDescriptor_t* conv_Descriptor;
-#endif
   // end GPU specific data setion
+#endif
 };
 
 }  // namespace caffe

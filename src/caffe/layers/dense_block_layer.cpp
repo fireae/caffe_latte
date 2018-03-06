@@ -20,28 +20,30 @@
 
 namespace caffe {
 
+#if 0
 bool dirExists(string dirStr) {
-  //     const char* dirCStr = dirStr.c_str();
-  //     DIR* dir = opendir(dirCStr);
-  //     if (ENOENT == errno){
-  //       return false;
-  //     }
-  //     closedir(dir);
+  const char* dirCStr = dirStr.c_str();
+  DIR* dir = opendir(dirCStr);
+  if (ENOENT == errno) {
+    return false;
+  }
+  closedir(dir);
   return true;
 }
 
 void tryCreateDirectory(string fileName) {
-  //     vector<string> strVec;
-  //     boost::split(strVec,fileName,boost::is_any_of("/"));
-  //     string newStr="";
-  //     for (int i=0;i<strVec.size()-1;++i){
-  //       newStr += strVec[i] + (i==strVec.size()-2?"":"/");
-  //     }
-  //     boost::filesystem::path dirToCreate(newStr);
-  //     if (!dirExists(newStr)){
-  //       boost::filesystem::create_directories(dirToCreate);
-  //     }
+  vector<string> strVec;
+  boost::split(strVec, fileName, boost::is_any_of("/"));
+  string newStr = "";
+  for (int i = 0; i < strVec.size() - 1; ++i) {
+    newStr += strVec[i] + (i == strVec.size() - 2 ? "" : "/");
+  }
+  boost::filesystem::path dirToCreate(newStr);
+  if (!dirExists(newStr)) {
+    boost::filesystem::create_directories(dirToCreate);
+  }
 }
+#endif 
 
 template <typename Dtype>
 void DenseBlockLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
@@ -260,6 +262,7 @@ void DenseBlockLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
   top[0]->Reshape(topShape);
 }
 
+#if 0
 template <typename Dtype>
 void DenseBlockLayer<Dtype>::syncBlobs(DenseBlockLayer<Dtype>* originLayer) {
   vector<shared_ptr<Blob<Dtype> > >& originBlobs = originLayer->blobs();
@@ -422,6 +425,7 @@ void DenseBlockLayer<Dtype>::logInternal_cpu(string dir) {
     }
   }
 }
+#endif 
 
 template <typename Dtype>
 Dtype getZeroPaddedValue(bool isDiff, Blob<Dtype>* inputData, int n, int c,
@@ -764,8 +768,9 @@ void BN_train_Bwd(Blob<Dtype>* bottom, Blob<Dtype>* bottom_xhat,
           varGrad[c] +=
               bottom_xhat->diff_at(n, c, h, w) *
               (bottom->data_at(n, c, h, w) - batchMean->data_at(0, c, 0, 0)) *
-              (-0.5) * (1.0 / ((batchVar->data_at(0, c, 0, 0) + epsilon) *
-                               sqrt(batchVar->data_at(0, c, 0, 0) + epsilon)));
+              (-0.5) *
+              (1.0 / ((batchVar->data_at(0, c, 0, 0) + epsilon) *
+                      sqrt(batchVar->data_at(0, c, 0, 0) + epsilon)));
           // flag
           // if (decide_channelDiffAllZero<Dtype>(top,c,N,C,h_img,w_img)){
           //  std::cout<<varGrad[c]<<std::endl;
