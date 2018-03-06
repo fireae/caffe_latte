@@ -1,7 +1,7 @@
 #include "caffe/layers/text_proposal_layer.hpp"
+#include "caffe/util/anchor.hpp"
 #include "caffe/util/frcnn_util.hpp"
 #include "caffe/util/nms.hpp"
-#include "caffe/util/anchor.hpp"
 
 #define ROUND(x) ((int)((x) + (Dtype)0.5))
 
@@ -69,8 +69,8 @@ void TextProposalLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
     for (int k = 0; k < 2; k++) {
       bbox_item.push_back(*(bbox_delta_trans_data + k));
     }
-	bbox_delta_data.push_back(bbox_item);
-	bbox_delta_trans_data += 2;
+    bbox_delta_data.push_back(bbox_item);
+    bbox_delta_trans_data += 2;
   }
   vector<vector<Dtype> > proposals =
       anchor_text.apply_deltas_to_anchors(bbox_delta_data, anchors);
@@ -94,14 +94,13 @@ void TextProposalLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   scores_shape.push_back(scores_trans.count());
   scores_shape.push_back(1);
   top[1]->Reshape(scores_shape);
-  
 }
 
-#ifndef USE_CUDA
 template <typename Dtype>
 void TextProposalLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-                                           const vector<Blob<Dtype>*>& top) {}
-#endif
+                                           const vector<Blob<Dtype>*>& top) {
+  Forward_cpu(bottom, top);
+}
 
 INSTANTIATE_CLASS(TextProposalLayer);
 REGISTER_LAYER_CLASS(TextProposal);
