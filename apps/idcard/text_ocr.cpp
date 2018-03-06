@@ -1,24 +1,7 @@
 #include "text_ocr.hpp"
-#include "windows.h"
 
-namespace jdcn {
-bool TextOCR::Init(const string& model_path, bool gpu_mode) {
-  string model_file = model_path + "/deploy.prototxt";
-  string weight_file = model_path + "/ocr.caffemodel";
-  string label_file = model_path + "/label.txt";
-  return Init(model_file, weight_file, label_file, gpu_mode);
-}
-bool TextOCR::Init(const string& model_file, const string& weight_file,
-                   const string& label_file, bool gpu_mode) {
-  if (!gpu_mode)
-    Caffe::set_mode(Caffe::CPU);
-  else
-    Caffe::set_mode(Caffe::GPU);
-  net_.reset(new Net<float>(model_file, TEST));
-  net_->CopyTrainedLayersFrom(weight_file);
-  labels_ = GetLabels(label_file);
-  return true;
-}
+#ifdef _WIN32
+#include "windows.h"
 
 string GBKToUTF8(const std::string& strGBK)
 {
@@ -54,15 +37,38 @@ string UTF8ToGBK(const std::string& strUTF8)
 	return strTemp;
 }
 
+#endif
+
+namespace jdcn {
+bool TextOCR::Init(const string& model_path, bool gpu_mode) {
+  string model_file = model_path + "/deploy.prototxt";
+  string weight_file = model_path + "/ocr.caffemodel";
+  string label_file = model_path + "/label.txt";
+  return Init(model_file, weight_file, label_file, gpu_mode);
+}
+bool TextOCR::Init(const string& model_file, const string& weight_file,
+                   const string& label_file, bool gpu_mode) {
+  if (!gpu_mode)
+    Caffe::set_mode(Caffe::CPU);
+  else
+    Caffe::set_mode(Caffe::GPU);
+  net_.reset(new Net<float>(model_file, TEST));
+  net_->CopyTrainedLayersFrom(weight_file);
+  labels_ = GetLabels(label_file);
+  return true;
+}
+
 vector<string> TextOCR::GetLabels(const string& label_file) {
   vector<string> vlabels;
   if (label_file.size() > 0) {
     std::ifstream labels(label_file.c_str());
     string line;
     while (std::getline(labels, line)) {
+#ifdef _WIN32
       string sgbk = UTF8ToGBK(line);
-	  vlabels.push_back(sgbk);
-      //vlabels.push_back(string(line.substr(0, line.size() - 1)));
+      vlabels.push_back(sgbk);
+#endif 
+      vlabels.push_back(string(line.substr(0, line.size() - 1)));
     }
 
   } else {

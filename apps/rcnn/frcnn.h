@@ -1,4 +1,5 @@
 #include <caffe/caffe.hpp>
+#include <memory>
 #include <opencv2/core.hpp>
 #include <string>
 #include <vector>
