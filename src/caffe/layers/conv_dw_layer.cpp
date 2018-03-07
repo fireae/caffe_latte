@@ -1,4 +1,3 @@
-
 #include "caffe/layers/conv_dw_layer.hpp"
 #include <algorithm>
 #include <vector>
@@ -7,7 +6,6 @@
 namespace caffe {
 
 template <typename Dtype>
-
 void ConvolutionDepthwiseLayer<Dtype>::LayerSetUp(
     const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
   ConvolutionParameter conv_param = this->layer_param_.convolution_param();
@@ -116,8 +114,8 @@ void ConvolutionDepthwiseLayer<Dtype>::Reshape(
   weight_multiplier_shape.push_back(top[0]->height());
   weight_multiplier_shape.push_back(top[0]->width());
   weight_multiplier_.Reshape(weight_multiplier_shape);
-  caffe_set(weight_multiplier_.count(), Dtype(1),
-            weight_multiplier_.mutable_gpu_data());
+  caffe_gpu_set(weight_multiplier_.count(), Dtype(1),
+                weight_multiplier_.mutable_gpu_data());
   if (this->layer_param_.convolution_param().bias_term()) {
     vector<int> bias_buffer_shape;
     bias_buffer_shape.push_back(bottom[0]->channels());
@@ -130,8 +128,8 @@ void ConvolutionDepthwiseLayer<Dtype>::Reshape(
     bias_multiplier_shape.push_back(top[0]->height());
     bias_multiplier_shape.push_back(top[0]->width());
     bias_multiplier_.Reshape(bias_multiplier_shape);
-    caffe_set(bias_multiplier_.count(), Dtype(1),
-              bias_multiplier_.mutable_gpu_data());
+    caffe_gpu_set(bias_multiplier_.count(), Dtype(1),
+                  bias_multiplier_.mutable_gpu_data());
   }
 }
 
@@ -173,7 +171,6 @@ void ConvolutionDepthwiseLayer<Dtype>::Forward_cpu(
       }
     }
   }
-
   if (this->layer_param_.convolution_param().bias_term()) {
     top_data = top[0]->mutable_cpu_data();
     for (int n = 0; n < num; ++n) {
@@ -218,7 +215,6 @@ void ConvolutionDepthwiseLayer<Dtype>::Backward_cpu(
       }
     }
   }
-
   if (this->param_propagate_down_[0]) {
     const Dtype* top_diff = top[0]->cpu_diff();
     const Dtype* bottom_data = bottom[0]->cpu_data();
@@ -237,7 +233,6 @@ void ConvolutionDepthwiseLayer<Dtype>::Backward_cpu(
                   int offset = ((n * channels + c) * bottom_height + h_in) *
                                    bottom_width +
                                w_in;
-
                   *weight_diff += bottom_data[offset] * (*top_diff);
                 }
                 ++weight_diff;
@@ -249,7 +244,6 @@ void ConvolutionDepthwiseLayer<Dtype>::Backward_cpu(
       }
     }
   }
-
   if (propagate_down[0]) {
     const Dtype* top_diff = top[0]->cpu_diff();
     const Dtype* weight_data_base = this->blobs_[0]->cpu_data();
@@ -269,7 +263,6 @@ void ConvolutionDepthwiseLayer<Dtype>::Backward_cpu(
                   int offset = ((n * channels + c) * bottom_height + h_in) *
                                    bottom_width +
                                w_in;
-
                   bottom_diff[offset] += (*weight_data) * (*top_diff);
                 }
                 ++weight_data;
