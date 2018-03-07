@@ -20,7 +20,7 @@ TODO:
 namespace caffe {
 
 template <typename Dtype>
-HDF5DataLayer<Dtype>::~HDF5DataLayer<Dtype>() { }
+HDF5DataLayer<Dtype>::~HDF5DataLayer<Dtype>() {}
 
 // Load data and label from HDF5 filename into the class property blobs.
 template <typename Dtype>
@@ -41,7 +41,7 @@ void HDF5DataLayer<Dtype>::LoadHDF5FileData(const char* filename) {
     hdf_blobs_[i] = shared_ptr<Blob<Dtype> >(new Blob<Dtype>());
     // Allow reshape here, as we are loading data not params
     hdf5_load_nd_dataset(file_id, this->layer_param_.top(i).c_str(),
-        MIN_DATA_DIM, MAX_DATA_DIM, hdf_blobs_[i].get(), true);
+                         MIN_DATA_DIM, MAX_DATA_DIM, hdf_blobs_[i].get(), true);
   }
 
   herr_t status = H5Fclose(file_id);
@@ -56,8 +56,7 @@ void HDF5DataLayer<Dtype>::LoadHDF5FileData(const char* filename) {
   // Default to identity permutation.
   data_permutation_.clear();
   data_permutation_.resize(hdf_blobs_[0]->shape(0));
-  for (int i = 0; i < hdf_blobs_[0]->shape(0); i++)
-    data_permutation_[i] = i;
+  for (int i = 0; i < hdf_blobs_[0]->shape(0); i++) data_permutation_[i] = i;
 
   // Shuffle if needed.
   if (this->layer_param_.hdf5_data_param().shuffle()) {
@@ -71,10 +70,10 @@ void HDF5DataLayer<Dtype>::LoadHDF5FileData(const char* filename) {
 
 template <typename Dtype>
 void HDF5DataLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+                                      const vector<Blob<Dtype>*>& top) {
   // Refuse transformation parameters since HDF5 is totally generic.
-  CHECK(!this->layer_param_.has_transform_param()) <<
-      this->type() << " does not transform data.";
+  CHECK(!this->layer_param_.has_transform_param())
+      << this->type() << " does not transform data.";
   // Read the source to parse the filenames.
   const string& source = this->layer_param_.hdf5_data_param().source();
   LOG(INFO) << "Loading list of HDF5 filenames from: " << source;
@@ -93,7 +92,7 @@ void HDF5DataLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
   current_file_ = 0;
   LOG(INFO) << "Number of HDF5 files: " << num_files_;
   CHECK_GE(num_files_, 1) << "Must have at least 1 HDF5 filename listed in "
-    << source;
+                          << source;
 
   file_permutation_.clear();
   file_permutation_.resize(num_files_);
@@ -135,7 +134,7 @@ bool HDF5DataLayer<Dtype>::Skip() {
   return !keep;
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void HDF5DataLayer<Dtype>::Next() {
   if (++current_row_ == hdf_blobs_[0]->shape(0)) {
     if (num_files_ > 1) {
@@ -149,7 +148,7 @@ void HDF5DataLayer<Dtype>::Next() {
         DLOG(INFO) << "Looping around to first file.";
       }
       LoadHDF5FileData(
-        hdf_filenames_[file_permutation_[current_file_]].c_str());
+          hdf_filenames_[file_permutation_[current_file_]].c_str());
     }
     current_row_ = 0;
     if (this->layer_param_.hdf5_data_param().shuffle())
@@ -160,7 +159,7 @@ void HDF5DataLayer<Dtype>::Next() {
 
 template <typename Dtype>
 void HDF5DataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+                                       const vector<Blob<Dtype>*>& top) {
   const int batch_size = this->layer_param_.hdf5_data_param().batch_size();
   for (int i = 0; i < batch_size; ++i) {
     while (Skip()) {
@@ -169,8 +168,9 @@ void HDF5DataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
     for (int j = 0; j < this->layer_param_.top_size(); ++j) {
       int data_dim = top[j]->count() / top[j]->shape(0);
       caffe_copy(data_dim,
-          &hdf_blobs_[j]->cpu_data()[data_permutation_[current_row_]
-            * data_dim], &top[j]->mutable_cpu_data()[i * data_dim]);
+                 &hdf_blobs_[j]
+                      ->cpu_data()[data_permutation_[current_row_] * data_dim],
+                 &top[j]->mutable_cpu_data()[i * data_dim]);
     }
     Next();
   }

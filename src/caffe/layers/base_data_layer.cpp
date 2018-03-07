@@ -13,13 +13,11 @@ namespace caffe {
 
 template <typename Dtype>
 BaseDataLayer<Dtype>::BaseDataLayer(const LayerParameter& param)
-    : Layer<Dtype>(param),
-      transform_param_(param.transform_param()) {
-}
+    : Layer<Dtype>(param), transform_param_(param.transform_param()) {}
 
 template <typename Dtype>
 void BaseDataLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+                                      const vector<Blob<Dtype>*>& top) {
   if (top.size() == 1) {
     output_labels_ = false;
   } else {
@@ -37,7 +35,9 @@ BasePrefetchingDataLayer<Dtype>::BasePrefetchingDataLayer(
     const LayerParameter& param)
     : BaseDataLayer<Dtype>(param),
       prefetch_(param.data_param().prefetch()),
-      prefetch_free_(), prefetch_full_(), prefetch_current_() {
+      prefetch_free_(),
+      prefetch_full_(),
+      prefetch_current_() {
   for (int i = 0; i < prefetch_.size(); ++i) {
     prefetch_[i].reset(new Batch<Dtype>());
     prefetch_free_.push(prefetch_[i].get());
@@ -126,15 +126,13 @@ void BasePrefetchingDataLayer<Dtype>::Forward_cpu(
   }
 }
 
-
 template <typename Dtype>
 void ImageDimPrefetchingDataLayer<Dtype>::LayerSetUp(
-  const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+    const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
   BaseDataLayer<Dtype>::LayerSetUp(bottom, top);
   if (top.size() == 3) {
     output_data_dim_ = true;
-  }
-  else {
+  } else {
     output_data_dim_ = false;
   }
   for (int i = 0; i < this->prefetch_.size(); ++i) {
@@ -148,13 +146,13 @@ void ImageDimPrefetchingDataLayer<Dtype>::LayerSetUp(
   }
 #ifdef USE_CUDA
   if (Caffe::mode() == Caffe::GPU) {
-    for (int i = 0; i < BasePrefetchingDataLayer<Dtype>::PREFETCH_COUNT; ++i) {
-      this->prefetch_[i].data_.mutable_gpu_data();
+    for (int i = 0; i < this->prefetch_.size(); ++i) {
+      this->prefetch_[i]->data_.mutable_gpu_data();
       if (this->output_labels_) {
-        this->prefetch_[i].label_.mutable_gpu_data();
+        this->prefetch_[i]->label_.mutable_gpu_data();
       }
       if (output_data_dim_) {
-        this->prefetch_[i].dim_.mutable_gpu_data();
+        this->prefetch_[i]->dim_.mutable_gpu_data();
       }
     }
   }
@@ -167,26 +165,26 @@ void ImageDimPrefetchingDataLayer<Dtype>::LayerSetUp(
 
 template <typename Dtype>
 void ImageDimPrefetchingDataLayer<Dtype>::Forward_cpu(
-  const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+    const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
   Batch<Dtype>* batch =
-    this->prefetch_full_.pop("Data layer prefetch queue empty");
+      this->prefetch_full_.pop("Data layer prefetch queue empty");
   // Reshape to loaded data.
   top[0]->ReshapeLike(batch->data_);
   // Copy the data
   caffe_copy(batch->data_.count(), batch->data_.cpu_data(),
-    top[0]->mutable_cpu_data());
+             top[0]->mutable_cpu_data());
   DLOG(INFO) << "Prefetch copied";
   if (this->output_labels_) {
     // Reshape to loaded labels.
     top[1]->ReshapeLike(batch->label_);
     // Copy the labels.
     caffe_copy(batch->label_.count(), batch->label_.cpu_data(),
-      top[1]->mutable_cpu_data());
+               top[1]->mutable_cpu_data());
   }
   if (output_data_dim_) {
     top[2]->ReshapeLike(batch->dim_);
     caffe_copy(batch->dim_.count(), batch->dim_.cpu_data(),
-      top[2]->mutable_cpu_data());
+               top[2]->mutable_cpu_data());
   }
 
   this->prefetch_free_.push(batch);
@@ -200,6 +198,5 @@ STUB_GPU_FORWARD(ImageDimPrefetchingDataLayer, Forward);
 INSTANTIATE_CLASS(BaseDataLayer);
 INSTANTIATE_CLASS(BasePrefetchingDataLayer);
 INSTANTIATE_CLASS(ImageDimPrefetchingDataLayer);
-
 
 }  // namespace caffe

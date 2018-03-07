@@ -8,20 +8,19 @@
 namespace caffe {
 
 template <typename Dtype>
-void AccuracyLayer<Dtype>::LayerSetUp(
-  const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+void AccuracyLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
+                                      const vector<Blob<Dtype>*>& top) {
   top_k_ = this->layer_param_.accuracy_param().top_k();
 
-  has_ignore_label_ =
-    this->layer_param_.accuracy_param().has_ignore_label();
+  has_ignore_label_ = this->layer_param_.accuracy_param().has_ignore_label();
   if (has_ignore_label_) {
     ignore_label_ = this->layer_param_.accuracy_param().ignore_label();
   }
 }
 
 template <typename Dtype>
-void AccuracyLayer<Dtype>::Reshape(
-  const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+void AccuracyLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
+                                   const vector<Blob<Dtype>*>& top) {
   CHECK_LE(top_k_, bottom[0]->count() / bottom[1]->count())
       << "top_k must be less than or equal to the number of classes.";
   label_axis_ =
@@ -46,7 +45,7 @@ void AccuracyLayer<Dtype>::Reshape(
 
 template <typename Dtype>
 void AccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-    const vector<Blob<Dtype>*>& top) {
+                                       const vector<Blob<Dtype>*>& top) {
   Dtype accuracy = 0;
   const Dtype* bottom_data = bottom[0]->cpu_data();
   const Dtype* bottom_label = bottom[1]->cpu_data();
@@ -67,14 +66,13 @@ void AccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       DCHECK_GE(label_value, 0);
       DCHECK_LT(label_value, num_labels);
       if (top.size() > 1) ++nums_buffer_.mutable_cpu_data()[label_value];
-      const Dtype prob_of_true_class = bottom_data[i * dim
-                                                   + label_value * inner_num_
-                                                   + j];
+      const Dtype prob_of_true_class =
+          bottom_data[i * dim + label_value * inner_num_ + j];
       int num_better_predictions = -1;  // true_class also counts as "better"
       // Top-k accuracy
       for (int k = 0; k < num_labels && num_better_predictions < top_k_; ++k) {
         num_better_predictions +=
-          (bottom_data[i * dim + k * inner_num_ + j] >= prob_of_true_class);
+            (bottom_data[i * dim + k * inner_num_ + j] >= prob_of_true_class);
       }
       // check if there are less than top_k_ predictions
       if (num_better_predictions < top_k_) {
@@ -90,8 +88,8 @@ void AccuracyLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   if (top.size() > 1) {
     for (int i = 0; i < top[1]->count(); ++i) {
       top[1]->mutable_cpu_data()[i] =
-          nums_buffer_.cpu_data()[i] == 0 ? 0
-          : top[1]->cpu_data()[i] / nums_buffer_.cpu_data()[i];
+          nums_buffer_.cpu_data()[i] == 0 ? 0 : top[1]->cpu_data()[i] /
+                                                    nums_buffer_.cpu_data()[i];
     }
   }
   // Accuracy layer should not be used as a loss function.

@@ -527,13 +527,14 @@ message LayerParameter {
   optional SeLuParameter selu_param = 184;
   optional SeLuDropoutParameter selu_dropout_param = 185;
   optional SegAccuracyParameter seg_accuracy_param = 186;
-    optional ROIWarpingParameter roi_warping_param = 187;
-    optional LargeMarginInnerProductParameter largemargin_inner_product_param = 188;
+  optional ROIWarpingParameter roi_warping_param = 187;
+  optional LargeMarginInnerProductParameter largemargin_inner_product_param = 188;
   optional DeformableConvolutionParameter deformable_convolution_param = 189;
   optional DenseCRFParameter dense_crf_param = 190;
   optional TransposeParameter transpose_param=8266710;
   optional LSTMParameter lstm_param = 8266711;
 }
+
 message DenseCRFParameter {
   // max number of iteration for message passing
   optional int32 max_iter = 1 [default = 10];
@@ -547,6 +548,7 @@ message DenseCRFParameter {
   // output is probability or score (score = log(prob))
   optional bool output_probability = 7 [default = true];
 }
+
 message DeformableConvolutionParameter {
   optional uint32 num_output = 1; // The number of outputs for the layer
   optional bool bias_term = 2 [default = true]; // whether to have bias terms

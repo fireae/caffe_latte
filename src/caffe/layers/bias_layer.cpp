@@ -8,7 +8,7 @@ namespace caffe {
 
 template <typename Dtype>
 void BiasLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+                                  const vector<Blob<Dtype>*>& top) {
   if (bottom.size() == 1 && this->blobs_.size() > 0) {
     LOG(INFO) << "Skipping parameter initialization";
   } else if (bottom.size() == 1) {
@@ -38,15 +38,15 @@ void BiasLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
 
 template <typename Dtype>
 void BiasLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+                               const vector<Blob<Dtype>*>& top) {
   const BiasParameter& param = this->layer_param_.bias_param();
   Blob<Dtype>* bias = (bottom.size() > 1) ? bottom[1] : this->blobs_[0].get();
   // Always set axis == 0 in special case where bias is a scalar
   // (num_axes == 0). Mathematically equivalent for any choice of axis, so the
   // actual setting can be safely ignored; and computation is most efficient
   // with axis == 0 and (therefore) outer_dim_ == 1.
-  const int axis = (bias->num_axes() == 0) ?
-      0 : bottom[0]->CanonicalAxisIndex(param.axis());
+  const int axis =
+      (bias->num_axes() == 0) ? 0 : bottom[0]->CanonicalAxisIndex(param.axis());
   CHECK_GE(bottom[0]->num_axes(), axis + bias->num_axes())
       << "bias blob's shape extends past bottom[0]'s shape when applied "
       << "starting with bottom[0] axis = " << axis;
@@ -70,7 +70,7 @@ void BiasLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
 
 template <typename Dtype>
 void BiasLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+                                   const vector<Blob<Dtype>*>& top) {
   const Dtype* bias_data =
       ((bottom.size() > 1) ? bottom[1] : this->blobs_[0].get())->cpu_data();
   Dtype* top_data = top[0]->mutable_cpu_data();
@@ -79,16 +79,17 @@ void BiasLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
     caffe_copy(bottom[0]->count(), bottom_data, top_data);
   }
   for (int n = 0; n < outer_dim_; ++n) {
-    caffe_cpu_gemm(CblasNoTrans, CblasNoTrans, bias_dim_,
-        inner_dim_, 1, Dtype(1), bias_data,
-        bias_multiplier_.cpu_data(), Dtype(1), top_data);
+    caffe_cpu_gemm(CblasNoTrans, CblasNoTrans, bias_dim_, inner_dim_, 1,
+                   Dtype(1), bias_data, bias_multiplier_.cpu_data(), Dtype(1),
+                   top_data);
     top_data += dim_;
   }
 }
 
 template <typename Dtype>
 void BiasLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+                                    const vector<bool>& propagate_down,
+                                    const vector<Blob<Dtype>*>& bottom) {
   if (propagate_down[0] && bottom[0] != top[0]) {
     const Dtype* top_diff = top[0]->cpu_diff();
     Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
@@ -99,12 +100,12 @@ void BiasLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
   if ((!bias_param && propagate_down[1]) ||
       (bias_param && this->param_propagate_down_[0])) {
     const Dtype* top_diff = top[0]->cpu_diff();
-    Dtype* bias_diff = (bias_param ? this->blobs_[0].get() : bottom[1])
-        ->mutable_cpu_diff();
+    Dtype* bias_diff =
+        (bias_param ? this->blobs_[0].get() : bottom[1])->mutable_cpu_diff();
     bool accum = bias_param;
     for (int n = 0; n < outer_dim_; ++n) {
-      caffe_cpu_gemv(CblasNoTrans, bias_dim_, inner_dim_, Dtype(1),
-          top_diff, bias_multiplier_.cpu_data(), Dtype(accum), bias_diff);
+      caffe_cpu_gemv(CblasNoTrans, bias_dim_, inner_dim_, Dtype(1), top_diff,
+                     bias_multiplier_.cpu_data(), Dtype(accum), bias_diff);
       top_diff += dim_;
       accum = true;
     }

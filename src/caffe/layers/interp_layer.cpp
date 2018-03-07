@@ -1,15 +1,15 @@
 #include <vector>
 
 #include "caffe/layer.hpp"
-#include "caffe/util/math_functions.hpp"
-#include "caffe/util/interp.hpp"
 #include "caffe/layers/interp_layer.hpp"
+#include "caffe/util/interp.hpp"
+#include "caffe/util/math_functions.hpp"
 
 namespace caffe {
 
 template <typename Dtype>
 void InterpLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+                                    const vector<Blob<Dtype>*>& top) {
   InterpParameter interp_param = this->layer_param_.interp_param();
   pad_beg_ = interp_param.pad_beg();
   pad_end_ = interp_param.pad_end();
@@ -19,7 +19,7 @@ void InterpLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
 
 template <typename Dtype>
 void InterpLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+                                 const vector<Blob<Dtype>*>& top) {
   num_ = bottom[0]->num();
   channels_ = bottom[0]->channels();
   height_in_ = bottom[0]->height();
@@ -27,8 +27,7 @@ void InterpLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
   height_in_eff_ = height_in_ + pad_beg_ + pad_end_;
   width_in_eff_ = width_in_ + pad_beg_ + pad_end_;
   InterpParameter interp_param = this->layer_param_.interp_param();
-  if (interp_param.has_shrink_factor() &&
-      !interp_param.has_zoom_factor()) {
+  if (interp_param.has_shrink_factor() && !interp_param.has_zoom_factor()) {
     const int shrink_factor = interp_param.shrink_factor();
     CHECK_GE(shrink_factor, 1) << "Shrink factor must be positive";
     height_out_ = (height_in_eff_ - 1) / shrink_factor + 1;
@@ -40,8 +39,8 @@ void InterpLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
     height_out_ = height_in_eff_ + (height_in_eff_ - 1) * (zoom_factor - 1);
     width_out_ = width_in_eff_ + (width_in_eff_ - 1) * (zoom_factor - 1);
   } else if (interp_param.has_height() && interp_param.has_width()) {
-    height_out_  = interp_param.height();
-    width_out_  = interp_param.width();
+    height_out_ = interp_param.height();
+    width_out_ = interp_param.width();
   } else if (interp_param.has_shrink_factor() &&
              interp_param.has_zoom_factor()) {
     const int shrink_factor = interp_param.shrink_factor();
@@ -64,39 +63,51 @@ void InterpLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
 
 template <typename Dtype>
 void InterpLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
-  caffe_cpu_interp2<Dtype,false>(num_ * channels_,
-    bottom[0]->cpu_data(), - pad_beg_, - pad_beg_, height_in_eff_, width_in_eff_, height_in_, width_in_,
-    top[0]->mutable_cpu_data(), 0, 0, height_out_, width_out_, height_out_, width_out_);
+                                     const vector<Blob<Dtype>*>& top) {
+  caffe_cpu_interp2<Dtype, false>(num_ * channels_, bottom[0]->cpu_data(),
+                                  -pad_beg_, -pad_beg_, height_in_eff_,
+                                  width_in_eff_, height_in_, width_in_,
+                                  top[0]->mutable_cpu_data(), 0, 0, height_out_,
+                                  width_out_, height_out_, width_out_);
 }
 
 template <typename Dtype>
 void InterpLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
-  if (!propagate_down[0]) { return; }
+                                      const vector<bool>& propagate_down,
+                                      const vector<Blob<Dtype>*>& bottom) {
+  if (!propagate_down[0]) {
+    return;
+  }
   caffe_set(bottom[0]->count(), Dtype(0), bottom[0]->mutable_cpu_diff());
-  caffe_cpu_interp2_backward<Dtype,false>(num_ * channels_,
-    bottom[0]->mutable_cpu_diff(), - pad_beg_, - pad_beg_, height_in_eff_, width_in_eff_, height_in_, width_in_,
-    top[0]->cpu_diff(), 0, 0, height_out_, width_out_, height_out_, width_out_);
+  caffe_cpu_interp2_backward<Dtype, false>(
+      num_ * channels_, bottom[0]->mutable_cpu_diff(), -pad_beg_, -pad_beg_,
+      height_in_eff_, width_in_eff_, height_in_, width_in_, top[0]->cpu_diff(),
+      0, 0, height_out_, width_out_, height_out_, width_out_);
 }
 
 #ifdef USE_CUDA
 template <typename Dtype>
 void InterpLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
-  caffe_gpu_interp2<Dtype,false>(num_ * channels_,
-    bottom[0]->gpu_data(), - pad_beg_, - pad_beg_, height_in_eff_, width_in_eff_, height_in_, width_in_,
-    top[0]->mutable_gpu_data(), 0, 0, height_out_, width_out_, height_out_, width_out_);
+                                     const vector<Blob<Dtype>*>& top) {
+  caffe_gpu_interp2<Dtype, false>(num_ * channels_, bottom[0]->gpu_data(),
+                                  -pad_beg_, -pad_beg_, height_in_eff_,
+                                  width_in_eff_, height_in_, width_in_,
+                                  top[0]->mutable_gpu_data(), 0, 0, height_out_,
+                                  width_out_, height_out_, width_out_);
 }
 
 template <typename Dtype>
 void InterpLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
-  if (!propagate_down[0]) { return; }
+                                      const vector<bool>& propagate_down,
+                                      const vector<Blob<Dtype>*>& bottom) {
+  if (!propagate_down[0]) {
+    return;
+  }
   caffe_gpu_set(bottom[0]->count(), Dtype(0), bottom[0]->mutable_gpu_diff());
-  caffe_gpu_interp2_backward<Dtype,false>(num_ * channels_,
-    bottom[0]->mutable_gpu_diff(), - pad_beg_, - pad_beg_, height_in_eff_, width_in_eff_, height_in_, width_in_,
-    top[0]->gpu_diff(), 0, 0, height_out_, width_out_, height_out_, width_out_);
+  caffe_gpu_interp2_backward<Dtype, false>(
+      num_ * channels_, bottom[0]->mutable_gpu_diff(), -pad_beg_, -pad_beg_,
+      height_in_eff_, width_in_eff_, height_in_, width_in_, top[0]->gpu_diff(),
+      0, 0, height_out_, width_out_, height_out_, width_out_);
 }
 #endif
 

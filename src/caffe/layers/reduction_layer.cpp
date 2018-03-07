@@ -7,13 +7,13 @@ namespace caffe {
 
 template <typename Dtype>
 void ReductionLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+                                       const vector<Blob<Dtype>*>& top) {
   op_ = this->layer_param_.reduction_param().operation();
 }
 
 template <typename Dtype>
 void ReductionLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+                                    const vector<Blob<Dtype>*>& top) {
   axis_ = bottom[0]->CanonicalAxisIndex(
       this->layer_param_.reduction_param().axis());
   // In the output, we'll keep all axes up to the reduction axis, but
@@ -39,8 +39,8 @@ void ReductionLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
 }
 
 template <typename Dtype>
-void ReductionLayer<Dtype>::Forward_cpu(
-    const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+void ReductionLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
+                                        const vector<Blob<Dtype>*>& top) {
   const Dtype* bottom_data = bottom[0]->cpu_data();
   const Dtype* mult_data = NULL;
   if (sum_multiplier_.count() > 0) {
@@ -49,19 +49,19 @@ void ReductionLayer<Dtype>::Forward_cpu(
   Dtype* top_data = top[0]->mutable_cpu_data();
   for (int i = 0; i < num_; ++i) {
     switch (op_) {
-    case ReductionParameter_ReductionOp_SUM:
-    case ReductionParameter_ReductionOp_MEAN:
-      *top_data = caffe_cpu_dot(dim_, mult_data, bottom_data);
-      break;
-    case ReductionParameter_ReductionOp_ASUM:
-      *top_data = caffe_cpu_asum(dim_, bottom_data);
-      break;
-    case ReductionParameter_ReductionOp_SUMSQ:
-      *top_data = caffe_cpu_dot(dim_, bottom_data, bottom_data);
-      break;
-    default:
-      LOG(FATAL) << "Unknown reduction op: "
-          << ReductionParameter_ReductionOp_Name(op_);
+      case ReductionParameter_ReductionOp_SUM:
+      case ReductionParameter_ReductionOp_MEAN:
+        *top_data = caffe_cpu_dot(dim_, mult_data, bottom_data);
+        break;
+      case ReductionParameter_ReductionOp_ASUM:
+        *top_data = caffe_cpu_asum(dim_, bottom_data);
+        break;
+      case ReductionParameter_ReductionOp_SUMSQ:
+        *top_data = caffe_cpu_dot(dim_, bottom_data, bottom_data);
+        break;
+      default:
+        LOG(FATAL) << "Unknown reduction op: "
+                   << ReductionParameter_ReductionOp_Name(op_);
     }
     bottom_data += dim_;
     ++top_data;
@@ -75,43 +75,46 @@ void ReductionLayer<Dtype>::Forward_cpu(
 
 template <typename Dtype>
 void ReductionLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-    const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
-  if (!propagate_down[0]) { return; }
+                                         const vector<bool>& propagate_down,
+                                         const vector<Blob<Dtype>*>& bottom) {
+  if (!propagate_down[0]) {
+    return;
+  }
   // Get bottom_data, if needed.
   const Dtype* bottom_data = NULL;
   switch (op_) {
-  // Operations that don't need bottom_data
-  case ReductionParameter_ReductionOp_SUM:
-  case ReductionParameter_ReductionOp_MEAN:
-    break;
-  // Operations that need bottom_data
-  case ReductionParameter_ReductionOp_ASUM:
-  case ReductionParameter_ReductionOp_SUMSQ:
-    bottom_data = bottom[0]->cpu_data();
-    break;
-  default:
-    LOG(FATAL) << "Unknown reduction op: "
-        << ReductionParameter_ReductionOp_Name(op_);
+    // Operations that don't need bottom_data
+    case ReductionParameter_ReductionOp_SUM:
+    case ReductionParameter_ReductionOp_MEAN:
+      break;
+    // Operations that need bottom_data
+    case ReductionParameter_ReductionOp_ASUM:
+    case ReductionParameter_ReductionOp_SUMSQ:
+      bottom_data = bottom[0]->cpu_data();
+      break;
+    default:
+      LOG(FATAL) << "Unknown reduction op: "
+                 << ReductionParameter_ReductionOp_Name(op_);
   }
   const Dtype* top_diff = top[0]->cpu_diff();
   Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
   for (int i = 0; i < num_; ++i) {
     const Dtype bottom_coeff = (*top_diff) * coeff_;
     switch (op_) {
-    case ReductionParameter_ReductionOp_SUM:
-    case ReductionParameter_ReductionOp_MEAN:
-      caffe_set(dim_, bottom_coeff, bottom_diff);
-      break;
-    case ReductionParameter_ReductionOp_ASUM:
-      caffe_cpu_sign(dim_, bottom_data, bottom_diff);
-      caffe_scal(dim_, bottom_coeff, bottom_diff);
-      break;
-    case ReductionParameter_ReductionOp_SUMSQ:
-      caffe_cpu_scale(dim_, 2 * bottom_coeff, bottom_data, bottom_diff);
-      break;
-    default:
-      LOG(FATAL) << "Unknown reduction op: "
-          << ReductionParameter_ReductionOp_Name(op_);
+      case ReductionParameter_ReductionOp_SUM:
+      case ReductionParameter_ReductionOp_MEAN:
+        caffe_set(dim_, bottom_coeff, bottom_diff);
+        break;
+      case ReductionParameter_ReductionOp_ASUM:
+        caffe_cpu_sign(dim_, bottom_data, bottom_diff);
+        caffe_scal(dim_, bottom_coeff, bottom_diff);
+        break;
+      case ReductionParameter_ReductionOp_SUMSQ:
+        caffe_cpu_scale(dim_, 2 * bottom_coeff, bottom_data, bottom_diff);
+        break;
+      default:
+        LOG(FATAL) << "Unknown reduction op: "
+                   << ReductionParameter_ReductionOp_Name(op_);
     }
     bottom_data += dim_;
     bottom_diff += dim_;

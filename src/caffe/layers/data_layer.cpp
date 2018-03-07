@@ -13,8 +13,7 @@ namespace caffe {
 
 template <typename Dtype>
 DataLayer<Dtype>::DataLayer(const LayerParameter& param)
-  : BasePrefetchingDataLayer<Dtype>(param),
-    offset_() {
+    : BasePrefetchingDataLayer<Dtype>(param), offset_() {
   db_.reset(db::GetDB(param.data_param().backend()));
   db_->Open(param.data_param().source(), db::READ);
   cursor_.reset(db_->NewCursor());
@@ -28,7 +27,7 @@ DataLayer<Dtype>::~DataLayer() {
 
 template <typename Dtype>
 void DataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+                                      const vector<Blob<Dtype>*>& top) {
   const int batch_size = this->layer_param_.data_param().batch_size();
   // Read a data point, and use it to initialize the top blob.
   Datum datum;
@@ -44,17 +43,16 @@ void DataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
     this->prefetch_[i]->data_.Reshape(top_shape);
   }
   LOG_IF(INFO, Caffe::root_solver())
-      << "output data size: " << top[0]->num() << ","
-      << top[0]->channels() << "," << top[0]->height() << ","
-      << top[0]->width();
+      << "output data size: " << top[0]->num() << "," << top[0]->channels()
+      << "," << top[0]->height() << "," << top[0]->width();
   // label
   if (this->output_labels_) {
-	  vector<int> label_shape;
-	  label_shape.push_back(batch_size);
-	  label_shape.push_back(datum.label_size());
-	  label_shape.push_back(1);
-	  label_shape.push_back(1);
-	  top[1]->Reshape(label_shape);
+    vector<int> label_shape;
+    label_shape.push_back(batch_size);
+    label_shape.push_back(datum.label_size());
+    label_shape.push_back(1);
+    label_shape.push_back(1);
+    top[1]->Reshape(label_shape);
     for (int i = 0; i < this->prefetch_.size(); ++i) {
       this->prefetch_[i]->label_.Reshape(label_shape);
     }
@@ -71,7 +69,7 @@ bool DataLayer<Dtype>::Skip() {
   return !keep;
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void DataLayer<Dtype>::Next() {
   cursor_->Next();
   if (!cursor_->valid()) {
@@ -83,7 +81,7 @@ void DataLayer<Dtype>::Next() {
 }
 
 // This function is called on prefetch thread
-template<typename Dtype>
+template <typename Dtype>
 void DataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
   CPUTimer batch_timer;
   batch_timer.Start();
@@ -94,18 +92,16 @@ void DataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
   CHECK(this->transformed_data_.count());
   const int batch_size = this->layer_param_.data_param().batch_size();
 
-  //rand skip
-  if (rand_skip_num_ > 0)
-  {
-	  unsigned int skip = caffe_rng_rand() % rand_skip_num_;
-	  unsigned int k = 0;
-	  while (k<skip) {
-		  Next();
-		  k++;
-	  }
-	  LOG_IF(INFO, Caffe::root_solver())
-		  << "skip " << skip;
-	  rand_skip_num_ = 0;//skip once
+  // rand skip
+  if (rand_skip_num_ > 0) {
+    unsigned int skip = caffe_rng_rand() % rand_skip_num_;
+    unsigned int k = 0;
+    while (k < skip) {
+      Next();
+      k++;
+    }
+    LOG_IF(INFO, Caffe::root_solver()) << "skip " << skip;
+    rand_skip_num_ = 0;  // skip once
   }
 
   Datum datum;
@@ -137,18 +133,18 @@ void DataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
     // Copy label.
     if (this->output_labels_) {
       Dtype* top_label = batch->label_.mutable_cpu_data();
-      //top_label[item_id] = datum.label();
-		for (size_t i = 0; i < datum.label_size(); i++)
-			top_label[item_id*datum.label_size() + i] = datum.label(i);
+      // top_label[item_id] = datum.label();
+      for (size_t i = 0; i < datum.label_size(); i++)
+        top_label[item_id * datum.label_size() + i] = datum.label(i);
     }
     trans_time += timer.MicroSeconds();
     Next();
   }
   timer.Stop();
   batch_timer.Stop();
-  //DLOG(INFO) << "Prefetch batch: " << batch_timer.MilliSeconds() << " ms.";
-  //DLOG(INFO) << "     Read time: " << read_time / 1000 << " ms.";
-  //DLOG(INFO) << "Transform time: " << trans_time / 1000 << " ms.";
+  // DLOG(INFO) << "Prefetch batch: " << batch_timer.MilliSeconds() << " ms.";
+  // DLOG(INFO) << "     Read time: " << read_time / 1000 << " ms.";
+  // DLOG(INFO) << "Transform time: " << trans_time / 1000 << " ms.";
 }
 
 INSTANTIATE_CLASS(DataLayer);

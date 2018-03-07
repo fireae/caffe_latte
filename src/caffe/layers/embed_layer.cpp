@@ -8,7 +8,7 @@ namespace caffe {
 
 template <typename Dtype>
 void EmbedLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+                                   const vector<Blob<Dtype>*>& top) {
   N_ = this->layer_param_.embed_param().num_output();
   CHECK_GT(N_, 0) << "EmbedLayer num_output must be positive.";
   K_ = this->layer_param_.embed_param().input_dim();
@@ -30,15 +30,15 @@ void EmbedLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
     weight_shape[1] = N_;
     this->blobs_[0].reset(new Blob<Dtype>(weight_shape));
     // fill the weights
-    shared_ptr<Filler<Dtype> > weight_filler(GetFiller<Dtype>(
-        this->layer_param_.embed_param().weight_filler()));
+    shared_ptr<Filler<Dtype> > weight_filler(
+        GetFiller<Dtype>(this->layer_param_.embed_param().weight_filler()));
     weight_filler->Fill(this->blobs_[0].get());
     // If necessary, initialize and fill the bias term
     if (bias_term_) {
       vector<int> bias_shape(1, N_);
       this->blobs_[1].reset(new Blob<Dtype>(bias_shape));
-      shared_ptr<Filler<Dtype> > bias_filler(GetFiller<Dtype>(
-          this->layer_param_.embed_param().bias_filler()));
+      shared_ptr<Filler<Dtype> > bias_filler(
+          GetFiller<Dtype>(this->layer_param_.embed_param().bias_filler()));
       bias_filler->Fill(this->blobs_[1].get());
     }
   }  // parameter initialization
@@ -47,7 +47,7 @@ void EmbedLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
 
 template <typename Dtype>
 void EmbedLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+                                const vector<Blob<Dtype>*>& top) {
   // Figure out the dimensions
   M_ = bottom[0]->count();
   vector<int> top_shape = bottom[0]->shape();
@@ -63,7 +63,7 @@ void EmbedLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
 
 template <typename Dtype>
 void EmbedLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-    const vector<Blob<Dtype>*>& top) {
+                                    const vector<Blob<Dtype>*>& top) {
   const Dtype* bottom_data = bottom[0]->cpu_data();
   const Dtype* weight = this->blobs_[0]->cpu_data();
   Dtype* top_data = top[0]->mutable_cpu_data();
@@ -78,13 +78,15 @@ void EmbedLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   if (bias_term_) {
     const Dtype* bias = this->blobs_[1]->cpu_data();
     caffe_cpu_gemm<Dtype>(CblasNoTrans, CblasNoTrans, M_, N_, 1, Dtype(1),
-        bias_multiplier_.cpu_data(), bias, Dtype(1), top_data);
+                          bias_multiplier_.cpu_data(), bias, Dtype(1),
+                          top_data);
   }
 }
 
 template <typename Dtype>
 void EmbedLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-    const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+                                     const vector<bool>& propagate_down,
+                                     const vector<Blob<Dtype>*>& bottom) {
   CHECK(!propagate_down[0]) << "Can't backpropagate to EmbedLayer input.";
   if (this->param_propagate_down_[0]) {
     const Dtype* top_diff = top[0]->cpu_diff();
@@ -105,7 +107,7 @@ void EmbedLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
     const Dtype* top_diff = top[0]->cpu_diff();
     Dtype* bias_diff = this->blobs_[1]->mutable_cpu_diff();
     caffe_cpu_gemv<Dtype>(CblasTrans, M_, N_, Dtype(1), top_diff,
-        bias_multiplier_.cpu_data(), Dtype(1), bias_diff);
+                          bias_multiplier_.cpu_data(), Dtype(1), bias_diff);
   }
 }
 

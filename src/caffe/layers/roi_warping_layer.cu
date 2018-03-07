@@ -5,7 +5,7 @@
 // Licensed under The MIT License [see LICENSE for details]
 // --------------------------------------------------------
 #include <cfloat>
-#include "caffe/mnc_layers.hpp"
+#include "caffe/layers/roi_warping_layer.hpp"
 #include <thrust/reduce.h>
 #include <thrust/device_vector.h>
 #include <thrust/copy.h>

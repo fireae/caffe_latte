@@ -8,9 +8,8 @@
 namespace caffe {
 
 template <typename Dtype>
-void FocalLossLayer<Dtype>::LayerSetUp(
-    const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) 
-{
+void FocalLossLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
+                                       const vector<Blob<Dtype>*>& top) {
   // softmax laye setup
   LossLayer<Dtype>::LayerSetUp(bottom, top);
   LayerParameter softmax_param(this->layer_param_);
@@ -25,16 +24,15 @@ void FocalLossLayer<Dtype>::LayerSetUp(
   // ignore label
   has_ignore_label_ = this->layer_param_.loss_param().has_ignore_label();
   if (has_ignore_label_) {
-    ignore_label_   = this->layer_param_.loss_param().ignore_label();
+    ignore_label_ = this->layer_param_.loss_param().ignore_label();
   }
 
   // normalization
   if (!this->layer_param_.loss_param().has_normalization() &&
-       this->layer_param_.loss_param().has_normalize()) 
-  {
-    normalization_ = this->layer_param_.loss_param().normalize() ?
-                     LossParameter_NormalizationMode_VALID :
-                     LossParameter_NormalizationMode_BATCH_SIZE;
+      this->layer_param_.loss_param().has_normalize()) {
+    normalization_ = this->layer_param_.loss_param().normalize()
+                         ? LossParameter_NormalizationMode_VALID
+                         : LossParameter_NormalizationMode_BATCH_SIZE;
   } else {
     normalization_ = this->layer_param_.loss_param().normalization();
   }
@@ -42,36 +40,36 @@ void FocalLossLayer<Dtype>::LayerSetUp(
   // focal loss parameter
   FocalLossParameter focal_loss_param = this->layer_param_.focal_loss_param();
   alpha_ = focal_loss_param.alpha();
-  beta_  = focal_loss_param.beta();
+  beta_ = focal_loss_param.beta();
   gamma_ = focal_loss_param.gamma();
-  type_  = focal_loss_param.type();
+  type_ = focal_loss_param.type();
   LOG(INFO) << "alpha: " << alpha_;
-  LOG(INFO) << "beta: "  << beta_;
+  LOG(INFO) << "beta: " << beta_;
   LOG(INFO) << "gamma: " << gamma_;
-  LOG(INFO) << "type: "  << type_;
+  LOG(INFO) << "type: " << type_;
   CHECK_GE(gamma_, 0) << "gamma must be larger than or equal to zero";
   CHECK_GT(alpha_, 0) << "alpha must be larger than zero";
   // CHECK_LE(alpha_, 1) << "alpha must be smaller than or equal to one";
 }
 
 template <typename Dtype>
-void FocalLossLayer<Dtype>::Reshape(
-    const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) 
-{
+void FocalLossLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
+                                    const vector<Blob<Dtype>*>& top) {
   // softmax laye reshape
   LossLayer<Dtype>::Reshape(bottom, top);
   softmax_layer_->Reshape(softmax_bottom_vec_, softmax_top_vec_);
 
   // cross-channels
-  softmax_axis_ = bottom[0]->CanonicalAxisIndex(this->layer_param_.softmax_param().axis());
-  outer_num_    = bottom[0]->count(0, softmax_axis_);
-  inner_num_    = bottom[0]->count(softmax_axis_ + 1);
+  softmax_axis_ =
+      bottom[0]->CanonicalAxisIndex(this->layer_param_.softmax_param().axis());
+  outer_num_ = bottom[0]->count(0, softmax_axis_);
+  inner_num_ = bottom[0]->count(softmax_axis_ + 1);
   CHECK_EQ(outer_num_ * inner_num_, bottom[1]->count())
       << "Number of labels must match number of predictions; "
       << "e.g., if softmax axis == 1 and prediction shape is (N, C, H, W), "
       << "label count (number of labels) must be N*H*W, "
       << "with integer values in {0, 1, ..., C-1}.";
-  
+
   // softmax output
   if (top.size() >= 2) {
     top[1]->ReshapeLike(*bottom[0]);
@@ -91,8 +89,7 @@ void FocalLossLayer<Dtype>::Reshape(
 
 template <typename Dtype>
 Dtype FocalLossLayer<Dtype>::get_normalizer(
-    LossParameter_NormalizationMode normalization_mode, int valid_count) 
-{
+    LossParameter_NormalizationMode normalization_mode, int valid_count) {
   Dtype normalizer;
   switch (normalization_mode) {
     case LossParameter_NormalizationMode_FULL:
@@ -113,7 +110,7 @@ Dtype FocalLossLayer<Dtype>::get_normalizer(
       break;
     default:
       LOG(FATAL) << "Unknown normalization mode: "
-          << LossParameter_NormalizationMode_Name(normalization_mode);
+                 << LossParameter_NormalizationMode_Name(normalization_mode);
   }
   // Some users will have no labels for some examples in order to 'turn off' a
   // particular loss in a multi-task setup. The max prevents NaNs in that case.
@@ -123,43 +120,43 @@ Dtype FocalLossLayer<Dtype>::get_normalizer(
 template <typename Dtype>
 void FocalLossLayer<Dtype>::compute_intermediate_values_of_cpu() {
   // compute the corresponding variables
-  const int count        = prob_.count();
+  const int count = prob_.count();
   const Dtype* prob_data = prob_.cpu_data();
   const Dtype* ones_data = ones_.cpu_data();
-  Dtype* log_prob_data   = log_prob_.mutable_cpu_data();
+  Dtype* log_prob_data = log_prob_.mutable_cpu_data();
   Dtype* power_prob_data = power_prob_.mutable_cpu_data();
 
   /// log(p_t)
-  const Dtype eps        = Dtype(FLT_MIN); // where FLT_MIN = 1.17549e-38, here u can change it
+  const Dtype eps =
+      Dtype(FLT_MIN);  // where FLT_MIN = 1.17549e-38, here u can change it
   // more stable
-  for(int i = 0; i < prob_.count(); i++) {
+  for (int i = 0; i < prob_.count(); i++) {
     log_prob_data[i] = log(std::max(prob_data[i], eps));
   }
   /// caffe_log(count,  prob_data, log_prob_data);
 
   /// alpha* (1 - p_t) ^ gamma
-  caffe_sub(count,  ones_data, prob_data, power_prob_data);
+  caffe_sub(count, ones_data, prob_data, power_prob_data);
   caffe_powx(count, power_prob_.cpu_data(), gamma_, power_prob_data);
   caffe_scal(count, alpha_, power_prob_data);
 }
 
 template <typename Dtype>
-void FocalLossLayer<Dtype>::Forward_cpu(
-    const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) 
-{
+void FocalLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
+                                        const vector<Blob<Dtype>*>& top) {
   // The forward pass computes the softmax prob values.
   softmax_layer_->Forward(softmax_bottom_vec_, softmax_top_vec_);
 
   // compute all needed values
   compute_intermediate_values_of_cpu();
-  const Dtype* label           = bottom[1]->cpu_data();
-  const Dtype* log_prob_data   = log_prob_.cpu_data();
+  const Dtype* label = bottom[1]->cpu_data();
+  const Dtype* log_prob_data = log_prob_.cpu_data();
   const Dtype* power_prob_data = power_prob_.cpu_data();
 
   // compute loss
-  int count    = 0;
+  int count = 0;
   int channels = prob_.shape(softmax_axis_);
-  int dim      = prob_.count() / outer_num_;
+  int dim = prob_.count() / outer_num_;
 
   Dtype loss = 0;
   for (int i = 0; i < outer_num_; ++i) {
@@ -188,8 +185,8 @@ void FocalLossLayer<Dtype>::Forward_cpu(
 
 template <typename Dtype>
 void FocalLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-    const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) 
-{
+                                         const vector<bool>& propagate_down,
+                                         const vector<Blob<Dtype>*>& bottom) {
   if (propagate_down[1]) {
     LOG(FATAL) << this->type()
                << " Layer cannot backpropagate to label inputs.";
@@ -197,23 +194,23 @@ void FocalLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 
   if (propagate_down[0]) {
     // data
-    Dtype* bottom_diff     = bottom[0]->mutable_cpu_diff();
+    Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
     const Dtype* prob_data = prob_.cpu_data();
-    const Dtype* label     = bottom[1]->cpu_data();
-    // intermidiate  
-    const Dtype* log_prob_data   = log_prob_.cpu_data();
+    const Dtype* label = bottom[1]->cpu_data();
+    // intermidiate
+    const Dtype* log_prob_data = log_prob_.cpu_data();
     const Dtype* power_prob_data = power_prob_.cpu_data();
 
-    int count       = 0;
-    int channels    = bottom[0]->shape(softmax_axis_);
-    int dim         = prob_.count() / outer_num_;
+    int count = 0;
+    int channels = bottom[0]->shape(softmax_axis_);
+    int dim = prob_.count() / outer_num_;
     const Dtype eps = 1e-10;
 
     for (int i = 0; i < outer_num_; ++i) {
       for (int j = 0; j < inner_num_; ++j) {
         // label
         const int label_value = static_cast<int>(label[i * inner_num_ + j]);
-        
+
         // ignore label
         if (has_ignore_label_ && label_value == ignore_label_) {
           for (int c = 0; c < channels; ++c) {
@@ -223,14 +220,17 @@ void FocalLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
         }
 
         // the gradient from FL w.r.t p_t, here ignore the `sign`
-        int ind_i  = i * dim + label_value * inner_num_ + j; // index of ground-truth label
-        Dtype grad = 0 - gamma_ * (power_prob_data[ind_i] / std::max(1 - prob_data[ind_i], eps)) 
-                                * log_prob_data[ind_i] * prob_data[ind_i]
-                       + power_prob_data[ind_i];
+        int ind_i = i * dim + label_value * inner_num_ +
+                    j;  // index of ground-truth label
+        Dtype grad = 0 -
+                     gamma_ * (power_prob_data[ind_i] /
+                               std::max(1 - prob_data[ind_i], eps)) *
+                         log_prob_data[ind_i] * prob_data[ind_i] +
+                     power_prob_data[ind_i];
         // the gradient w.r.t input data x
         for (int c = 0; c < channels; ++c) {
           int ind_j = i * dim + c * inner_num_ + j;
-          if(c == label_value) {
+          if (c == label_value) {
             CHECK_EQ(ind_i, ind_j);
             // if i == j, (here i,j are refered for derivative of softmax)
             bottom_diff[ind_j] = grad * (prob_data[ind_i] - 1);
@@ -239,12 +239,13 @@ void FocalLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
             bottom_diff[ind_j] = grad * prob_data[ind_j];
           }
         }
-        // count                    
+        // count
         ++count;
       }
     }
     // Scale gradient
-    Dtype loss_weight = top[0]->cpu_diff()[0] / get_normalizer(normalization_, count);
+    Dtype loss_weight =
+        top[0]->cpu_diff()[0] / get_normalizer(normalization_, count);
     caffe_scal(prob_.count(), loss_weight, bottom_diff);
   }
 }

@@ -1,7 +1,7 @@
 #ifdef USE_OPENCV
 #include <opencv2/core/core.hpp>
 
-#include <fstream>  // NOLINT(readability/streams)
+#include <fstream>   // NOLINT(readability/streams)
 #include <iostream>  // NOLINT(readability/streams)
 #include <string>
 #include <utility>
@@ -24,16 +24,17 @@ PairImageDataLayer<Dtype>::~PairImageDataLayer<Dtype>() {
 }
 
 template <typename Dtype>
-void PairImageDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+void PairImageDataLayer<Dtype>::DataLayerSetUp(
+    const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
   const int new_height = this->layer_param_.image_data_param().new_height();
-  const int new_width  = this->layer_param_.image_data_param().new_width();
-  const bool is_color  = this->layer_param_.image_data_param().is_color();
+  const int new_width = this->layer_param_.image_data_param().new_width();
+  const bool is_color = this->layer_param_.image_data_param().is_color();
   string root_folder = this->layer_param_.image_data_param().root_folder();
 
   CHECK((new_height == 0 && new_width == 0) ||
-      (new_height > 0 && new_width > 0)) << "Current implementation requires "
-      "new_height and new_width to be set at the same time.";
+        (new_height > 0 && new_width > 0))
+      << "Current implementation requires "
+         "new_height and new_width to be set at the same time.";
   // Read the file with filenames and labels
   const string& source = this->layer_param_.image_data_param().source();
   LOG(INFO) << "Opening file " << source;
@@ -66,8 +67,8 @@ void PairImageDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& botto
   lines_id_ = 0;
   // Check if we would need to randomly skip a few data points
   if (this->layer_param_.image_data_param().rand_skip()) {
-    unsigned int skip = caffe_rng_rand() %
-        this->layer_param_.image_data_param().rand_skip();
+    unsigned int skip =
+        caffe_rng_rand() % this->layer_param_.image_data_param().rand_skip();
     LOG(INFO) << "Skipping first " << skip << " data points.";
     CHECK_GT(lines_.size(), skip) << "Not enough points to skip";
     lines_id_ = skip;
@@ -89,8 +90,8 @@ void PairImageDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& botto
   top[0]->Reshape(top_shape);
 
   LOG(INFO) << "output data size: " << top[0]->num() << ","
-      << top[0]->channels() << "," << top[0]->height() << ","
-      << top[0]->width();
+            << top[0]->channels() << "," << top[0]->height() << ","
+            << top[0]->width();
   // label
   vector<int> label_shape(1, batch_size);
   top[1]->Reshape(label_shape);
@@ -100,38 +101,35 @@ void PairImageDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& botto
 }
 
 template <typename Dtype>
-int PairImageDataLayer<Dtype>::MyRandomData (int i) { 
-    return caffe_rng_rand()%i;
+int PairImageDataLayer<Dtype>::MyRandomData(int i) {
+  return caffe_rng_rand() % i;
 }
 
 template <typename Dtype>
 void PairImageDataLayer<Dtype>::ShuffleImages() {
-   /*caffe::rng_t* prefetch_rng =
-      static_cast<caffe::rng_t*>(prefetch_rng_->generator());
-  shuffle(lines_.begin(), lines_.end(), prefetch_rng);*/
+  /*caffe::rng_t* prefetch_rng =
+     static_cast<caffe::rng_t*>(prefetch_rng_->generator());
+ shuffle(lines_.begin(), lines_.end(), prefetch_rng);*/
 
-  //pair_size shuffle
+  // pair_size shuffle
   const int num_images = lines_.size();
   DLOG(INFO) << "My Shuffle.";
   vector<std::pair<std::string, int> > tlines_;
   vector<int> tnum;
   int pairsize = this->layer_param_.pair_image_data_param().pair_size();
 
-  for(int i = 0; i < num_images / pairsize; i ++)
-  {
-	  tnum.push_back(i);
+  for (int i = 0; i < num_images / pairsize; i++) {
+    tnum.push_back(i);
   }
-  std::random_shuffle(tnum.begin(), tnum.end(), PairImageDataLayer<Dtype>::MyRandomData);
+  std::random_shuffle(tnum.begin(), tnum.end(),
+                      PairImageDataLayer<Dtype>::MyRandomData);
   tlines_.clear();
-  for(int i = 0; i < num_images / pairsize; i ++)
-  {
-	  for(int j = 0; j < pairsize; j ++)
-	  {
-		  tlines_.push_back(lines_[tnum[i] * pairsize + j]);
-	  }
+  for (int i = 0; i < num_images / pairsize; i++) {
+    for (int j = 0; j < pairsize; j++) {
+      tlines_.push_back(lines_[tnum[i] * pairsize + j]);
+    }
   }
   lines_ = tlines_;
-
 }
 
 // This function is called on prefetch thread
@@ -144,7 +142,8 @@ void PairImageDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
   CPUTimer timer;
   CHECK(batch->data_.count());
   CHECK(this->transformed_data_.count());
-  PairImageDataParameter image_data_param = this->layer_param_.pair_image_data_param();
+  PairImageDataParameter image_data_param =
+      this->layer_param_.pair_image_data_param();
   const int batch_size = image_data_param.batch_size();
   const int new_height = image_data_param.new_height();
   const int new_width = image_data_param.new_width();
@@ -154,7 +153,7 @@ void PairImageDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
   // Reshape according to the first image of each batch
   // on single input batches allows for inputs of varying dimension.
   cv::Mat cv_img = ReadImageToCVMat(root_folder + lines_[lines_id_].first,
-      new_height, new_width, is_color);
+                                    new_height, new_width, is_color);
   CHECK(cv_img.data) << "Could not load " << lines_[lines_id_].first;
   // Use data_transformer to infer the expected blob shape from a cv_img.
   vector<int> top_shape = this->data_transformer_->InferBlobShape(cv_img);
@@ -173,7 +172,7 @@ void PairImageDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
     timer.Start();
     CHECK_GT(lines_size, lines_id_);
     cv::Mat cv_img = ReadImageToCVMat(root_folder + lines_[lines_id_].first,
-        new_height, new_width, is_color);
+                                      new_height, new_width, is_color);
     CHECK(cv_img.data) << "Could not load " << lines_[lines_id_].first;
     read_time += timer.MicroSeconds();
     timer.Start();

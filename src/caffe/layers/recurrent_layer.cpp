@@ -12,7 +12,7 @@ namespace caffe {
 
 template <typename Dtype>
 void RecurrentLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+                                       const vector<Blob<Dtype>*>& top) {
   CHECK_GE(bottom[0]->num_axes(), 2)
       << "bottom[0] must have at least 2 axes -- (#timesteps, #streams, ...)";
   T_ = bottom[0]->shape(0);
@@ -181,7 +181,7 @@ void RecurrentLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
 
 template <typename Dtype>
 void RecurrentLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+                                    const vector<Blob<Dtype>*>& top) {
   CHECK_GE(bottom[0]->num_axes(), 2)
       << "bottom[0] must have at least 2 axes -- (#timesteps, #streams, ...)";
   CHECK_EQ(T_, bottom[0]->shape(0)) << "input number of timesteps changed";
@@ -243,7 +243,7 @@ void RecurrentLayer<Dtype>::Reset() {
 
 template <typename Dtype>
 void RecurrentLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-    const vector<Blob<Dtype>*>& top) {
+                                        const vector<Blob<Dtype>*>& top) {
   // Hacky fix for test time: reshare all the internal shared blobs, which may
   // currently point to a stale owner blob that was dropped when Solver::Test
   // called test_net->ShareTrainedLayersWith(net_.get()).
@@ -275,7 +275,8 @@ void RecurrentLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 
 template <typename Dtype>
 void RecurrentLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-    const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+                                         const vector<bool>& propagate_down,
+                                         const vector<Blob<Dtype>*>& bottom) {
   CHECK(!propagate_down[1]) << "Cannot backpropagate to sequence indicators.";
 
   // TODO: skip backpropagation to inputs and parameters inside the unrolled

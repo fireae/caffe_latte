@@ -5,7 +5,7 @@
 
 namespace caffe {
 
-template<typename Dtype>
+template <typename Dtype>
 void BatchReindexLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
                                        const vector<Blob<Dtype>*>& top) {
   CHECK_EQ(1, bottom[1]->num_axes());
@@ -17,7 +17,7 @@ void BatchReindexLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
   top[0]->Reshape(newshape);
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void BatchReindexLayer<Dtype>::check_batch_reindex(int initial_num,
                                                    int final_num,
                                                    const Dtype* ridx_data) {
@@ -29,7 +29,7 @@ void BatchReindexLayer<Dtype>::check_batch_reindex(int initial_num,
   }
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void BatchReindexLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
                                            const vector<Blob<Dtype>*>& top) {
   check_batch_reindex(bottom[0]->shape(0), bottom[1]->count(),
@@ -48,7 +48,7 @@ void BatchReindexLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   }
 }
 
-template<typename Dtype>
+template <typename Dtype>
 void BatchReindexLayer<Dtype>::Backward_cpu(
     const vector<Blob<Dtype>*>& top, const vector<bool>& propagate_down,
     const vector<Blob<Dtype>*>& bottom) {

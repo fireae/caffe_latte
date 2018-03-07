@@ -9,8 +9,8 @@
 namespace caffe {
 
 template <typename Dtype>
-void InfogainLossLayer<Dtype>::LayerSetUp(
-    const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+void InfogainLossLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
+                                          const vector<Blob<Dtype>*>& top) {
   LossLayer<Dtype>::LayerSetUp(bottom, top);
   // internal softmax layer
   LayerParameter softmax_layer_param(this->layer_param_);
@@ -27,33 +27,31 @@ void InfogainLossLayer<Dtype>::LayerSetUp(
   softmax_layer_->SetUp(softmax_bottom_vec_, softmax_top_vec_);
 
   // ignore label
-  has_ignore_label_ =
-    this->layer_param_.loss_param().has_ignore_label();
+  has_ignore_label_ = this->layer_param_.loss_param().has_ignore_label();
   if (has_ignore_label_) {
     ignore_label_ = this->layer_param_.loss_param().ignore_label();
   }
   // normalization
   CHECK(!this->layer_param_.loss_param().has_normalize())
-    << "normalize is deprecated. use \"normalization\"";
+      << "normalize is deprecated. use \"normalization\"";
   normalization_ = this->layer_param_.loss_param().normalization();
   // matrix H
   if (bottom.size() < 3) {
     CHECK(this->layer_param_.infogain_loss_param().has_source())
         << "Infogain matrix source must be specified.";
     BlobProto blob_proto;
-    ReadProtoFromBinaryFile(
-      this->layer_param_.infogain_loss_param().source(), &blob_proto);
+    ReadProtoFromBinaryFile(this->layer_param_.infogain_loss_param().source(),
+                            &blob_proto);
     infogain_.FromProto(blob_proto);
   }
 }
 
 template <typename Dtype>
-void InfogainLossLayer<Dtype>::Reshape(
-    const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+void InfogainLossLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
+                                       const vector<Blob<Dtype>*>& top) {
   LossLayer<Dtype>::Reshape(bottom, top);
   softmax_layer_->Reshape(softmax_bottom_vec_, softmax_top_vec_);
-  infogain_axis_ =
-    bottom[0]->CanonicalAxisIndex(
+  infogain_axis_ = bottom[0]->CanonicalAxisIndex(
       this->layer_param_.infogain_loss_param().axis());
   outer_num_ = bottom[0]->count(0, infogain_axis_);
   inner_num_ = bottom[0]->count(infogain_axis_ + 1);
@@ -69,7 +67,7 @@ void InfogainLossLayer<Dtype>::Reshape(
   } else {
     infogain = bottom[2];
   }
-  CHECK_EQ(infogain->count(), num_labels_*num_labels_);
+  CHECK_EQ(infogain->count(), num_labels_ * num_labels_);
   sum_rows_H_.Reshape(vector<int>(1, num_labels_));
   if (bottom.size() == 2) {
     // H is provided as a parameter and will not change. sum rows once
@@ -104,7 +102,7 @@ Dtype InfogainLossLayer<Dtype>::get_normalizer(
       break;
     default:
       LOG(FATAL) << "Unknown normalization mode: "
-          << LossParameter_NormalizationMode_Name(normalization_mode);
+                 << LossParameter_NormalizationMode_Name(normalization_mode);
   }
   // Some users will have no labels for some examples in order to 'turn off' a
   // particular loss in a multi-task setup. The max prevents NaNs in that case.
@@ -113,21 +111,21 @@ Dtype InfogainLossLayer<Dtype>::get_normalizer(
 
 template <typename Dtype>
 void InfogainLossLayer<Dtype>::sum_rows_of_H(const Blob<Dtype>* H) {
-  CHECK_EQ(H->count(), num_labels_*num_labels_)
-    << "H must be " << num_labels_ << "x" << num_labels_;
+  CHECK_EQ(H->count(), num_labels_ * num_labels_) << "H must be " << num_labels_
+                                                  << "x" << num_labels_;
   const Dtype* infogain_mat = H->cpu_data();
   Dtype* sum = sum_rows_H_.mutable_cpu_data();
-  for ( int row = 0; row < num_labels_ ; row++ ) {
+  for (int row = 0; row < num_labels_; row++) {
     sum[row] = 0;
-    for ( int col = 0; col < num_labels_ ; col++ ) {
-      sum[row] += infogain_mat[row*num_labels_+col];
+    for (int col = 0; col < num_labels_; col++) {
+      sum[row] += infogain_mat[row * num_labels_ + col];
     }
   }
 }
 
 template <typename Dtype>
 void InfogainLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-    const vector<Blob<Dtype>*>& top) {
+                                           const vector<Blob<Dtype>*>& top) {
   // The forward pass computes the softmax prob values.
   softmax_layer_->Forward(softmax_bottom_vec_, softmax_top_vec_);
   const Dtype* prob_data = prob_.cpu_data();
@@ -143,16 +141,17 @@ void InfogainLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   for (int i = 0; i < outer_num_; ++i) {
     for (int j = 0; j < inner_num_; j++) {
       const int label_value =
-        static_cast<int>(bottom_label[i * inner_num_ + j]);
+          static_cast<int>(bottom_label[i * inner_num_ + j]);
       if (has_ignore_label_ && label_value == ignore_label_) {
         continue;
       }
       DCHECK_GE(label_value, 0);
       DCHECK_LT(label_value, num_labels_);
       for (int l = 0; l < num_labels_; l++) {
-        loss -= infogain_mat[label_value * num_labels_ + l] *
-          log(std::max(
-                prob_data[i * inner_num_*num_labels_ + l * inner_num_ + j],
+        loss -=
+            infogain_mat[label_value * num_labels_ + l] *
+            log(std::max(
+                prob_data[i * inner_num_ * num_labels_ + l * inner_num_ + j],
                 Dtype(kLOG_THRESHOLD)));
       }
       ++count;
@@ -165,8 +164,8 @@ void InfogainLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 }
 
 template <typename Dtype>
-void InfogainLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-    const vector<bool>& propagate_down,
+void InfogainLossLayer<Dtype>::Backward_cpu(
+    const vector<Blob<Dtype>*>& top, const vector<bool>& propagate_down,
     const vector<Blob<Dtype>*>& bottom) {
   if (propagate_down[1]) {
     LOG(FATAL) << this->type()
@@ -194,7 +193,7 @@ void InfogainLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
     for (int i = 0; i < outer_num_; ++i) {
       for (int j = 0; j < inner_num_; ++j) {
         const int label_value =
-          static_cast<int>(bottom_label[i * inner_num_ + j]);
+            static_cast<int>(bottom_label[i * inner_num_ + j]);
         DCHECK_GE(label_value, 0);
         DCHECK_LT(label_value, num_labels_);
         if (has_ignore_label_ && label_value == ignore_label_) {
@@ -204,16 +203,17 @@ void InfogainLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
         } else {
           for (int l = 0; l < num_labels_; ++l) {
             bottom_diff[i * dim + l * inner_num_ + j] =
-               prob_data[i*dim + l*inner_num_ + j]*sum_rows_H[label_value]
-               - infogain_mat[label_value * num_labels_ + l];
+                prob_data[i * dim + l * inner_num_ + j] *
+                    sum_rows_H[label_value] -
+                infogain_mat[label_value * num_labels_ + l];
           }
           ++count;
         }
       }
     }
     // Scale gradient
-    Dtype loss_weight = top[0]->cpu_diff()[0] /
-                        get_normalizer(normalization_, count);
+    Dtype loss_weight =
+        top[0]->cpu_diff()[0] / get_normalizer(normalization_, count);
     caffe_scal(bottom[0]->count(), loss_weight, bottom_diff);
   }
 }
