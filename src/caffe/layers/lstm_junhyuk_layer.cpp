@@ -4,7 +4,7 @@
 #include "caffe/common.hpp"
 #include "caffe/filler.hpp"
 #include "caffe/layer.hpp"
-#include "caffe/layers/lstm_layer_Junhyuk.hpp"
+#include "caffe/layers/lstm_junhyuk_layer.hpp"
 #include "caffe/util/math_functions.hpp"
 
 namespace caffe {

@@ -531,8 +531,22 @@ message LayerParameter {
   optional LargeMarginInnerProductParameter largemargin_inner_product_param = 188;
   optional DeformableConvolutionParameter deformable_convolution_param = 189;
   optional DenseCRFParameter dense_crf_param = 190;
-  optional TransposeParameter transpose_param=8266710;
-  optional LSTMParameter lstm_param = 8266711;
+
+  optional TransposeParameter transpose_param=200;
+  optional LSTMParameter lstm_param = 201;
+  optional LabelSpecificAddParameter label_specific_add_param = 241;
+  
+}
+
+message LabelSpecificAddParameter {
+  optional float bias = 1 [default = 0.0];
+  optional bool transform_test = 2 [default = false];
+  optional float bias_base = 3 [default = 0.0];
+  optional float bias_gamma = 4 [default = 0.0];
+  optional float bias_power = 5 [default = 1.0];
+  optional float bias_min = 6 [default =0.0];
+  optional float bias_max = 7 [default =0.0];
+  optional uint32 iteration = 8 [default = 0];
 }
 
 message DenseCRFParameter {
