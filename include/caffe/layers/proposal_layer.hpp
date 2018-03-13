@@ -8,7 +8,15 @@
 #include "caffe/proto/caffe.pb.h"
 
 namespace caffe {
-
+  /*************************************************
+  faster-rcnn ProposalLayer
+  Outputs object detection proposals by applying estimated bounding-box
+  transformations to a set of regular boxes (called "anchors").
+  bottom: 'rpn_cls_prob_reshape'
+  bottom: 'rpn_bbox_pred'
+  bottom: 'im_info'
+  top: 'rpn_rois'
+  **************************************************/
 template <typename Dtype>
 class ProposalLayer : public Layer<Dtype> {
  public:
@@ -20,8 +28,11 @@ class ProposalLayer : public Layer<Dtype> {
     // LOG(FATAL) << "Reshaping happens during the call to forward.";
   }
 
-  virtual inline const char* type() const { return "Proposal"; }
-
+  virtual inline const char* type() const { return "ProposalLayer"; }
+  virtual inline int MinBottomBlobs() const { return 3; }
+  virtual inline int MaxBottomBlobs() const { return 3; }
+  virtual inline int MinTopBlobs() const { return 1; }
+  virtual inline int MaxTopBlobs() const { return 2; }
  protected:
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
                            const vector<Blob<Dtype>*>& top);

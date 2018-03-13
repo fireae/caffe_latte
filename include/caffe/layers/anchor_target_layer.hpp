@@ -1,5 +1,5 @@
-#ifndef CAFFE_PROPOSAL_LAYER_HPP_
-#define CAFFE_PROPOSAL_LAYER_HPP_
+#ifndef CAFFE_ANCHOR_TARGET_LAYER_HPP_
+#define CAFFE_ANCHOR_TARGET_LAYER_HPP_
 
 #include <vector>
 
@@ -10,12 +10,18 @@
 
 namespace caffe {
 
-/**
- * @brief Provides ROIs by assigning tops directly.
- *
- * This data layer is to provide ROIs from the anchor;
- * backward, and reshape are all no-ops.
- */
+/*************************************************
+Faster-rcnn anchor target layer
+Assign anchors to ground-truth targets. Produces anchor classification
+labels and bounding-box regression targets.
+bottom: 'rpn_cls_score'
+bottom: 'gt_boxes'
+bottom: 'im_info'
+top: 'rpn_labels'
+top: 'rpn_bbox_targets'
+top: 'rpn_bbox_inside_weights'
+top: 'rpn_bbox_outside_weights'
+**************************************************/
 template <typename Dtype>
 class AnchorTargetLayer : public Layer<Dtype> {
  public:
