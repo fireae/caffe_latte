@@ -11,13 +11,13 @@
 namespace caffe {
 template <typename Dtype>
 class DeformablePSROIPoolingLayer : public Layer<Dtype> {
- public:	
+ public:
   explicit DeformablePSROIPoolingLayer(const LayerParameter& param)
-    : Layer<Dtype>(param) {}
+      : Layer<Dtype>(param) {}
   virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-    const vector<Blob<Dtype>*>& top);
+                          const vector<Blob<Dtype>*>& top);
   virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
-    const vector<Blob<Dtype>*>& top);
+                       const vector<Blob<Dtype>*>& top);
 
   virtual inline const char* type() const { return "DeformablePSROIPooling"; }
 
@@ -28,13 +28,19 @@ class DeformablePSROIPoolingLayer : public Layer<Dtype> {
 
  protected:
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-    const vector<Blob<Dtype>*>& top){NOT_IMPLEMENTED;}
+                           const vector<Blob<Dtype>*>& top) {
+    NOT_IMPLEMENTED;
+  }
   virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-    const vector<Blob<Dtype>*>& top);
+                           const vector<Blob<Dtype>*>& top);
   virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
-    const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom){NOT_IMPLEMENTED;}
+                            const vector<bool>& propagate_down,
+                            const vector<Blob<Dtype>*>& bottom) {
+    NOT_IMPLEMENTED;
+  }
   virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
-    const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+                            const vector<bool>& propagate_down,
+                            const vector<Blob<Dtype>*>& bottom);
 
   Dtype spatial_scale_;
   int output_dim_;

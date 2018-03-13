@@ -16,17 +16,16 @@ void SigmoidCrossEntropyLossLayer<Dtype>::LayerSetUp(
   sigmoid_top_vec_.push_back(sigmoid_output_.get());
   sigmoid_layer_->SetUp(sigmoid_bottom_vec_, sigmoid_top_vec_);
 
-  has_ignore_label_ =
-    this->layer_param_.loss_param().has_ignore_label();
+  has_ignore_label_ = this->layer_param_.loss_param().has_ignore_label();
   if (has_ignore_label_) {
     ignore_label_ = this->layer_param_.loss_param().ignore_label();
   }
   if (this->layer_param_.loss_param().has_normalization()) {
     normalization_ = this->layer_param_.loss_param().normalization();
   } else if (this->layer_param_.loss_param().has_normalize()) {
-    normalization_ = this->layer_param_.loss_param().normalize() ?
-                     LossParameter_NormalizationMode_VALID :
-                     LossParameter_NormalizationMode_BATCH_SIZE;
+    normalization_ = this->layer_param_.loss_param().normalize()
+                         ? LossParameter_NormalizationMode_VALID
+                         : LossParameter_NormalizationMode_BATCH_SIZE;
   } else {
     normalization_ = LossParameter_NormalizationMode_BATCH_SIZE;
   }
@@ -38,8 +37,8 @@ void SigmoidCrossEntropyLossLayer<Dtype>::Reshape(
   LossLayer<Dtype>::Reshape(bottom, top);
   outer_num_ = bottom[0]->shape(0);  // batch size
   inner_num_ = bottom[0]->count(1);  // instance size: |output| == |target|
-  CHECK_EQ(bottom[0]->count(), bottom[1]->count()) <<
-      "SIGMOID_CROSS_ENTROPY_LOSS layer inputs must have the same count.";
+  CHECK_EQ(bottom[0]->count(), bottom[1]->count())
+      << "SIGMOID_CROSS_ENTROPY_LOSS layer inputs must have the same count.";
   sigmoid_layer_->Reshape(sigmoid_bottom_vec_, sigmoid_top_vec_);
 }
 
@@ -68,7 +67,7 @@ Dtype SigmoidCrossEntropyLossLayer<Dtype>::get_normalizer(
       break;
     default:
       LOG(FATAL) << "Unknown normalization mode: "
-          << LossParameter_NormalizationMode_Name(normalization_mode);
+                 << LossParameter_NormalizationMode_Name(normalization_mode);
   }
   // Some users will have no labels for some examples in order to 'turn off' a
   // particular loss in a multi-task setup. The max prevents NaNs in that case.
@@ -92,7 +91,8 @@ void SigmoidCrossEntropyLossLayer<Dtype>::Forward_cpu(
     if (has_ignore_label_ && target_value == ignore_label_) {
       continue;
     }
-    loss -= input_data[i] * (target[i] - (input_data[i] >= 0)) -
+    loss -=
+        input_data[i] * (target[i] - (input_data[i] >= 0)) -
         log(1 + exp(input_data[i] - 2 * input_data[i] * (input_data[i] >= 0)));
     ++valid_count;
   }

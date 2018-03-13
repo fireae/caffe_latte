@@ -14,7 +14,8 @@
 
 namespace caffe {
 
-template <typename Dtype> class RecurrentLayer;
+template <typename Dtype>
+class RecurrentLayer;
 
 /**
  * @brief Processes sequential inputs using a "Long Short-Term Memory" (LSTM)
@@ -68,10 +69,9 @@ class LSTMLayer : public RecurrentLayer<Dtype> {
 template <typename Dtype>
 class LSTMUnitLayer : public Layer<Dtype> {
  public:
-  explicit LSTMUnitLayer(const LayerParameter& param)
-      : Layer<Dtype>(param) {}
-  virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+  explicit LSTMUnitLayer(const LayerParameter& param)  Layer<Dtype>(param) {}
+  virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
+                       onst vector<Blob<Dtype>*>& top);
 
   virtual inline const char* type() const { return "LSTMUnit"; }
   virtual inline int ExactNumBottomBlobs() const { return 3; }
@@ -103,10 +103,10 @@ class LSTMUnitLayer : public Layer<Dtype> {
    *      the updated hidden state @f$ h_t @f$, computed as:
    *          h_t := o_t .* \tanh[c_t]
    */
-  virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
-  virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+  virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
+                           onst vector<Blob<Dtype>*>& top);
+  virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
+                           onst vector<Blob<Dtype>*>& top);
 
   /**
    * @brief Computes the error gradient w.r.t. the LSTMUnit inputs.
@@ -139,10 +139,12 @@ class LSTMUnitLayer : public Layer<Dtype> {
    *      the gradient w.r.t. the sequence continuation indicators
    *      @f$ \delta_t @f$ is currently not computed.
    */
-  virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
-  virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+  virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
+                            onst vector<bool>& propagate_down, 
+                            onst vector<Blob<Dtype>*>& bottom);
+  virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
+                            onst vector<bool>& propagate_down, 
+                            onst vector<Blob<Dtype>*>& bottom);
 
   /// @brief The hidden and output dimension.
   int hidden_dim_;

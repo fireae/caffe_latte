@@ -9,10 +9,9 @@
 namespace caffe {
 template <typename Dtype>
 
-
 /**
- * @brief Implementation of the CTC (Connectionist Temporal Classification) algorithm
- *        to label unsegmented sequence data with recurrent neural networks
+ * @brief Implementation of the CTC (Connectionist Temporal Classification)
+ * algorithm to label unsegmented sequence data with recurrent neural networks
  *        using the warp-ctc implementation of Baidu
  *
  * Important: The blank label is always at index 0
@@ -24,10 +23,10 @@ class WarpCTCLossLayer : public LossLayer<Dtype> {
   explicit WarpCTCLossLayer(const LayerParameter& param);
   virtual ~WarpCTCLossLayer();
 
-  virtual void LayerSetUp(
-      const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top);
-  virtual void Reshape(
-      const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top);
+  virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
+                          const vector<Blob<Dtype>*>& top);
+  virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
+                       const vector<Blob<Dtype>*>& top);
 
   virtual inline const char* type() const { return "WarpCTCLoss"; }
 
@@ -52,7 +51,8 @@ class WarpCTCLossLayer : public LossLayer<Dtype> {
    *      (must be 0 at @f$ t = 0 @f$ and 1 during a sequence)
    *   -# @f$ (T \times N) @f$
    *      the target sequence
-   *      (must start at @f$ t = 0 @f$ and filled with -1 if the sequence has ended)
+   *      (must start at @f$ t = 0 @f$ and filled with -1 if the sequence has
+   * ended)
    * @param top output Blob vector (length 1)
    *   -# @f$ (1) @f$
    *      the computed loss
@@ -76,11 +76,10 @@ class WarpCTCLossLayer : public LossLayer<Dtype> {
 
   void ExtractInputData(const Blob<Dtype>* seq_ind_blob,
                         const Blob<Dtype>* labels_blob,
-                        vector<int>* flat_labels,
-                        vector<int>* label_lengths,
+                        vector<int>* flat_labels, vector<int>* label_lengths,
                         vector<int>* input_lengths);
- private:
 
+ private:
   int T_;
   int N_;
   int C_;
@@ -94,9 +93,8 @@ class WarpCTCLossLayer : public LossLayer<Dtype> {
   vector<int> input_lengths_;
 
   shared_ptr<SyncedMemory> workspace_;
-
 };
 
 }  // namespace caffe
 
-#endif // WARP_CTC_LOSS_LAYER_HPP
+#endif  // WARP_CTC_LOSS_LAYER_HPP

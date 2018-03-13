@@ -14,7 +14,8 @@
 
 namespace caffe {
 
-template <typename Dtype> class RecurrentLayer;
+template <typename Dtype>
+class RecurrentLayer;
 
 /**
  * @brief Processes time-varying inputs using a simple recurrent neural network

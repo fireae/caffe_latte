@@ -6,8 +6,8 @@
 namespace caffe {
 
 template <typename Dtype>
-void TileLayer<Dtype>::Reshape(
-    const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+void TileLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
+                               const vector<Blob<Dtype>*>& top) {
   const TileParameter& tile_param = this->layer_param_.tile_param();
   axis_ = bottom[0]->CanonicalAxisIndex(tile_param.axis());
   CHECK(tile_param.has_tiles()) << "Number of tiles must be specified";
@@ -21,8 +21,8 @@ void TileLayer<Dtype>::Reshape(
 }
 
 template <typename Dtype>
-void TileLayer<Dtype>::Forward_cpu(
-    const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+void TileLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
+                                   const vector<Blob<Dtype>*>& top) {
   const Dtype* bottom_data = bottom[0]->cpu_data();
   Dtype* top_data = top[0]->mutable_cpu_data();
   for (int i = 0; i < outer_dim_; ++i) {
@@ -36,8 +36,11 @@ void TileLayer<Dtype>::Forward_cpu(
 
 template <typename Dtype>
 void TileLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-    const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
-  if (!propagate_down[0]) { return; }
+                                    const vector<bool>& propagate_down,
+                                    const vector<Blob<Dtype>*>& bottom) {
+  if (!propagate_down[0]) {
+    return;
+  }
   const Dtype* top_diff = top[0]->cpu_diff();
   Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
   for (int i = 0; i < outer_dim_; ++i) {

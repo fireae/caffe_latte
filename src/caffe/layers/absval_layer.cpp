@@ -9,8 +9,9 @@ template <typename Dtype>
 void AbsValLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
                                     const vector<Blob<Dtype>*>& top) {
   NeuronLayer<Dtype>::LayerSetUp(bottom, top);
-  CHECK_NE(top[0], bottom[0]) << this->type() << " Layer does not "
-                                                 "allow in-place computation.";
+  CHECK_NE(top[0], bottom[0]) << this->type()
+                              << " Layer does not "
+                                 "allow in-place computation.";
 }
 
 template <typename Dtype>

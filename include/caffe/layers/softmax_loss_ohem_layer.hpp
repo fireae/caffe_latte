@@ -16,7 +16,7 @@ namespace caffe {
  * @brief Computes the multinomial logistic loss for a one-of-many
  *        classification task, passing real-valued predictions through a
  *        softmax to get a probability distribution over classes.
- *        An additional per-instance loss is produced in output for OHEM 
+ *        An additional per-instance loss is produced in output for OHEM
  *
  * This layer should be preferred over separate
  * SoftmaxLayer + MultinomialLogisticLossLayer
@@ -45,20 +45,20 @@ namespace caffe {
 template <typename Dtype>
 class SoftmaxWithLossOHEMLayer : public LossLayer<Dtype> {
  public:
-   /**
-    * @param param provides LossParameter loss_param, with options:
-    *  - ignore_label (optional)
-    *    Specify a label value that should be ignored when computing the loss.
-    *  - normalize (optional, default true)
-    *    If true, the loss is normalized by the number of (nonignored) labels
-    *    present; otherwise the loss is simply summed over spatial locations.
-    */
+  /**
+   * @param param provides LossParameter loss_param, with options:
+   *  - ignore_label (optional)
+   *    Specify a label value that should be ignored when computing the loss.
+   *  - normalize (optional, default true)
+   *    If true, the loss is normalized by the number of (nonignored) labels
+   *    present; otherwise the loss is simply summed over spatial locations.
+   */
   explicit SoftmaxWithLossOHEMLayer(const LayerParameter& param)
       : LossLayer<Dtype>(param) {}
   virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                          const vector<Blob<Dtype>*>& top);
   virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                       const vector<Blob<Dtype>*>& top);
 
   virtual inline const char* type() const { return "SoftmaxWithLossOHEM"; }
   virtual inline int ExactNumTopBlobs() const { return -1; }
@@ -67,9 +67,9 @@ class SoftmaxWithLossOHEMLayer : public LossLayer<Dtype> {
 
  protected:
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                           const vector<Blob<Dtype>*>& top);
   virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                           const vector<Blob<Dtype>*>& top);
   /**
    * @brief Computes the softmax loss error gradient w.r.t. the predictions.
    *
@@ -98,9 +98,11 @@ class SoftmaxWithLossOHEMLayer : public LossLayer<Dtype> {
    *      the labels -- ignored as we can't compute their error gradients
    */
   virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+                            const vector<bool>& propagate_down,
+                            const vector<Blob<Dtype>*>& bottom);
   virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+                            const vector<bool>& propagate_down,
+                            const vector<Blob<Dtype>*>& bottom);
 
   /// Read the normalization mode parameter and compute the normalizer based
   /// on the blob size.  If normalization_mode is VALID, the count of valid

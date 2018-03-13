@@ -14,7 +14,8 @@
 
 namespace caffe {
 
-template <typename Dtype> class RecurrentLayer;
+template <typename Dtype>
+class RecurrentLayer;
 
 /**
  * @brief An abstract class for implementing recurrent behavior inside of an
@@ -25,12 +26,11 @@ template <typename Dtype> class RecurrentLayer;
 template <typename Dtype>
 class RecurrentLayer : public Layer<Dtype> {
  public:
-  explicit RecurrentLayer(const LayerParameter& param)
-      : Layer<Dtype>(param) {}
+  explicit RecurrentLayer(const LayerParameter& param) : Layer<Dtype>(param) {}
   virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                          const vector<Blob<Dtype>*>& top);
   virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                       const vector<Blob<Dtype>*>& top);
   virtual void Reset();
 
   virtual inline const char* type() const { return "Recurrent"; }
@@ -141,11 +141,12 @@ class RecurrentLayer : public Layer<Dtype> {
    *      (such as RNNLayer and LSTMLayer) for the definition of @f$ y @f$.
    */
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                           const vector<Blob<Dtype>*>& top);
   virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                           const vector<Blob<Dtype>*>& top);
   virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+                            const vector<bool>& propagate_down,
+                            const vector<Blob<Dtype>*>& bottom);
 
   /// @brief A Net to implement the Recurrent functionality.
   shared_ptr<Net<Dtype> > unrolled_net_;
@@ -174,9 +175,9 @@ class RecurrentLayer : public Layer<Dtype> {
    */
   bool expose_hidden_;
 
-  vector<Blob<Dtype>* > recur_input_blobs_;
-  vector<Blob<Dtype>* > recur_output_blobs_;
-  vector<Blob<Dtype>* > output_blobs_;
+  vector<Blob<Dtype>*> recur_input_blobs_;
+  vector<Blob<Dtype>*> recur_output_blobs_;
+  vector<Blob<Dtype>*> output_blobs_;
   Blob<Dtype>* x_input_blob_;
   Blob<Dtype>* x_static_input_blob_;
   Blob<Dtype>* cont_input_blob_;

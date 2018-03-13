@@ -1,24 +1,24 @@
 #ifndef CAFFE_LAYERS_CTC_DECODER_LAYER_HPP_
 #define CAFFE_LAYERS_CTC_DECODER_LAYER_HPP_
 
+#include <vector>
 #include "caffe/blob.hpp"
 #include "caffe/layer.hpp"
 #include "caffe/proto/caffe.pb.h"
-#include <vector>
 
 namespace caffe {
 
 template <typename Dtype>
 class CTCDecoderLayer : public Layer<Dtype> {
-public:
-    typedef vector<int> Sequence;
-    typedef vector<Sequence> Sequences;
+ public:
+  typedef vector<int> Sequence;
+  typedef vector<Sequence> Sequences;
 
-    explicit CTCDecoderLayer(const LayerParameter& param);
+  explicit CTCDecoderLayer(const LayerParameter& param);
   virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                          const vector<Blob<Dtype>*>& top);
   virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                       const vector<Blob<Dtype>*>& top);
 
   virtual inline const char* type() const { return "CTCDecoder"; }
 
@@ -36,7 +36,7 @@ public:
   virtual inline int MinTopBlobs() const { return 1; }
   virtual inline int MaxTopBlobs() const { return 3; }
 
-  const Sequences& OutputSequences() const {return output_sequences_;}
+  const Sequences& OutputSequences() const { return output_sequences_; }
 
  protected:
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
@@ -52,20 +52,21 @@ public:
                       Blob<Dtype>* scores) const = 0;
 
   virtual void Decode(const Blob<Dtype>* probabilities,
-	  Sequences* output_sequences,
-	  Blob<Dtype>* scores) const = 0;
+                      Sequences* output_sequences,
+                      Blob<Dtype>* scores) const = 0;
 
-  int EditDistance(const Sequence &s1, const Sequence &s2);
-  protected:
-    Sequences output_sequences_;
-    int T_;
-    int N_;
-    int C_;
-    int blank_index_;
-    bool merge_repeated_;
-    int sequence_index_;
-    int score_index_;
-    int accuracy_index_;
+  int EditDistance(const Sequence& s1, const Sequence& s2);
+
+ protected:
+  Sequences output_sequences_;
+  int T_;
+  int N_;
+  int C_;
+  int blank_index_;
+  bool merge_repeated_;
+  int sequence_index_;
+  int score_index_;
+  int accuracy_index_;
 };
 
 template <typename Dtype>
@@ -87,14 +88,11 @@ class CTCGreedyDecoderLayer : public CTCDecoderLayer<Dtype> {
  protected:
   virtual void Decode(const Blob<Dtype>* probabilities,
                       const Blob<Dtype>* sequence_indicators,
-                      Sequences* output_sequences,
-                      Blob<Dtype>* scores) const;
+                      Sequences* output_sequences, Blob<Dtype>* scores) const;
 
   virtual void Decode(const Blob<Dtype>* probabilities,
-	  Sequences* output_sequences,
-	  Blob<Dtype>* scores) const;
-
+                      Sequences* output_sequences, Blob<Dtype>* scores) const;
 };
-}
+}  // namespace caffe
 
-#endif //CAFFE_LAYERS_CTC_DECODER_LAYER_HPP_
+#endif  // CAFFE_LAYERS_CTC_DECODER_LAYER_HPP_

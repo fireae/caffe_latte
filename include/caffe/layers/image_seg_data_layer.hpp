@@ -12,17 +12,16 @@
 #include "caffe/layers/base_data_layer.hpp"
 #include "caffe/proto/caffe.pb.h"
 
-
 namespace caffe {
 
 template <typename Dtype>
 class ImageSegDataLayer : public ImageDimPrefetchingDataLayer<Dtype> {
  public:
   explicit ImageSegDataLayer(const LayerParameter& param)
-    : ImageDimPrefetchingDataLayer<Dtype>(param) {}
+      : ImageDimPrefetchingDataLayer<Dtype>(param) {}
   virtual ~ImageSegDataLayer();
   virtual void DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                              const vector<Blob<Dtype>*>& top);
 
   virtual inline const char* type() const { return "ImageSegData"; }
   virtual inline int ExactNumBottomBlobs() const { return 0; }

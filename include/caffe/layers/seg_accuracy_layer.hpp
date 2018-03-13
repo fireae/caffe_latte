@@ -6,8 +6,8 @@
 #include "caffe/blob.hpp"
 #include "caffe/common.hpp"
 #include "caffe/layer.hpp"
-#include "caffe/util/confusion_matrix.hpp"
 #include "caffe/proto/caffe.pb.h"
+#include "caffe/util/confusion_matrix.hpp"
 
 namespace caffe {
 
@@ -17,9 +17,9 @@ class SegAccuracyLayer : public Layer<Dtype> {
   explicit SegAccuracyLayer(const LayerParameter& param)
       : Layer<Dtype>(param) {}
   virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                          const vector<Blob<Dtype>*>& top);
   virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                       const vector<Blob<Dtype>*>& top);
 
   virtual inline const char* type() const { return "SegAccuracy"; }
 
@@ -52,16 +52,19 @@ class SegAccuracyLayer : public Layer<Dtype> {
    *      @f$
    */
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                           const vector<Blob<Dtype>*>& top);
 
   /// @brief Not implemented -- AccuracyLayer cannot be used as a loss.
   virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+                            const vector<bool>& propagate_down,
+                            const vector<Blob<Dtype>*>& bottom) {
     for (int i = 0; i < propagate_down.size(); ++i) {
-      if (propagate_down[i]) { NOT_IMPLEMENTED; }
+      if (propagate_down[i]) {
+        NOT_IMPLEMENTED;
+      }
     }
   }
-      
+
   ConfusionMatrix confusion_matrix_;
 
   // set of ignore labels

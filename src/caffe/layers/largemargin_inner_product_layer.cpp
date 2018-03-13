@@ -303,17 +303,19 @@ void LargeMarginInnerProductLayer<Dtype>::Backward_cpu(
                   bottom_data + j * K_, (Dtype)1., weight_diff + i * K_);
             } else {
               caffe_cpu_axpby(
-                  K_, (Dtype)1. / ((Dtype)1. + lambda_) * top_diff[j * N_ + i] *
-                          (Dtype)4. * sign_0_data[j * N_ + i] *
-                          cos_theta_data[j * N_ + i],
+                  K_,
+                  (Dtype)1. / ((Dtype)1. + lambda_) * top_diff[j * N_ + i] *
+                      (Dtype)4. * sign_0_data[j * N_ + i] *
+                      cos_theta_data[j * N_ + i],
                   bottom_data + j * K_, (Dtype)1., weight_diff + i * K_);
-              caffe_cpu_axpby(
-                  K_, (Dtype)1. / ((Dtype)1. + lambda_) * top_diff[j * N_ + i] *
-                          (-xw_norm_ratio_data[j * N_ + i]) *
-                          ((Dtype)2. * sign_0_data[j * N_ + i] *
-                               cos_theta_quadratic_data[j * N_ + i] +
-                           (Dtype)1.),
-                  weight + i * K_, (Dtype)1., weight_diff + i * K_);
+              caffe_cpu_axpby(K_,
+                              (Dtype)1. / ((Dtype)1. + lambda_) *
+                                  top_diff[j * N_ + i] *
+                                  (-xw_norm_ratio_data[j * N_ + i]) *
+                                  ((Dtype)2. * sign_0_data[j * N_ + i] *
+                                       cos_theta_quadratic_data[j * N_ + i] +
+                                   (Dtype)1.),
+                              weight + i * K_, (Dtype)1., weight_diff + i * K_);
             }
           }
         }
@@ -337,17 +339,19 @@ void LargeMarginInnerProductLayer<Dtype>::Backward_cpu(
                   bottom_data + j * K_, (Dtype)1., weight_diff + i * K_);
             } else {
               caffe_cpu_axpby(
-                  K_, (Dtype)1. / ((Dtype)1. + lambda_) * top_diff[j * N_ + i] *
-                          sign_1_data[j * N_ + i] *
-                          ((Dtype)12. * cos_theta_quadratic_data[j * N_ + i] -
-                           (Dtype)3.),
+                  K_,
+                  (Dtype)1. / ((Dtype)1. + lambda_) * top_diff[j * N_ + i] *
+                      sign_1_data[j * N_ + i] *
+                      ((Dtype)12. * cos_theta_quadratic_data[j * N_ + i] -
+                       (Dtype)3.),
                   bottom_data + j * K_, (Dtype)1., weight_diff + i * K_);
-              caffe_cpu_axpby(K_, (Dtype)1. / ((Dtype)1. + lambda_) *
-                                      top_diff[j * N_ + i] *
-                                      (-xw_norm_ratio_data[j * N_ + i]) *
-                                      ((Dtype)8. * sign_1_data[j * N_ + i] *
-                                           cos_theta_cubic_data[j * N_ + i] -
-                                       sign_2_data[j * N_ + i]),
+              caffe_cpu_axpby(K_,
+                              (Dtype)1. / ((Dtype)1. + lambda_) *
+                                  top_diff[j * N_ + i] *
+                                  (-xw_norm_ratio_data[j * N_ + i]) *
+                                  ((Dtype)8. * sign_1_data[j * N_ + i] *
+                                       cos_theta_cubic_data[j * N_ + i] -
+                                   sign_2_data[j * N_ + i]),
                               weight + i * K_, (Dtype)1., weight_diff + i * K_);
             }
           }
@@ -374,10 +378,11 @@ void LargeMarginInnerProductLayer<Dtype>::Backward_cpu(
                   bottom_data + j * K_, (Dtype)1., weight_diff + i * K_);
             } else {
               caffe_cpu_axpby(
-                  K_, (Dtype)1. / ((Dtype)1. + lambda_) * top_diff[j * N_ + i] *
-                          sign_3_data[j * N_ + i] *
-                          ((Dtype)32. * cos_theta_cubic_data[j * N_ + i] -
-                           (Dtype)16. * cos_theta_data[j * N_ + i]),
+                  K_,
+                  (Dtype)1. / ((Dtype)1. + lambda_) * top_diff[j * N_ + i] *
+                      sign_3_data[j * N_ + i] *
+                      ((Dtype)32. * cos_theta_cubic_data[j * N_ + i] -
+                       (Dtype)16. * cos_theta_data[j * N_ + i]),
                   bottom_data + j * K_, (Dtype)1., weight_diff + i * K_);
 
               caffe_cpu_axpby(
@@ -428,18 +433,20 @@ void LargeMarginInnerProductLayer<Dtype>::Backward_cpu(
                   K_, (Dtype)1. / ((Dtype)1. + lambda_) * top_diff[i * N_ + j],
                   weight + j * K_, (Dtype)1., bottom_diff + i * K_);
             } else {
-              caffe_cpu_axpby(K_, (Dtype)1. / ((Dtype)1. + lambda_) *
-                                      top_diff[i * N_ + j] * (Dtype)4. *
-                                      sign_0_data[i * N_ + j] *
-                                      cos_theta_data[i * N_ + j],
+              caffe_cpu_axpby(K_,
+                              (Dtype)1. / ((Dtype)1. + lambda_) *
+                                  top_diff[i * N_ + j] * (Dtype)4. *
+                                  sign_0_data[i * N_ + j] *
+                                  cos_theta_data[i * N_ + j],
                               weight + j * K_, (Dtype)1., bottom_diff + i * K_);
 
               caffe_cpu_axpby(
-                  K_, (Dtype)1. / ((Dtype)1. + lambda_) * top_diff[i * N_ + j] /
-                          (-xw_norm_ratio_data[i * N_ + j]) *
-                          ((Dtype)2. * sign_0_data[i * N_ + j] *
-                               cos_theta_quadratic_data[i * N_ + j] +
-                           (Dtype)1.),
+                  K_,
+                  (Dtype)1. / ((Dtype)1. + lambda_) * top_diff[i * N_ + j] /
+                      (-xw_norm_ratio_data[i * N_ + j]) *
+                      ((Dtype)2. * sign_0_data[i * N_ + j] *
+                           cos_theta_quadratic_data[i * N_ + j] +
+                       (Dtype)1.),
                   bottom_data + i * K_, (Dtype)1., bottom_diff + i * K_);
             }
           }
@@ -465,18 +472,20 @@ void LargeMarginInnerProductLayer<Dtype>::Backward_cpu(
                   weight + j * K_, (Dtype)1., bottom_diff + i * K_);
             } else {
               caffe_cpu_axpby(
-                  K_, (Dtype)1. / ((Dtype)1. + lambda_) * top_diff[i * N_ + j] *
-                          sign_1_data[i * N_ + j] *
-                          ((Dtype)12. * cos_theta_quadratic_data[i * N_ + j] -
-                           (Dtype)3.),
+                  K_,
+                  (Dtype)1. / ((Dtype)1. + lambda_) * top_diff[i * N_ + j] *
+                      sign_1_data[i * N_ + j] *
+                      ((Dtype)12. * cos_theta_quadratic_data[i * N_ + j] -
+                       (Dtype)3.),
                   weight + j * K_, (Dtype)1., bottom_diff + i * K_);
 
               caffe_cpu_axpby(
-                  K_, (Dtype)1. / ((Dtype)1. + lambda_) * top_diff[i * N_ + j] /
-                          (-xw_norm_ratio_data[i * N_ + j]) *
-                          ((Dtype)8. * sign_1_data[i * N_ + j] *
-                               cos_theta_cubic_data[i * N_ + j] -
-                           sign_2_data[i * N_ + j]),
+                  K_,
+                  (Dtype)1. / ((Dtype)1. + lambda_) * top_diff[i * N_ + j] /
+                      (-xw_norm_ratio_data[i * N_ + j]) *
+                      ((Dtype)8. * sign_1_data[i * N_ + j] *
+                           cos_theta_cubic_data[i * N_ + j] -
+                       sign_2_data[i * N_ + j]),
                   bottom_data + i * K_, (Dtype)1., bottom_diff + i * K_);
             }
           }
@@ -504,10 +513,11 @@ void LargeMarginInnerProductLayer<Dtype>::Backward_cpu(
                   weight + j * K_, (Dtype)1., bottom_diff + i * K_);
             } else {
               caffe_cpu_axpby(
-                  K_, (Dtype)1. / ((Dtype)1. + lambda_) * top_diff[i * N_ + j] *
-                          sign_3_data[i * N_ + j] *
-                          ((Dtype)32. * cos_theta_cubic_data[i * N_ + j] -
-                           (Dtype)16. * cos_theta_data[i * N_ + j]),
+                  K_,
+                  (Dtype)1. / ((Dtype)1. + lambda_) * top_diff[i * N_ + j] *
+                      sign_3_data[i * N_ + j] *
+                      ((Dtype)32. * cos_theta_cubic_data[i * N_ + j] -
+                       (Dtype)16. * cos_theta_data[i * N_ + j]),
                   weight + j * K_, (Dtype)1., bottom_diff + i * K_);
 
               caffe_cpu_axpby(

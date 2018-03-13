@@ -28,7 +28,7 @@ class WindowDataLayer : public BasePrefetchingDataLayer<Dtype> {
       : BasePrefetchingDataLayer<Dtype>(param) {}
   virtual ~WindowDataLayer();
   virtual void DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                              const vector<Blob<Dtype>*>& top);
 
   virtual inline const char* type() const { return "WindowData"; }
   virtual inline int ExactNumBottomBlobs() const { return 0; }
@@ -48,7 +48,7 @@ class WindowDataLayer : public BasePrefetchingDataLayer<Dtype> {
   bool has_mean_file_;
   bool has_mean_values_;
   bool cache_images_;
-  vector<std::pair<std::string, Datum > > image_database_cache_;
+  vector<std::pair<std::string, Datum> > image_database_cache_;
 };
 
 }  // namespace caffe

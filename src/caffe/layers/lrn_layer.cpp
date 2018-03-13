@@ -7,7 +7,7 @@ namespace caffe {
 
 template <typename Dtype>
 void LRNLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+                                 const vector<Blob<Dtype>*>& top) {
   size_ = this->layer_param_.lrn_param().local_size();
   CHECK_EQ(size_ % 2, 1) << "LRN only supports odd values for local_size";
   pre_pad_ = (size_ - 1) / 2;
@@ -67,40 +67,41 @@ void LRNLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
 
 template <typename Dtype>
 void LRNLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
-  CHECK_EQ(4, bottom[0]->num_axes()) << "Input must have 4 axes, "
+                              const vector<Blob<Dtype>*>& top) {
+  CHECK_EQ(4, bottom[0]->num_axes())
+      << "Input must have 4 axes, "
       << "corresponding to (num, channels, height, width)";
   num_ = bottom[0]->num();
   channels_ = bottom[0]->channels();
   height_ = bottom[0]->height();
   width_ = bottom[0]->width();
   switch (this->layer_param_.lrn_param().norm_region()) {
-  case LRNParameter_NormRegion_ACROSS_CHANNELS:
-    top[0]->Reshape(num_, channels_, height_, width_);
-    scale_.Reshape(num_, channels_, height_, width_);
-    break;
-  case LRNParameter_NormRegion_WITHIN_CHANNEL:
-    split_layer_->Reshape(bottom, split_top_vec_);
-    square_layer_->Reshape(square_bottom_vec_, square_top_vec_);
-    pool_layer_->Reshape(square_top_vec_, pool_top_vec_);
-    power_layer_->Reshape(pool_top_vec_, power_top_vec_);
-    product_layer_->Reshape(product_bottom_vec_, top);
-    break;
+    case LRNParameter_NormRegion_ACROSS_CHANNELS:
+      top[0]->Reshape(num_, channels_, height_, width_);
+      scale_.Reshape(num_, channels_, height_, width_);
+      break;
+    case LRNParameter_NormRegion_WITHIN_CHANNEL:
+      split_layer_->Reshape(bottom, split_top_vec_);
+      square_layer_->Reshape(square_bottom_vec_, square_top_vec_);
+      pool_layer_->Reshape(square_top_vec_, pool_top_vec_);
+      power_layer_->Reshape(pool_top_vec_, power_top_vec_);
+      product_layer_->Reshape(product_bottom_vec_, top);
+      break;
   }
 }
 
 template <typename Dtype>
 void LRNLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-    const vector<Blob<Dtype>*>& top) {
+                                  const vector<Blob<Dtype>*>& top) {
   switch (this->layer_param_.lrn_param().norm_region()) {
-  case LRNParameter_NormRegion_ACROSS_CHANNELS:
-    CrossChannelForward_cpu(bottom, top);
-    break;
-  case LRNParameter_NormRegion_WITHIN_CHANNEL:
-    WithinChannelForward(bottom, top);
-    break;
-  default:
-    LOG(FATAL) << "Unknown normalization region.";
+    case LRNParameter_NormRegion_ACROSS_CHANNELS:
+      CrossChannelForward_cpu(bottom, top);
+      break;
+    case LRNParameter_NormRegion_WITHIN_CHANNEL:
+      WithinChannelForward(bottom, top);
+      break;
+    default:
+      LOG(FATAL) << "Unknown normalization region.";
   }
 }
 
@@ -121,28 +122,27 @@ void LRNLayer<Dtype>::CrossChannelForward_cpu(
   // go through the images
   for (int n = 0; n < num_; ++n) {
     // compute the padded square
-    caffe_sqr(channels_ * height_ * width_,
-        bottom_data + bottom[0]->offset(n),
-        padded_square_data + padded_square.offset(0, pre_pad_));
+    caffe_sqr(channels_ * height_ * width_, bottom_data + bottom[0]->offset(n),
+              padded_square_data + padded_square.offset(0, pre_pad_));
     // Create the first channel scale
     for (int c = 0; c < size_; ++c) {
       caffe_axpy<Dtype>(height_ * width_, alpha_over_size,
-          padded_square_data + padded_square.offset(0, c),
-          scale_data + scale_.offset(n, 0));
+                        padded_square_data + padded_square.offset(0, c),
+                        scale_data + scale_.offset(n, 0));
     }
     for (int c = 1; c < channels_; ++c) {
       // copy previous scale
-      caffe_copy<Dtype>(height_ * width_,
-          scale_data + scale_.offset(n, c - 1),
-          scale_data + scale_.offset(n, c));
+      caffe_copy<Dtype>(height_ * width_, scale_data + scale_.offset(n, c - 1),
+                        scale_data + scale_.offset(n, c));
       // add head
-      caffe_axpy<Dtype>(height_ * width_, alpha_over_size,
+      caffe_axpy<Dtype>(
+          height_ * width_, alpha_over_size,
           padded_square_data + padded_square.offset(0, c + size_ - 1),
           scale_data + scale_.offset(n, c));
       // subtract tail
       caffe_axpy<Dtype>(height_ * width_, -alpha_over_size,
-          padded_square_data + padded_square.offset(0, c - 1),
-          scale_data + scale_.offset(n, c));
+                        padded_square_data + padded_square.offset(0, c - 1),
+                        scale_data + scale_.offset(n, c));
     }
   }
 
@@ -152,8 +152,8 @@ void LRNLayer<Dtype>::CrossChannelForward_cpu(
 }
 
 template <typename Dtype>
-void LRNLayer<Dtype>::WithinChannelForward(
-    const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+void LRNLayer<Dtype>::WithinChannelForward(const vector<Blob<Dtype>*>& bottom,
+                                           const vector<Blob<Dtype>*>& top) {
   split_layer_->Forward(bottom, split_top_vec_);
   square_layer_->Forward(square_bottom_vec_, square_top_vec_);
   pool_layer_->Forward(square_top_vec_, pool_top_vec_);
@@ -163,16 +163,17 @@ void LRNLayer<Dtype>::WithinChannelForward(
 
 template <typename Dtype>
 void LRNLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-    const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+                                   const vector<bool>& propagate_down,
+                                   const vector<Blob<Dtype>*>& bottom) {
   switch (this->layer_param_.lrn_param().norm_region()) {
-  case LRNParameter_NormRegion_ACROSS_CHANNELS:
-    CrossChannelBackward_cpu(top, propagate_down, bottom);
-    break;
-  case LRNParameter_NormRegion_WITHIN_CHANNEL:
-    WithinChannelBackward(top, propagate_down, bottom);
-    break;
-  default:
-    LOG(FATAL) << "Unknown normalization region.";
+    case LRNParameter_NormRegion_ACROSS_CHANNELS:
+      CrossChannelBackward_cpu(top, propagate_down, bottom);
+      break;
+    case LRNParameter_NormRegion_WITHIN_CHANNEL:
+      WithinChannelBackward(top, propagate_down, bottom);
+      break;
+    default:
+      LOG(FATAL) << "Unknown normalization region.";
   }
 }
 
@@ -202,10 +203,12 @@ void LRNLayer<Dtype>::CrossChannelBackward_cpu(
   for (int n = 0; n < num_; ++n) {
     int block_offset = scale_.offset(n);
     // first, compute diff_i * y_i / s_i
-    caffe_mul<Dtype>(channels_ * height_ * width_,
-        top_diff + block_offset, top_data + block_offset,
+    caffe_mul<Dtype>(
+        channels_ * height_ * width_, top_diff + block_offset,
+        top_data + block_offset,
         padded_ratio_data + padded_ratio.offset(0, inverse_pre_pad));
-    caffe_div<Dtype>(channels_ * height_ * width_,
+    caffe_div<Dtype>(
+        channels_ * height_ * width_,
         padded_ratio_data + padded_ratio.offset(0, inverse_pre_pad),
         scale_data + block_offset,
         padded_ratio_data + padded_ratio.offset(0, inverse_pre_pad));
@@ -213,20 +216,23 @@ void LRNLayer<Dtype>::CrossChannelBackward_cpu(
     caffe_set(accum_ratio.count(), Dtype(0), accum_ratio_data);
     for (int c = 0; c < size_ - 1; ++c) {
       caffe_axpy<Dtype>(height_ * width_, 1.,
-          padded_ratio_data + padded_ratio.offset(0, c), accum_ratio_data);
+                        padded_ratio_data + padded_ratio.offset(0, c),
+                        accum_ratio_data);
     }
     for (int c = 0; c < channels_; ++c) {
-      caffe_axpy<Dtype>(height_ * width_, 1.,
+      caffe_axpy<Dtype>(
+          height_ * width_, 1.,
           padded_ratio_data + padded_ratio.offset(0, c + size_ - 1),
           accum_ratio_data);
       // compute bottom diff
-      caffe_mul<Dtype>(height_ * width_,
-          bottom_data + top[0]->offset(n, c),
-          accum_ratio_data, accum_ratio_times_bottom);
+      caffe_mul<Dtype>(height_ * width_, bottom_data + top[0]->offset(n, c),
+                       accum_ratio_data, accum_ratio_times_bottom);
       caffe_axpy<Dtype>(height_ * width_, -cache_ratio_value,
-          accum_ratio_times_bottom, bottom_diff + top[0]->offset(n, c));
+                        accum_ratio_times_bottom,
+                        bottom_diff + top[0]->offset(n, c));
       caffe_axpy<Dtype>(height_ * width_, -1.,
-          padded_ratio_data + padded_ratio.offset(0, c), accum_ratio_data);
+                        padded_ratio_data + padded_ratio.offset(0, c),
+                        accum_ratio_data);
     }
   }
 }

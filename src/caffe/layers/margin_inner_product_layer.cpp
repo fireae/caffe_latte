@@ -335,11 +335,13 @@ void MarginInnerProductLayer<Dtype>::Backward_cpu(
               Dtype coeff_norm = sqrt(coeff_w * coeff_w + coeff_x * coeff_x);
               coeff_w = coeff_w / coeff_norm;
               coeff_x = coeff_x / coeff_norm;
-              caffe_cpu_axpby(K_, (Dtype)1. / ((Dtype)1. + lambda_) *
-                                      top_diff[i * N_ + j] * coeff_w,
+              caffe_cpu_axpby(K_,
+                              (Dtype)1. / ((Dtype)1. + lambda_) *
+                                  top_diff[i * N_ + j] * coeff_w,
                               weight + j * K_, (Dtype)1., bottom_diff + i * K_);
-              caffe_cpu_axpby(K_, (Dtype)1. / ((Dtype)1. + lambda_) *
-                                      top_diff[i * N_ + j] * coeff_x,
+              caffe_cpu_axpby(K_,
+                              (Dtype)1. / ((Dtype)1. + lambda_) *
+                                  top_diff[i * N_ + j] * coeff_x,
                               bottom_data + i * K_, (Dtype)1.,
                               bottom_diff + i * K_);
             }
@@ -378,11 +380,13 @@ void MarginInnerProductLayer<Dtype>::Backward_cpu(
               Dtype coeff_norm = sqrt(coeff_w * coeff_w + coeff_x * coeff_x);
               coeff_w = coeff_w / coeff_norm;
               coeff_x = coeff_x / coeff_norm;
-              caffe_cpu_axpby(K_, (Dtype)1. / ((Dtype)1. + lambda_) *
-                                      top_diff[i * N_ + j] * coeff_w,
+              caffe_cpu_axpby(K_,
+                              (Dtype)1. / ((Dtype)1. + lambda_) *
+                                  top_diff[i * N_ + j] * coeff_w,
                               weight + j * K_, (Dtype)1., bottom_diff + i * K_);
-              caffe_cpu_axpby(K_, (Dtype)1. / ((Dtype)1. + lambda_) *
-                                      top_diff[i * N_ + j] * coeff_x,
+              caffe_cpu_axpby(K_,
+                              (Dtype)1. / ((Dtype)1. + lambda_) *
+                                  top_diff[i * N_ + j] * coeff_x,
                               bottom_data + i * K_, (Dtype)1.,
                               bottom_diff + i * K_);
             }
@@ -428,11 +432,13 @@ void MarginInnerProductLayer<Dtype>::Backward_cpu(
               Dtype coeff_norm = sqrt(coeff_w * coeff_w + coeff_x * coeff_x);
               coeff_w = coeff_w / coeff_norm;
               coeff_x = coeff_x / coeff_norm;
-              caffe_cpu_axpby(K_, (Dtype)1. / ((Dtype)1. + lambda_) *
-                                      top_diff[i * N_ + j] * coeff_w,
+              caffe_cpu_axpby(K_,
+                              (Dtype)1. / ((Dtype)1. + lambda_) *
+                                  top_diff[i * N_ + j] * coeff_w,
                               weight + j * K_, (Dtype)1., bottom_diff + i * K_);
-              caffe_cpu_axpby(K_, (Dtype)1. / ((Dtype)1. + lambda_) *
-                                      top_diff[i * N_ + j] * coeff_x,
+              caffe_cpu_axpby(K_,
+                              (Dtype)1. / ((Dtype)1. + lambda_) *
+                                  top_diff[i * N_ + j] * coeff_x,
                               bottom_data + i * K_, (Dtype)1.,
                               bottom_diff + i * K_);
             }

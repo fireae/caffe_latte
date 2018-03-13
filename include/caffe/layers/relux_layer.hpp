@@ -12,8 +12,9 @@
 namespace caffe {
 
 /**
- * @brief Rectified Linear Unit non-linearity under X @f$ y = \min(max(0, x), X), x default 6 @f$.
- *        The simple min/max is fast to compute, and the function does not saturate.
+ * @brief Rectified Linear Unit non-linearity under X @f$ y = \min(max(0, x),
+ * X), x default 6 @f$. The simple min/max is fast to compute, and the function
+ * does not saturate.
  */
 template <typename Dtype>
 class ReLUXLayer : public NeuronLayer<Dtype> {
@@ -40,12 +41,13 @@ class ReLUXLayer : public NeuronLayer<Dtype> {
    *      the computed outputs @f$
    *        y = \min(max(0, x), X)
    *      @f$ by default.  If a non-zero negative_slope @f$ \nu @f$ is provided,
-   *      the computed outputs are @f$ y = \min(max(0, x), X) + \nu \min(0, x) @f$.
+   *      the computed outputs are @f$ y = \min(max(0, x), X) + \nu \min(0, x)
+   * @f$.
    */
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                           const vector<Blob<Dtype>*>& top);
   virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                           const vector<Blob<Dtype>*>& top);
 
   /**
    * @brief Computes the error gradient w.r.t. the ReLUX inputs.
@@ -76,9 +78,11 @@ class ReLUXLayer : public NeuronLayer<Dtype> {
    *      @f$.
    */
   virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+                            const vector<bool>& propagate_down,
+                            const vector<Blob<Dtype>*>& bottom);
   virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+                            const vector<bool>& propagate_down,
+                            const vector<Blob<Dtype>*>& bottom);
 };
 
 }  // namespace caffe

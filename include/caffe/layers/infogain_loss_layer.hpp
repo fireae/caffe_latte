@@ -14,8 +14,8 @@ namespace caffe {
 
 /**
  * @brief A generalization of SoftmaxWithLossLayer that takes an
- *        "information gain" (infogain) matrix specifying the "value" of all label
- *        pairs.
+ *        "information gain" (infogain) matrix specifying the "value" of all
+ * label pairs.
  *
  * Equivalent to the SoftmaxWithLossLayer if the infogain matrix is the
  * identity.
@@ -51,9 +51,9 @@ class InfogainLossLayer : public LossLayer<Dtype> {
   explicit InfogainLossLayer(const LayerParameter& param)
       : LossLayer<Dtype>(param), infogain_() {}
   virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                          const vector<Blob<Dtype>*>& top);
   virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                       const vector<Blob<Dtype>*>& top);
 
   // InfogainLossLayer takes 2-3 bottom Blobs; if there are 3 the third should
   // be the infogain matrix.  (Otherwise the infogain matrix is loaded from a
@@ -73,7 +73,7 @@ class InfogainLossLayer : public LossLayer<Dtype> {
  protected:
   /// @copydoc InfogainLossLayer
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                           const vector<Blob<Dtype>*>& top);
 
   /**
    * @brief Computes the infogain loss error gradient w.r.t. the predictions.
@@ -108,7 +108,8 @@ class InfogainLossLayer : public LossLayer<Dtype> {
    *      gradient computation is not implemented.
    */
   virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+                            const vector<bool>& propagate_down,
+                            const vector<Blob<Dtype>*>& bottom);
 
   /// Read the normalization mode parameter and compute the normalizer based
   /// on the blob size.  If normalization_mode is VALID, the count of valid

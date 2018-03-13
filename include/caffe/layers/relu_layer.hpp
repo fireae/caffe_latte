@@ -24,8 +24,7 @@ class ReLULayer : public NeuronLayer<Dtype> {
    *   - negative_slope (\b optional, default 0).
    *     the value @f$ \nu @f$ by which negative values are multiplied.
    */
-  explicit ReLULayer(const LayerParameter& param)
-      : NeuronLayer<Dtype>(param) {}
+  explicit ReLULayer(const LayerParameter& param) : NeuronLayer<Dtype>(param) {}
 
   virtual inline const char* type() const { return "ReLU"; }
 
@@ -42,9 +41,9 @@ class ReLULayer : public NeuronLayer<Dtype> {
    *      the computed outputs are @f$ y = \max(0, x) + \nu \min(0, x) @f$.
    */
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                           const vector<Blob<Dtype>*>& top);
   virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                           const vector<Blob<Dtype>*>& top);
 
   /**
    * @brief Computes the error gradient w.r.t. the ReLU inputs.
@@ -75,9 +74,11 @@ class ReLULayer : public NeuronLayer<Dtype> {
    *      @f$.
    */
   virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+                            const vector<bool>& propagate_down,
+                            const vector<Blob<Dtype>*>& bottom);
   virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+                            const vector<bool>& propagate_down,
+                            const vector<Blob<Dtype>*>& bottom);
 };
 
 }  // namespace caffe

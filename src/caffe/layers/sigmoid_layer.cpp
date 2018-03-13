@@ -12,7 +12,7 @@ inline Dtype sigmoid(Dtype x) {
 
 template <typename Dtype>
 void SigmoidLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-    const vector<Blob<Dtype>*>& top) {
+                                      const vector<Blob<Dtype>*>& top) {
   const Dtype* bottom_data = bottom[0]->cpu_data();
   Dtype* top_data = top[0]->mutable_cpu_data();
   const int count = bottom[0]->count();
@@ -23,8 +23,8 @@ void SigmoidLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 
 template <typename Dtype>
 void SigmoidLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-    const vector<bool>& propagate_down,
-    const vector<Blob<Dtype>*>& bottom) {
+                                       const vector<bool>& propagate_down,
+                                       const vector<Blob<Dtype>*>& bottom) {
   if (propagate_down[0]) {
     const Dtype* top_data = top[0]->cpu_data();
     const Dtype* top_diff = top[0]->cpu_diff();
@@ -42,6 +42,5 @@ STUB_GPU(SigmoidLayer);
 #endif
 
 INSTANTIATE_CLASS(SigmoidLayer);
-
 
 }  // namespace caffe

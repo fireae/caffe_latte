@@ -59,13 +59,14 @@ void LSTMLayer<Dtype>::FillUnrolledNet(NetParameter* net_param) const {
   hidden_param.mutable_inner_product_param()->set_num_output(num_output * 4);
   hidden_param.mutable_inner_product_param()->set_bias_term(false);
   hidden_param.mutable_inner_product_param()->set_axis(2);
-  hidden_param.mutable_inner_product_param()->
-      mutable_weight_filler()->CopyFrom(weight_filler);
+  hidden_param.mutable_inner_product_param()->mutable_weight_filler()->CopyFrom(
+      weight_filler);
 
   LayerParameter biased_hidden_param(hidden_param);
   biased_hidden_param.mutable_inner_product_param()->set_bias_term(true);
-  biased_hidden_param.mutable_inner_product_param()->
-      mutable_bias_filler()->CopyFrom(bias_filler);
+  biased_hidden_param.mutable_inner_product_param()
+      ->mutable_bias_filler()
+      ->CopyFrom(bias_filler);
 
   LayerParameter sum_param;
   sum_param.set_type("Eltwise");
@@ -131,7 +132,7 @@ void LSTMLayer<Dtype>::FillUnrolledNet(NetParameter* net_param) const {
     LayerParameter* reshape_param = net_param->add_layer();
     reshape_param->set_type("Reshape");
     BlobShape* new_shape =
-         reshape_param->mutable_reshape_param()->mutable_shape();
+        reshape_param->mutable_reshape_param()->mutable_shape();
     new_shape->add_dim(1);  // One timestep.
     // Should infer this->N as the dimension so we can reshape on batch size.
     new_shape->add_dim(-1);

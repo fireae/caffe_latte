@@ -93,4 +93,4 @@ STUB_GPU(AxpyLayer);
 INSTANTIATE_CLASS(AxpyLayer);
 REGISTER_LAYER_CLASS(Axpy);
 
-}  // namespace
+}  // namespace caffe

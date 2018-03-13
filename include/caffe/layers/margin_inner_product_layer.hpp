@@ -11,7 +11,8 @@ namespace caffe {
 /**
  * @brief Also known as a "marginal fully-connected" layer, computes an marginal
  * inner product with a set of learned weights, and (optionally) adds biases.
- * SphereFace: Deep Hypersphere Embedding for Face Recognition[https://arxiv.org/pdf/1704.08063.pdf]
+ * SphereFace: Deep Hypersphere Embedding for Face
+ * Recognition[https://arxiv.org/pdf/1704.08063.pdf]
  * TODO(dox): thorough documentation for Forward, Backward, and proto params.
  */
 template <typename Dtype>

@@ -19,7 +19,7 @@ class DataLayer : public BasePrefetchingDataLayer<Dtype> {
   explicit DataLayer(const LayerParameter& param);
   virtual ~DataLayer();
   virtual void DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                              const vector<Blob<Dtype>*>& top);
   // DataLayer uses DataReader instead for sharing for parallelism
   virtual inline bool ShareInParallel() const { return false; }
   virtual inline const char* type() const { return "Data"; }
@@ -27,7 +27,7 @@ class DataLayer : public BasePrefetchingDataLayer<Dtype> {
   virtual inline int MinTopBlobs() const { return 1; }
   virtual inline int MaxTopBlobs() const { return 2; }
 
-  vector< std::pair<std::string, vector<int> > > lines_;
+  vector<std::pair<std::string, vector<int> > > lines_;
   int line_id_;
 
  protected:

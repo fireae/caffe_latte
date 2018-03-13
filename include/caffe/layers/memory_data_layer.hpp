@@ -22,7 +22,7 @@ class MemoryDataLayer : public BaseDataLayer<Dtype> {
   explicit MemoryDataLayer(const LayerParameter& param)
       : BaseDataLayer<Dtype>(param), has_new_data_(false) {}
   virtual void DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                              const vector<Blob<Dtype>*>& top);
 
   virtual inline const char* type() const { return "MemoryData"; }
   virtual inline int ExactNumBottomBlobs() const { return 0; }
@@ -31,7 +31,7 @@ class MemoryDataLayer : public BaseDataLayer<Dtype> {
   virtual void AddDatumVector(const vector<Datum>& datum_vector);
 #ifdef USE_OPENCV
   virtual void AddMatVector(const vector<cv::Mat>& mat_vector,
-      const vector<int>& labels);
+                            const vector<int>& labels);
 #endif  // USE_OPENCV
 
   // Reset should accept const pointers, but can't, because the memory
@@ -46,7 +46,7 @@ class MemoryDataLayer : public BaseDataLayer<Dtype> {
 
  protected:
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                           const vector<Blob<Dtype>*>& top);
 
   int batch_size_, channels_, height_, width_, size_, label_size_;
   Dtype* data_;

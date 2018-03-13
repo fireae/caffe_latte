@@ -21,10 +21,10 @@ void LogLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
   CHECK(!isinf(log_base)) << "Inf result: log(base) = log(" << base
                           << ") = " << log_base;
   base_scale_ = Dtype(1) / log_base;
-  CHECK(!isnan(base_scale_)) << "NaN result: 1/log(base) = 1/log(" << base
-                             << ") = " << base_scale_;
-  CHECK(!isinf(base_scale_)) << "Inf result: 1/log(base) = 1/log(" << base
-                             << ") = " << base_scale_;
+  CHECK(!isnan(base_scale_))
+      << "NaN result: 1/log(base) = 1/log(" << base << ") = " << base_scale_;
+  CHECK(!isinf(base_scale_))
+      << "Inf result: 1/log(base) = 1/log(" << base << ") = " << base_scale_;
   input_scale_ = this->layer_param_.log_param().scale();
   input_shift_ = this->layer_param_.log_param().shift();
   backward_num_scale_ = input_scale_ / log_base;

@@ -22,8 +22,7 @@ namespace caffe {
 template <typename Dtype>
 class TanHLayer : public NeuronLayer<Dtype> {
  public:
-  explicit TanHLayer(const LayerParameter& param)
-      : NeuronLayer<Dtype>(param) {}
+  explicit TanHLayer(const LayerParameter& param) : NeuronLayer<Dtype>(param) {}
 
   virtual inline const char* type() const { return "TanH"; }
 
@@ -39,9 +38,9 @@ class TanHLayer : public NeuronLayer<Dtype> {
    *      @f$
    */
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                           const vector<Blob<Dtype>*>& top);
   virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                           const vector<Blob<Dtype>*>& top);
 
   /**
    * @brief Computes the error gradient w.r.t. the sigmoid inputs.
@@ -58,14 +57,16 @@ class TanHLayer : public NeuronLayer<Dtype> {
    *      gradients @f$
    *        \frac{\partial E}{\partial x}
    *            = \frac{\partial E}{\partial y}
-   *              \left(1 - \left[\frac{\exp(2x) - 1}{exp(2x) + 1} \right]^2 \right)
-   *            = \frac{\partial E}{\partial y} (1 - y^2)
+   *              \left(1 - \left[\frac{\exp(2x) - 1}{exp(2x) + 1} \right]^2
+   * \right) = \frac{\partial E}{\partial y} (1 - y^2)
    *      @f$ if propagate_down[0]
    */
   virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+                            const vector<bool>& propagate_down,
+                            const vector<Blob<Dtype>*>& bottom);
   virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+                            const vector<bool>& propagate_down,
+                            const vector<Blob<Dtype>*>& bottom);
 };
 
 }  // namespace caffe

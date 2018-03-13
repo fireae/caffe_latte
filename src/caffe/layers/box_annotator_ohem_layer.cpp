@@ -15,10 +15,10 @@
 #include "caffe/layers/box_annotator_ohem_layer.hpp"
 #include "caffe/proto/caffe.pb.h"
 
+using std::ceil;
+using std::floor;
 using std::max;
 using std::min;
-using std::floor;
-using std::ceil;
 
 namespace caffe {
 

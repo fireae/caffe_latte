@@ -7,8 +7,8 @@
 
 namespace caffe {
 
-using std::min;
 using std::max;
+using std::min;
 
 template <typename Dtype>
 void PoolingLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,

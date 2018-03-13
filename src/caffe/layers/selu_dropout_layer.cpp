@@ -9,22 +9,22 @@ namespace caffe {
 
 template <typename Dtype>
 void SeLuDropoutLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+                                         const vector<Blob<Dtype>*>& top) {
   NeuronLayer<Dtype>::LayerSetUp(bottom, top);
   threshold_ = this->layer_param_.selu_dropout_param().dropout_ratio();
   alpha_ = this->layer_param_.selu_dropout_param().alpha();
   DCHECK(threshold_ > 0.);
   DCHECK(threshold_ < 1.);
   q_ = Dtype(1.) - threshold_;
-  Dtype tmp_ = q_*(Dtype(1.)+alpha_*alpha_*(Dtype(1.)-q_));
+  Dtype tmp_ = q_ * (Dtype(1.) + alpha_ * alpha_ * (Dtype(1.) - q_));
   a_ = pow(tmp_, -0.5);
-  b_ = -a_*(1-q_)*alpha_;
+  b_ = -a_ * (1 - q_) * alpha_;
   uint_thres_ = static_cast<unsigned int>(UINT_MAX * threshold_);
 }
 
 template <typename Dtype>
 void SeLuDropoutLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+                                      const vector<Blob<Dtype>*>& top) {
   NeuronLayer<Dtype>::Reshape(bottom, top);
   // Set up the cache for random number generation
   // ReshapeLike does not work because rand_vec_ is of Dtype uint
@@ -33,7 +33,7 @@ void SeLuDropoutLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
 
 template <typename Dtype>
 void SeLuDropoutLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-    const vector<Blob<Dtype>*>& top) {
+                                          const vector<Blob<Dtype>*>& top) {
   const Dtype* bottom_data = bottom[0]->cpu_data();
   Dtype* top_data = top[0]->mutable_cpu_data();
   unsigned int* mask = rand_vec_.mutable_cpu_data();
@@ -51,8 +51,8 @@ void SeLuDropoutLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 
 template <typename Dtype>
 void SeLuDropoutLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-    const vector<bool>& propagate_down,
-    const vector<Blob<Dtype>*>& bottom) {
+                                           const vector<bool>& propagate_down,
+                                           const vector<Blob<Dtype>*>& bottom) {
   if (propagate_down[0]) {
     const Dtype* top_diff = top[0]->cpu_diff();
     Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
@@ -67,7 +67,6 @@ void SeLuDropoutLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
     }
   }
 }
-
 
 #ifndef USE_CUDA
 STUB_GPU(SeLuDropoutLayer);

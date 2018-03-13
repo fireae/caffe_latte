@@ -5,9 +5,9 @@
 
 #include "caffe/blob.hpp"
 #include "caffe/layer.hpp"
+#include "caffe/layers/base_conv_layer.hpp"
 #include "caffe/proto/caffe.pb.h"
 #include "caffe/util/deformable_im2col.hpp"
-#include "caffe/layers/base_conv_layer.hpp"
 
 namespace caffe {
 
@@ -49,12 +49,12 @@ class DeformableConvolutionLayer : public BaseConvolutionLayer<Dtype> {
    *  dilation. By default the convolution has dilation 1.
    *  - group (\b optional, default 1). The number of filter groups. Group
    *  convolution is a method for reducing parameterization by selectively
-   *  connecting input and output channels. The input and output channel dimensions must be divisible
-   *  by the number of groups. For group @f$ \geq 1 @f$, the
-   *  convolutional filters' input and output channels are separated s.t. each
-   *  group takes 1 / group of the input channels and makes 1 / group of the
-   *  output channels. Concretely 4 input channels, 8 output channels, and
-   *  2 groups separate input channels 1-2 and output channels 1-4 into the
+   *  connecting input and output channels. The input and output channel
+   * dimensions must be divisible by the number of groups. For group @f$ \geq 1
+   * @f$, the convolutional filters' input and output channels are separated
+   * s.t. each group takes 1 / group of the input channels and makes 1 / group
+   * of the output channels. Concretely 4 input channels, 8 output channels,
+   * and 2 groups separate input channels 1-2 and output channels 1-4 into the
    *  first group and input channels 3-4 and output channels 5-8 into the second
    *  group.
    *  - bias_term (\b optional, default true). Whether to have a bias.
@@ -67,27 +67,30 @@ class DeformableConvolutionLayer : public BaseConvolutionLayer<Dtype> {
   virtual inline const char* type() const { return "DeformableConvolution"; }
   virtual inline bool EqualNumBottomTopBlobs() const { return false; }
   virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                          const vector<Blob<Dtype>*>& top);
   virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                       const vector<Blob<Dtype>*>& top);
 
  protected:
- int input_shape(int i) ;
+  int input_shape(int i);
   // reverse_dimensions should return true iff we are implementing deconv, so
   // that conv helpers know which dimensions are which.
 
- virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top){};
+  virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
+                           const vector<Blob<Dtype>*>& top){};
 
- virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom){};
+  virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
+                            const vector<bool>& propagate_down,
+                            const vector<Blob<Dtype>*>& bottom){};
 
   virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                           const vector<Blob<Dtype>*>& top);
   virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+                            const vector<bool>& propagate_down,
+                            const vector<Blob<Dtype>*>& bottom);
   virtual inline bool reverse_dimensions() { return false; }
   virtual void compute_output_shape();
+
  private:
   int num_kernels_im2col_;
   int num_kernels_col2im_;
@@ -102,7 +105,6 @@ class DeformableConvolutionLayer : public BaseConvolutionLayer<Dtype> {
 
   Blob<Dtype> col_buffer_;
   Blob<Dtype> bias_multiplier_;
-
 };
 
 }  // namespace caffe

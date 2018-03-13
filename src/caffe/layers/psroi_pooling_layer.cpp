@@ -13,10 +13,10 @@
 #include "caffe/layers/psroi_pooling_layer.hpp"
 #include "caffe/util/math_functions.hpp"
 
+using std::ceil;
+using std::floor;
 using std::max;
 using std::min;
-using std::floor;
-using std::ceil;
 
 namespace caffe {
 template <typename Dtype>

@@ -111,8 +111,8 @@ Dtype InfogainLossLayer<Dtype>::get_normalizer(
 
 template <typename Dtype>
 void InfogainLossLayer<Dtype>::sum_rows_of_H(const Blob<Dtype>* H) {
-  CHECK_EQ(H->count(), num_labels_ * num_labels_) << "H must be " << num_labels_
-                                                  << "x" << num_labels_;
+  CHECK_EQ(H->count(), num_labels_ * num_labels_)
+      << "H must be " << num_labels_ << "x" << num_labels_;
   const Dtype* infogain_mat = H->cpu_data();
   Dtype* sum = sum_rows_H_.mutable_cpu_data();
   for (int row = 0; row < num_labels_; row++) {

@@ -18,12 +18,11 @@ namespace caffe {
 template <typename Dtype>
 class FilterLayer : public Layer<Dtype> {
  public:
-  explicit FilterLayer(const LayerParameter& param)
-      : Layer<Dtype>(param) {}
+  explicit FilterLayer(const LayerParameter& param) : Layer<Dtype>(param) {}
   virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                          const vector<Blob<Dtype>*>& top);
   virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                       const vector<Blob<Dtype>*>& top);
 
   virtual inline const char* type() const { return "Filter"; }
   virtual inline int MinBottomBlobs() const { return 2; }
@@ -50,23 +49,25 @@ class FilterLayer : public Layer<Dtype> {
    *        that haven't been filtered
    */
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top);
+                           const vector<Blob<Dtype>*>& top);
   virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-    const vector<Blob<Dtype>*>& top);
+                           const vector<Blob<Dtype>*>& top);
 
   /**
    * @brief Computes the error gradient w.r.t. the forwarded inputs.
    *
-   * @param top output Blob vector (length 1+), providing the error gradient with
-   *        respect to the outputs
+   * @param top output Blob vector (length 1+), providing the error gradient
+   * with respect to the outputs
    * @param propagate_down see Layer::Backward.
    * @param bottom input Blob vector (length 2+), into which the top error
    *        gradient is copied
    */
   virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
-      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+                            const vector<bool>& propagate_down,
+                            const vector<Blob<Dtype>*>& bottom);
   virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
-    const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+                            const vector<bool>& propagate_down,
+                            const vector<Blob<Dtype>*>& bottom);
 
   bool first_reshape_;
   vector<int> indices_to_forward_;

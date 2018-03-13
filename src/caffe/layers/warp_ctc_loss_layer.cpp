@@ -132,8 +132,8 @@ void WarpCTCLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   ctcStatus_t status = get_workspace_size<Dtype>(
       label_lengths_.data(), input_lengths_.data(), alphabet_size, minibatch,
       options, &workspace_alloc_bytes_);
-  CHECK_EQ(status, CTC_STATUS_SUCCESS) << "CTC Error: "
-                                       << ctcGetStatusString(status);
+  CHECK_EQ(status, CTC_STATUS_SUCCESS)
+      << "CTC Error: " << ctcGetStatusString(status);
 
   if (!workspace_ || workspace_->size() < workspace_alloc_bytes_) {
     workspace_.reset(new SyncedMemory(workspace_alloc_bytes_ * sizeof(char)));
@@ -144,8 +144,8 @@ void WarpCTCLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
                                 alphabet_size, minibatch, costs.data(),
                                 workspace_->mutable_cpu_data(), options);
 
-  CHECK_EQ(status, CTC_STATUS_SUCCESS) << "CTC Error: "
-                                       << ctcGetStatusString(status);
+  CHECK_EQ(status, CTC_STATUS_SUCCESS)
+      << "CTC Error: " << ctcGetStatusString(status);
 
   // output loss
   Dtype& loss = top[0]->mutable_cpu_data()[0];

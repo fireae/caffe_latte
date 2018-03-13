@@ -7,7 +7,6 @@
 #include <cfloat>
 #include <cmath>
 
-
 #include "caffe/blob.hpp"
 #include "caffe/layer.hpp"
 #include "caffe/proto/caffe.pb.h"
