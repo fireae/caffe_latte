@@ -28,7 +28,7 @@ class ProposalLayer : public Layer<Dtype> {
     // LOG(FATAL) << "Reshaping happens during the call to forward.";
   }
 
-  virtual inline const char* type() const { return "ProposalLayer"; }
+  virtual inline const char* type() const { return "FrcnnProposalLayer"; }
   virtual inline int MinBottomBlobs() const { return 3; }
   virtual inline int MaxBottomBlobs() const { return 3; }
   virtual inline int MinTopBlobs() const { return 1; }
