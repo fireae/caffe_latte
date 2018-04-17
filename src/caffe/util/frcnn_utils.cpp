@@ -1,6 +1,49 @@
 #include "caffe/util/frcnn_utils.hpp"
-
+#include "caffe/util/nms_util.hpp"
 namespace caffe {
+
+template struct Point4d<float>;
+template struct Point4d<double>;
+
+template <typename Dtype>
+vector<vector<Dtype>> GetIoUs(const vector<Point4d<Dtype>>& A,
+                              const vector<Point4d<Dtype>>& B) {
+  vector<vector<Dtype>> ious;
+  for (int i = 0; i < A.size(); i++) {
+    vector<Dtype> iou;
+    for (int j = 0; j < B.size(); j++) {
+      iou.push_back(IoU<Dtype>(A[i].points, B[i].points));
+    }
+    ious.push_back(iou);
+  }
+  return ious;
+}
+template <typename Dtype>
+Point4d<Dtype> TransformBox(const Point4d<Dtype>& ex_roi,
+                            const Point4d<Dtype>& gt_roi) {
+  Dtype ex_width = ex_roi[2] - ex_roi[0] + 1;
+  Dtype ex_height = ex_roi[3] - ex_roi[1] + 1;
+  Dtype ex_ctr_x = ex_roi[0] + 0.5 * ex_width;
+  Dtype ex_ctr_y = ex_roi[1] + 0.5 * ex_height;
+  Dtype gt_widths = gt_roi[2] - gt_roi[0] + 1;
+  Dtype gt_heights = gt_roi[3] - gt_roi[1] + 1;
+  Dtype gt_ctr_x = gt_roi[0] + 0.5 * gt_widths;
+  Dtype gt_ctr_y = gt_roi[1] + 0.5 * gt_heights;
+  Dtype targets_dx = (gt_ctr_x - ex_ctr_x) / ex_width;
+  Dtype targets_dy = (gt_ctr_y - ex_ctr_y) / ex_height;
+  Dtype targets_dw = log(gt_widths / ex_width);
+  Dtype targets_dh = log(gt_heights / ex_height);
+  return Point4d<Dtype>(targets_dx, targets_dy, targets_dw, targets_dh);
+}
+template Point4d<float> TransformBox(const Point4d<float>& ex_roi,
+                                     const Point4d<float>& gt_roi);
+template Point4d<double> TransformBox(const Point4d<double>& ex_roi,
+                                      const Point4d<double>& gt_roi);
+
+template vector<vector<float>> GetIoUs(const vector<Point4d<float>>& A,
+                                       const vector<Point4d<float>>& B);
+template vector<vector<double>> GetIoUs(const vector<Point4d<double>>& A,
+                                        const vector<Point4d<double>>& B);
 
 template <typename Dtype>
 int TransformBox(Dtype* box, const Dtype dx, const Dtype dy,
@@ -170,4 +213,16 @@ template void RetrieveROI<double>(const int num_rois, const int item_index,
                                   const double* proposals,
                                   const int* roi_indices, double* rois,
                                   double* roi_scores);
+
+float GetScaleFactor(int width, int height, int short_size, int max_long_size) {
+  float im_size_min = std::min(width, height);
+  float im_size_max = std::max(width, height);
+
+  float scale_factor = static_cast<float>(short_size) / im_size_min;
+  // Prevent the biggest axis from being more than max_size
+  if (scale_factor * im_size_max > max_long_size) {
+    scale_factor = static_cast<float>(max_long_size) / im_size_max;
+  }
+  return scale_factor;
+}
 }  // namespace caffe

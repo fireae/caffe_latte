@@ -87,8 +87,6 @@ message NetParameter {
   // Net::Backward, and Net::Update.
   optional bool debug_info = 7 [default = false];
 
-  optional NetConfigParameter net_config_param = 10;
-
   // The layers that make up the net.  Each of their configurations, including
   // connectivity and behavior, is specified as a LayerParameter.
   repeated LayerParameter layer = 100;  // ID 100 so layers are printed last.
@@ -171,8 +169,6 @@ message NetConfigParameter {
   repeated float bbox_normalize_mean = 25;
   repeated float bbox_normalize_std = 26;
   repeated float bbox_inside_weight = 27;
-
-
 }
 
 // NOTE
@@ -534,7 +530,6 @@ message LayerParameter {
 
   optional TransposeParameter transpose_param=200;
   optional LSTMParameter lstm_param = 201;
-  optional FrcnnProposalParameter frcnn_proposal_param = 202;
   optional LabelSpecificAddParameter label_specific_add_param = 241;
   
 }
@@ -966,48 +961,32 @@ message FrcnnConfigParameter {
   repeated float train_bbox_inside_weight = 26;
 }
 
-message AnchorTargetParameter {
-  optional uint32 feat_stride = 1 [default=16];
-  repeated float scale = 2;
-  repeated float ratio = 3;
-  optional uint32 base_size = 4 [default = 16];
-}
-
-// Message that stores parameters used by ProposalLayer
-message ProposalParameter {
-  optional uint32 feat_stride = 1 [default = 16];
-  optional uint32 base_size = 2 [default = 16];
-  optional uint32 min_size = 3 [default = 16];
-  repeated float ratio = 4;
-  repeated float scale = 5;
-  optional uint32 pre_nms_topn = 6 [default = 6000];
-  optional uint32 post_nms_topn = 7 [default = 300];
-  optional float nms_thresh = 8 [default = 0.7];
-}
-
 message Anchor {
 	optional uint32 tl_x = 1;
 	optional uint32 tl_y = 2;
 	optional uint32 br_x = 3;
 	optional uint32 br_y = 4;
 }
-// Message that stores parameters used by ProposalLayer
-message FrcnnProposalParameter {
-  optional uint32 feat_stride = 1 [default = 16];
-  optional uint32 base_size = 2 [default = 16];
-  optional uint32 min_size = 3 [default = 16];
-  repeated Anchor anchor = 4;
-  optional uint32 pre_nms_topn = 6 [default = 6000];
-  optional uint32 post_nms_topn = 7 [default = 300];
-  optional float nms_thresh = 8 [default = 0.7];
+
+message AnchorTargetParameter {
+  optional uint32 feat_stride = 1 [default=16];
+  repeated float scale = 2;
+  repeated float ratio = 3;
+  repeated Anchor anchor = 6;
+  optional uint32 base_size = 4 [default = 16];
 }
 
-message RCNNProposalParameter {
-  optional int32 feat_stride = 1 [default = 16];
-  optional int32 anchor_base_size = 2 [default = 16];
-  optional int32 anchor_scale = 3 [default = 3];
-  optional int32 anchor_ratio = 4 [default = 3];
-  optional int32 max_rois = 5 [default = 300];
+// Message that stores parameters used by ProposalLayer
+message ProposalParameter {
+  optional uint32 base_h = 1 [default = 16];
+  optional uint32 base_w = 2 [default = 16];
+  optional uint32 feat_stride_h = 3 [default = 16];
+  optional uint32 feat_stride_w = 4 [default = 16];
+  optional uint32 min_size = 5 [default = 16];
+  repeated Anchor anchor = 6;
+  optional uint32 pre_nms_topn = 7 [default = 6000];
+  optional uint32 post_nms_topn = 8 [default = 300];
+  optional float nms_thresh = 9 [default = 0.7];
 }
 
 message SpatialDropoutParameter {

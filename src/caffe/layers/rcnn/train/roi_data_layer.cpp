@@ -20,8 +20,8 @@
 #include "caffe/util/rng.hpp"
 
 #include "caffe/layers/roi_data_layer.hpp"
-#include "caffe/net_config.hpp"
-#include "caffe/util/frcnn_util.hpp"
+#include "caffe/util/frcnn_param.hpp"
+#include "caffe/util/frcnn_utils.hpp"
 
 // caffe.proto > LayerParameter > RoiDataLayer
 //   'source' field specifies the window_file
@@ -105,13 +105,13 @@ void RoiDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype> *> &bottom,
   }
 
   // image
-  vector<float> scales = NetConfig::scales;
+  vector<float> scales = FrcnnParam::scales;
   max_short_ = *max_element(scales.begin(), scales.end());
   const int batch_size = 1;
 
   // data mean
   for (int i = 0; i < 3; i++) {
-    mean_values_[i] = NetConfig::pixel_means[i];
+    mean_values_[i] = FrcnnParam::pixel_means[i];
   }
 
   // data image Input ..
@@ -137,7 +137,7 @@ void RoiDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype> *> &bottom,
   }
 
   LOG(INFO) << "Shuffling data";
-  const unsigned int prefetch_rng_seed = NetConfig::rng_seed;
+  const unsigned int prefetch_rng_seed = FrcnnParam::rng_seed;
   prefetch_rng_.reset(new Caffe::RNG(prefetch_rng_seed));
   lines_id_ = 0;  // First Shuffle
   CHECK(prefetch_rng_);
@@ -277,7 +277,7 @@ void RoiDataLayer<Dtype>::load_batch(Batch<Dtype> *batch) {
           this->mean_values_[2];  // R
     }
   }
-  float im_scale = get_scale_factor(src.cols, src.rows, max_short, max_long_);
+  float im_scale = GetScaleFactor(src.cols, src.rows, max_short, max_long_);
   cv::resize(src, src, cv::Size(), im_scale, im_scale);
 
   // resize data

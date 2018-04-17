@@ -6,7 +6,6 @@
 #include "caffe/blob.hpp"
 #include "caffe/layer.hpp"
 #include "caffe/proto/caffe.pb.h"
-#include "caffe/util/frcnn_util.hpp"
 
 namespace caffe {
 
@@ -63,12 +62,12 @@ class AnchorTargetLayer : public Layer<Dtype> {
   Blob<Dtype> anchors_;
   int num_anchors_;
   int base_size_;
-
+#if 0
   // For Debug
-  inline void Info_Stds_Means_AvePos(const vector<Point4f<Dtype> >& targets,
+  inline void Info_Stds_Means_AvePos(const vector<Point4d<Dtype> >& targets,
                                      const vector<int>& labels) {
 //#ifdef DEBUG
-#if 0
+
     CHECK_EQ(targets.size(), labels.size());
     const int n = targets.size();
     for (int index = 0; index < n; index++) {
@@ -83,7 +82,7 @@ class AnchorTargetLayer : public Layer<Dtype> {
       _fg_sum += labels[index] == 1;
       _bg_sum += labels[index] == 0;
     }
-    Point4f<Dtype> means, stds;
+    Point4d<Dtype> means, stds;
     for (int j = 0; j < 4; j++)
       if (this->_counts > 0) {
         means[j] = this->_sum[j] / this->_counts;
@@ -99,8 +98,9 @@ class AnchorTargetLayer : public Layer<Dtype> {
     this->_count++;
     LOG_EVERY_N(INFO, 1000) << "num_positive ave : " << float(_fg_sum) / _count;
     LOG_EVERY_N(INFO, 1000) << "num_negitive ave : " << float(_bg_sum) / _count;
-#endif
+
   }
+#endif
 };
 
 }  // namespace caffe

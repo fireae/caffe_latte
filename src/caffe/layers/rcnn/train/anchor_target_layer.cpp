@@ -1,10 +1,21 @@
 #include "caffe/layers/anchor_target_layer.hpp"
-#include "caffe/net_config.hpp"
-#include "caffe/util/frcnn_util.hpp"
-#include "caffe/util/nms.hpp"
-
+#include <vector>
+#include "caffe/util/frcnn_param.hpp"
+#include "caffe/util/frcnn_utils.hpp"
 namespace caffe {
-
+using std::vector;
+/*************************************************
+Faster-rcnn anchor target layer
+Assign anchors to ground-truth targets. Produces anchor classification
+labels and bounding-box regression targets.
+bottom: 'rpn_cls_score'
+bottom: 'gt_boxes'
+bottom: 'im_info'
+top: 'rpn_labels'
+top: 'rpn_bbox_targets'
+top: 'rpn_bbox_inside_weights'
+top: 'rpn_bbox_outside_weights'
+**************************************************/
 template <typename Dtype>
 void AnchorTargetLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
                                           const vector<Blob<Dtype>*>& top) {
@@ -12,22 +23,18 @@ void AnchorTargetLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
   base_size_ = param.base_size();
   feat_stride_ = param.feat_stride();
 
-  vector<Dtype> ratios(param.ratio_size());
-  for (int i = 0; i < param.ratio_size(); ++i) {
-    ratios[i] = param.ratio(i);
-  }
-  vector<Dtype> scales(param.scale_size());
-  for (int i = 0; i < param.scale_size(); ++i) {
-    scales[i] = param.scale(i);
-  }
-
   vector<int> anchors_shape(2);
-  anchors_shape[0] = ratios.size() * scales.size();
+  anchors_shape[0] = param.anchor_size();
   anchors_shape[1] = 4;
   anchors_.Reshape(anchors_shape);
-  generate_anchors(base_size_, &ratios[0], &scales[0], ratios.size(),
-                   scales.size(), anchors_.mutable_cpu_data());
-  num_anchors_ = ratios.size() * scales.size();
+  Dtype* anchors_ptr_ = anchors_.mutable_cpu_data();
+  for (int i = 0; i < param.anchor_size(); ++i) {
+    anchors_ptr_[i * 4 + 0] = static_cast<Dtype>(param.anchor(i).tl_x());
+    anchors_ptr_[i * 4 + 1] = static_cast<Dtype>(param.anchor(i).tl_y());
+    anchors_ptr_[i * 4 + 2] = static_cast<Dtype>(param.anchor(i).br_x());
+    anchors_ptr_[i * 4 + 3] = static_cast<Dtype>(param.anchor(i).br_y());
+  }
+  num_anchors_ = param.anchor_size();
 
   int height = bottom[0]->height();
   int width = bottom[0]->width();
@@ -59,6 +66,14 @@ template <typename Dtype>
 void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
                                            const vector<Blob<Dtype>*>& top) {
   CHECK_EQ(bottom[0]->shape(0), 1) << "Only single item batches are supported";
+  /**********
+  Algorithm:
+   for each (H, W) location i
+       generate 9 anchor boxes centered on cell i
+       apply predicted bbox deltas at cell i to each of the 9 anchors
+   filter out-of-image anchors
+   measure GT overlap
+  ********/
   // bottom[0] -> map of shape (..., H, W)
   // bottom[1] -> GT boxes (x1, y1, x2, y2, label)
   // bottom[2] -> im_info
@@ -71,19 +86,21 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   const Dtype im_height = bottom_im_info[0];
   const Dtype im_width = bottom_im_info[1];
 
-  vector<Point4f<Dtype>> gt_boxes;
+  // gt boxes (x1, y1, x2, y2, label)
+  vector<Point4d<Dtype>> gt_boxes;
   for (int i = 0; i < bottom[1]->num(); i++) {
     gt_boxes.push_back(
-        Point4f<Dtype>(bottom_gt_boxes[i * 5 + 0], bottom_gt_boxes[i * 5 + 1],
+        Point4d<Dtype>(bottom_gt_boxes[i * 5 + 0], bottom_gt_boxes[i * 5 + 1],
                        bottom_gt_boxes[i * 5 + 2], bottom_gt_boxes[i * 5 + 3]));
   }
 
-  vector<int> inds_inside;
-  vector<Point4f<Dtype>> anchors;
-  int border_ = int(NetConfig::rpn_allowed_border);
+  std::vector<int> inds_inside;
+  std::vector<Point4d<Dtype>> anchors;
+  int border_ = int(FrcnnParam::rpn_allowed_border);
   Dtype bounds[4] = {-border_, -border_, im_width + border_,
                      im_height + border_};
   const Dtype* anchors_data = anchors_.cpu_data();
+
   // Generate anchors
   for (int h = 0; h < height; h++) {
     for (int w = 0; w < width; w++) {
@@ -95,7 +112,7 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
         if (x1 >= bounds[0] && y1 >= bounds[1] && x2 < bounds[2] &&
             y2 < bounds[3]) {
           inds_inside.push_back((h * width + w) * num_anchors_ + k);
-          anchors.push_back(Point4f<Dtype>(x1, y1, x2, y2));
+          anchors.push_back(Point4d<Dtype>(x1, y1, x2, y2));
         }
       }
     }
@@ -110,7 +127,7 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   vector<Dtype> gt_max_overlaps(gt_boxes.size(), -1);
   vector<int> gt_argmax_overlaps(gt_boxes.size(), -1);
 
-  vector<vector<Dtype>> ious = get_ious(anchors, gt_boxes);
+  vector<vector<Dtype>> ious = GetIoUs(anchors, gt_boxes);
   for (int ia = 0; ia < n_anchors; ia++) {
     for (int igt = 0; igt < gt_boxes.size(); igt++) {
       if (ious[ia][igt] > max_overlaps[ia]) {
@@ -124,9 +141,9 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
     }
   }
 
-  if (NetConfig::rpn_clobber_positives == false) {
+  if (FrcnnParam::rpn_clobber_positives == false) {
     for (int i = 0; i < max_overlaps.size(); ++i) {
-      if (max_overlaps[i] < NetConfig::rpn_negative_overlap) {
+      if (max_overlaps[i] < FrcnnParam::rpn_negative_overlap) {
         labels[i] = 0;
       }
     }
@@ -136,7 +153,7 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   int debug_for_highest_over = 0;
   for (int j = 0; j < gt_max_overlaps.size(); ++j) {
     for (int i = 0; i < max_overlaps.size(); ++i) {
-      if (std::abs(gt_max_overlaps[j] - ious[i][j]) <= NetConfig::eps) {
+      if (std::abs(gt_max_overlaps[j] - ious[i][j]) <= FrcnnParam::eps) {
         labels[i] = 1;
         debug_for_highest_over++;
       }
@@ -145,21 +162,21 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 
   // fg label: above thresh IOU
   for (int i = 0; i < max_overlaps.size(); ++i) {
-    if (max_overlaps[i] >= NetConfig::rpn_positive_overlap) {
+    if (max_overlaps[i] >= FrcnnParam::rpn_positive_overlap) {
       labels[i] = 1;
     }
   }
 
-  if (NetConfig::rpn_clobber_positives) {
+  if (FrcnnParam::rpn_clobber_positives) {
     for (int i = 0; i < max_overlaps.size(); ++i) {
-      if (max_overlaps[i] < NetConfig::rpn_negative_overlap) {
+      if (max_overlaps[i] < FrcnnParam::rpn_negative_overlap) {
         labels[i] = 0;
       }
     }
   }
 
   // subsample fg labels if we have too many
-  int num_fg = float(NetConfig::rpn_fg_fraction) * NetConfig::rpn_batchsize;
+  int num_fg = float(FrcnnParam::rpn_fg_fraction) * FrcnnParam::rpn_batchsize;
   const int fg_inds_size = std::count(labels.begin(), labels.end(), 1);
   if (fg_inds_size > num_fg) {
     vector<int> fg_inds;
@@ -180,7 +197,7 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 
   // subsample negative labels if we have too many
   int num_bg =
-      NetConfig::rpn_batchsize - std::count(labels.begin(), labels.end(), 1);
+      FrcnnParam::rpn_batchsize - std::count(labels.begin(), labels.end(), 1);
   const int bg_inds_size = std::count(labels.begin(), labels.end(), 0);
   if (bg_inds_size > num_bg) {
     vector<int> bg_inds;
@@ -201,17 +218,17 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
     }
   }
 
-  vector<Point4f<Dtype>> bbox_targets;
+  vector<Point4d<Dtype>> bbox_targets;
   for (int i = 0; i < argmax_overlaps.size(); i++) {
     if (argmax_overlaps[i] < 0) {
-      bbox_targets.push_back(Point4f<Dtype>());
+      bbox_targets.push_back(Point4d<Dtype>());
     } else {
       bbox_targets.push_back(
-          bbox_transform(anchors[i], gt_boxes[argmax_overlaps[i]]));
+          TransformBox(anchors[i], gt_boxes[argmax_overlaps[i]]));
     }
   }
 
-  vector<Point4f<Dtype>> bbox_inside_weights(n_anchors, Point4f<Dtype>());
+  std::vector<Point4d<Dtype>> bbox_inside_weights(n_anchors, Point4d<Dtype>());
   for (int i = 0; i < n_anchors; i++) {
     if (labels[i] == 1) {
       bbox_inside_weights[i][0] = 1.0;
@@ -222,34 +239,34 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   }
 
   Dtype positive_weights, negative_weights;
-  if (NetConfig::rpn_positive_weight < 0) {
+  if (FrcnnParam::rpn_positive_weight < 0) {
     int num_examples =
         labels.size() - std::count(labels.begin(), labels.end(), -1);
     positive_weights = Dtype(1) / num_examples;
     negative_weights = Dtype(1) / num_examples;
   } else {
-    CHECK_LT(NetConfig::rpn_positive_weight, 1) << "ilegal rpn_positive_weight";
-    CHECK_GT(NetConfig::rpn_positive_weight, 0) << "ilegal rpn_positive_weight";
-    positive_weights = Dtype(NetConfig::rpn_positive_weight) /
+    CHECK_LT(FrcnnParam::rpn_positive_weight, 1)
+        << "ilegal rpn_positive_weight";
+    CHECK_GT(FrcnnParam::rpn_positive_weight, 0)
+        << "ilegal rpn_positive_weight";
+    positive_weights = Dtype(FrcnnParam::rpn_positive_weight) /
                        std::count(labels.begin(), labels.end(), 1);
-    negative_weights = Dtype(1 - NetConfig::rpn_positive_weight) /
+    negative_weights = Dtype(1 - FrcnnParam::rpn_positive_weight) /
                        std::count(labels.begin(), labels.end(), 0);
   }
 
-  vector<Point4f<Dtype>> bbox_outside_weights(n_anchors, Point4f<Dtype>());
+  std::vector<Point4d<Dtype>> bbox_outside_weights(n_anchors, Point4d<Dtype>());
   for (int i = 0; i < n_anchors; i++) {
     if (labels[i] == 1) {
       bbox_outside_weights[i] =
-          Point4f<Dtype>(positive_weights, positive_weights, positive_weights,
+          Point4d<Dtype>(positive_weights, positive_weights, positive_weights,
                          positive_weights);
     } else if (labels[i] == 0) {
       bbox_outside_weights[i] =
-          Point4f<Dtype>(negative_weights, negative_weights, negative_weights,
+          Point4d<Dtype>(negative_weights, negative_weights, negative_weights,
                          negative_weights);
     }
   }
-
-  Info_Stds_Means_AvePos(bbox_targets, labels);
 
   // top[0] -> labels
   vector<int> top0_shape(4);

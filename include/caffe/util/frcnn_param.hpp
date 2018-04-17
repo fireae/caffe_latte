@@ -1,12 +1,12 @@
-#ifndef CAFFE_NET_CONFIG_HPP_
-#define CAFFE_NET_CONFIG_HPP_
+#ifndef CAFFE_UTIL_FRCNN_PARAM_HPP_
+#define CAFFE_UTIL_FRCNN_PARAM_HPP_
 #include <string>
 #include <vector>
-#include "caffe/common.hpp"
-#include "caffe/proto/caffe.pb.h"
 
 namespace caffe {
-struct NetConfig {
+
+class FrcnnParam {
+ public:
   // ======================================== Train
   // Scales to use during training (can list multiple scales)
   // Each scale is the pixel size of an image's shortest side
@@ -25,7 +25,7 @@ struct NetConfig {
   // Train bounding-box regressors
   static bool bbox_reg;
   static float bbox_thresh;
-  static string snapshot_infix;
+  static std::string snapshot_infix;
   // Normalize the targets (subtract empirical mean, divide by empirical stddev)
   static bool bbox_normalize_targets;
   static float bbox_inside_weights[4];
@@ -45,8 +45,8 @@ struct NetConfig {
   // Proposal height and width both need to be greater than RPN_MIN_SIZE (at
   // orig image scale)
   static float rpn_min_size;
-  //   // Deprecated (outside weights)
-  //   static float rpn_bbox_inside_weights[4];
+  // Deprecated (outside weights)
+  static float rpn_bbox_inside_weights[4];
   // Give the positive RPN examples weight of p * 1 / {num positives}
   // and give negatives a weight of (1 - p)
   // Set to -1.0 to use uniform example weighting
@@ -55,7 +55,7 @@ struct NetConfig {
   static float rpn_allowed_border;
 
   // ======================================== Test
-  static vector<float> test_scales;
+  static std::vector<float> test_scales;
   static float test_max_size;
   static float test_nms;
 
@@ -77,15 +77,15 @@ struct NetConfig {
 
   // ========================================
   static int feat_stride;
-  static vector<float> anchors;
+  static std::vector<float> anchors;
   static float test_score_thresh;
   static int n_classes;
   static int iter_test;
   // ========================================
-
-  static void LoadParam(const NetParameter& net_param);
+  //static void load_param(const std::string default_config_path);
+  static void print_param();
 };
 
 }  // namespace caffe
 
-#endif  // CAFFE_NET_CONFIG_HPP_
+#endif  //

@@ -1,7 +1,5 @@
 #include "caffe/layers/text_proposal_layer.hpp"
 #include "caffe/util/anchor.hpp"
-#include "caffe/util/frcnn_util.hpp"
-#include "caffe/util/nms.hpp"
 
 #define ROUND(x) ((int)((x) + (Dtype)0.5))
 

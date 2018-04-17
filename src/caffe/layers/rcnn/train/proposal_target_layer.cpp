@@ -1,8 +1,8 @@
-
 #include "caffe/layers/proposal_target_layer.hpp"
+#include <vector>
 #include "caffe/common.hpp"
-#include "caffe/net_config.hpp"
-#include "caffe/util/frcnn_util.hpp"
+#include "caffe/util/frcnn_param.hpp"
+#include "caffe/util/frcnn_utils.hpp"
 #include "caffe/util/rng.hpp"
 
 namespace caffe {
@@ -17,19 +17,19 @@ void ProposalTargetLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype> *> &bottom,
   this->count_ = 0;
   this->bg_num_ = 0;
   this->fg_num_ = 0;
-  fg_thresh_ = NetConfig::fg_thresh;
-  bg_thresh_hi_ = NetConfig::bg_thresh_hi;
-  bg_thresh_lo_ = NetConfig::bg_thresh_lo;
-  bbox_normalize_targets_ = NetConfig::bbox_normalize_targets;
+  fg_thresh_ = FrcnnParam::fg_thresh;
+  bg_thresh_hi_ = FrcnnParam::bg_thresh_hi;
+  bg_thresh_lo_ = FrcnnParam::bg_thresh_lo;
+  bbox_normalize_targets_ = FrcnnParam::bbox_normalize_targets;
   bbox_normalize_means_.resize(4, 0.0);
   bbox_normalize_stds_.resize(4, 0.1);
   bbox_inside_weights_.resize(4, 0.0);
   for (int i = 0; i < 4; i++) {
-    bbox_normalize_means_[i] = Dtype(NetConfig::bbox_normalize_means[i]);
-    bbox_inside_weights_[i] = NetConfig::bbox_inside_weights[i];
-    bbox_normalize_stds_[i] = NetConfig::bbox_normalize_stds[i];
+    bbox_normalize_means_[i] = Dtype(FrcnnParam::bbox_normalize_means[i]);
+    bbox_inside_weights_[i] = FrcnnParam::bbox_inside_weights[i];
+    bbox_normalize_stds_[i] = FrcnnParam::bbox_normalize_stds[i];
   }
-  n_classes_ = NetConfig::n_classes;
+  n_classes_ = FrcnnParam::n_classes;
 
   LOG(INFO) << "ProposalTargetLayer :: " << n_classes_ << " classes";
   LOG(INFO) << "ProposalTargetLayer :: LayerSetUp";
@@ -48,19 +48,19 @@ void ProposalTargetLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype> *> &bottom,
 template <typename Dtype>
 void ProposalTargetLayer<Dtype>::Forward_cpu(
     const vector<Blob<Dtype> *> &bottom, const vector<Blob<Dtype> *> &top) {
-  vector<Point4f<Dtype> > all_rois;
+  vector<Point4d<Dtype> > all_rois;
   for (int i = 0; i < bottom[0]->num(); i++) {
-    all_rois.push_back(Point4f<Dtype>(
+    all_rois.push_back(Point4d<Dtype>(
         bottom[0]->data_at(i, 1, 0, 0), bottom[0]->data_at(i, 2, 0, 0),
         bottom[0]->data_at(i, 3, 0, 0), bottom[0]->data_at(i, 4, 0, 0)));
     CHECK_EQ(bottom[0]->data_at(i, 0, 0, 0), 0)
         << "Only single item batches are supported";
   }
 
-  vector<Point4f<Dtype> > gt_boxes;
+  vector<Point4d<Dtype> > gt_boxes;
   vector<int> gt_labels;
   for (int i = 0; i < bottom[1]->num(); i++) {
-    gt_boxes.push_back(Point4f<Dtype>(
+    gt_boxes.push_back(Point4d<Dtype>(
         bottom[1]->data_at(i, 0, 0, 0), bottom[1]->data_at(i, 1, 0, 0),
         bottom[1]->data_at(i, 2, 0, 0), bottom[1]->data_at(i, 3, 0, 0)));
     gt_labels.push_back(bottom[1]->data_at(i, 4, 0, 0));
@@ -71,14 +71,14 @@ void ProposalTargetLayer<Dtype>::Forward_cpu(
 
   DLOG(ERROR) << "gt boxes size: " << gt_boxes.size();
   const int num_images = 1;
-  const int rois_per_image = NetConfig::batch_size / num_images;
-  const int fg_rois_per_image = rois_per_image * NetConfig::fg_fraction;
+  const int rois_per_image = FrcnnParam::batch_size / num_images;
+  const int fg_rois_per_image = rois_per_image * FrcnnParam::fg_fraction;
 
   // Sample rois with classification labels and bounding box regression
   // targets
   vector<int> labels;
-  vector<Point4f<Dtype> > rois;
-  vector<vector<Point4f<Dtype> > > bbox_targets, bbox_inside_weights;
+  vector<Point4d<Dtype> > rois;
+  vector<vector<Point4d<Dtype> > > bbox_targets, bbox_inside_weights;
 
   _sample_rois(all_rois, gt_boxes, gt_labels, fg_rois_per_image, rois_per_image,
                labels, rois, bbox_targets, bbox_inside_weights);
@@ -134,18 +134,18 @@ void ProposalTargetLayer<Dtype>::Forward_cpu(
 
 template <typename Dtype>
 void ProposalTargetLayer<Dtype>::_sample_rois(
-    const vector<Point4f<Dtype> > &all_rois,
-    const vector<Point4f<Dtype> > &gt_boxes, const vector<int> &gt_label,
+    const vector<Point4d<Dtype> > &all_rois,
+    const vector<Point4d<Dtype> > &gt_boxes, const vector<int> &gt_label,
     const int fg_rois_per_image, const int rois_per_image, vector<int> &labels,
-    vector<Point4f<Dtype> > &rois,
-    vector<vector<Point4f<Dtype> > > &bbox_targets,
-    vector<vector<Point4f<Dtype> > > &bbox_inside_weights) {
+    vector<Point4d<Dtype> > &rois,
+    vector<vector<Point4d<Dtype> > > &bbox_targets,
+    vector<vector<Point4d<Dtype> > > &bbox_inside_weights) {
   // Generate a random sample of RoIs comprising foreground and background
   // examples.
 
   CHECK_EQ(gt_label.size(), gt_boxes.size());
   // overlaps: (rois x gt_boxes)
-  std::vector<std::vector<Dtype> > overlaps = get_ious(all_rois, gt_boxes);
+  std::vector<std::vector<Dtype> > overlaps = GetIoUs(all_rois, gt_boxes);
   std::vector<Dtype> max_overlaps(all_rois.size(), 0);
   std::vector<int> gt_assignment(all_rois.size(), -1);
   std::vector<int> _labels(all_rois.size());
@@ -215,13 +215,13 @@ void ProposalTargetLayer<Dtype>::_sample_rois(
   // Select sampled values from various arrays:
   labels.resize(keep_inds.size());
   rois.resize(keep_inds.size());
-  std::vector<Point4f<Dtype> > _gt_boxes(keep_inds.size());
+  std::vector<Point4d<Dtype> > _gt_boxes(keep_inds.size());
   for (size_t i = 0; i < keep_inds.size(); ++i) {
     labels[i] = _labels[keep_inds[i]];
     rois[i] = all_rois[keep_inds[i]];
     _gt_boxes[i] = gt_assignment[keep_inds[i]] >= 0
                        ? gt_boxes[gt_assignment[keep_inds[i]]]
-                       : Point4f<Dtype>();
+                       : Point4d<Dtype>();
     // Clamp labels for the background RoIs to 0
     if (i >= fg_rois_per_this_image) labels[i] = 0;
   }
@@ -251,8 +251,11 @@ void ProposalTargetLayer<Dtype>::_sample_rois(
   // def _compute_targets(ex_rois, gt_rois, labels):
   CHECK_EQ(rois.size(), _gt_boxes.size());
   CHECK_EQ(rois.size(), labels.size());
-  std::vector<Point4f<Dtype> > bbox_targets_data =
-      bbox_transform(rois, _gt_boxes);
+  std::vector<Point4d<Dtype> > bbox_targets_data;
+  for (int ii = 0; ii < rois.size(); ii++) {
+    bbox_targets_data.push_back(TransformBox(rois[ii], _gt_boxes[ii]));
+  }
+
   if (bbox_normalize_targets_) {
     // Optionally normalize targets by a precomputed mean and stdev
     for (size_t index = 0; index < bbox_targets_data.size(); index++) {
@@ -265,19 +268,19 @@ void ProposalTargetLayer<Dtype>::_sample_rois(
   }
 
   // Compute boxes target
-  bbox_targets = std::vector<std::vector<Point4f<Dtype> > >(
-      keep_inds.size(), std::vector<Point4f<Dtype> >(this->n_classes_));
-  bbox_inside_weights = std::vector<std::vector<Point4f<Dtype> > >(
-      keep_inds.size(), std::vector<Point4f<Dtype> >(this->n_classes_));
-  for (size_t i = 0; i < labels.size(); ++i)
+  bbox_targets = std::vector<std::vector<Point4d<Dtype> > >(
+      keep_inds.size(), std::vector<Point4d<Dtype> >(this->n_classes_));
+  bbox_inside_weights = std::vector<std::vector<Point4d<Dtype> > >(
+      keep_inds.size(), std::vector<Point4d<Dtype> >(this->n_classes_));
+  for (size_t i = 0; i < labels.size(); ++i) {
     if (labels[i] > 0) {
       int cls = labels[i];
       // get bbox_targets and bbox_inside_weights
       bbox_targets[i][cls] = bbox_targets_data[i];
-      bbox_inside_weights[i][cls] = Point4f<Dtype>(bbox_inside_weights_);
+      bbox_inside_weights[i][cls] = Point4d<Dtype>(bbox_inside_weights_);
     }
+  }
 }
-
 INSTANTIATE_CLASS(ProposalTargetLayer);
 REGISTER_LAYER_CLASS(ProposalTarget);
 

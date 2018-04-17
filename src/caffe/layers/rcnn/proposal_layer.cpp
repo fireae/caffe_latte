@@ -1,6 +1,6 @@
 #include "caffe/layers/proposal_layer.hpp"
-#include "caffe/util/frcnn_util.hpp"
-#include "caffe/util/nms.hpp"
+#include "caffe/util/frcnn_utils.hpp"
+#include "caffe/util/nms_util.hpp"
 
 #define ROUND(x) ((int)((x) + (Dtype)0.5))
 
@@ -8,32 +8,36 @@ namespace caffe {
 
 template <typename Dtype>
 void ProposalLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-                                      const vector<Blob<Dtype>*>& top) {
+                                           const vector<Blob<Dtype>*>& top) {
   ProposalParameter param = this->layer_param_.proposal_param();
 
-  base_size_ = param.base_size();
-  feat_stride_ = param.feat_stride();
+  base_h_ = param.base_h();
+  base_w_ = param.base_w();
+  feat_stride_h_ = param.feat_stride_h();
+  feat_stride_w_ = param.feat_stride_w();
   pre_nms_topn_ = param.pre_nms_topn();
   post_nms_topn_ = param.post_nms_topn();
   nms_thresh_ = param.nms_thresh();
   min_size_ = param.min_size();
 
-  vector<Dtype> ratios(param.ratio_size());
-  for (int i = 0; i < param.ratio_size(); ++i) {
-    ratios[i] = param.ratio(i);
-  }
-  vector<Dtype> scales(param.scale_size());
-  for (int i = 0; i < param.scale_size(); ++i) {
-    scales[i] = param.scale(i);
-  }
-
   vector<int> anchors_shape(2);
-  anchors_shape[0] = ratios.size() * scales.size();
+  anchors_shape[0] = param.anchor_size();
   anchors_shape[1] = 4;
   anchors_.Reshape(anchors_shape);
-  generate_anchors(base_size_, &ratios[0], &scales[0], ratios.size(),
-                   scales.size(), anchors_.mutable_cpu_data());
-
+  Dtype* anchors_ptr_ = anchors_.mutable_cpu_data();
+  for (int i = 0; i < param.anchor_size(); ++i) {
+    //vector<int> anchor_pt;
+    //anchor_pt.push_back(param.anchor(i).tl_x());
+    //anchor_pt.push_back(param.anchor(i).tl_y());
+    //anchor_pt.push_back(param.anchor(i).br_x());
+    //anchor_pt.push_back(param.anchor(i).br_y());
+    //vec_anchors_.push_back(anchor_pt);
+    anchors_ptr_[i * 4 + 0] = static_cast<Dtype>(param.anchor(i).tl_x());
+    anchors_ptr_[i * 4 + 1] = static_cast<Dtype>(param.anchor(i).tl_y());
+    anchors_ptr_[i * 4 + 2] = static_cast<Dtype>(param.anchor(i).br_x());
+    anchors_ptr_[i * 4 + 3] = static_cast<Dtype>(param.anchor(i).br_y());
+  }
+  
   vector<int> roi_indices_shape(1);
   roi_indices_shape[0] = post_nms_topn_;
   roi_indices_.Reshape(roi_indices_shape);
@@ -55,14 +59,14 @@ void ProposalLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
 
 template <typename Dtype>
 void ProposalLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-                                       const vector<Blob<Dtype>*>& top) {
+                                            const vector<Blob<Dtype>*>& top) {
   CHECK_EQ(bottom[0]->shape(0), 1) << "Only single item batches are supported";
 
-  const Dtype* p_bottom_item = bottom[0]->cpu_data();
-  const Dtype* p_d_anchor_item = bottom[1]->cpu_data();
-  const Dtype* p_img_info_cpu = bottom[2]->cpu_data();
-  Dtype* p_roi_item = top[0]->mutable_cpu_data();
-  Dtype* p_score_item = (top.size() > 1) ? top[1]->mutable_cpu_data() : NULL;
+  const Dtype* score = bottom[0]->cpu_data();
+  const Dtype* bbox = bottom[1]->cpu_data();
+  const Dtype* im_info = bottom[2]->cpu_data();
+  Dtype* rois = top[0]->mutable_cpu_data();
+  Dtype* top_score = (top.size() > 1) ? top[1]->mutable_cpu_data() : NULL;
 
   vector<int> proposals_shape(2);
   vector<int> top_shape(2);
@@ -76,11 +80,11 @@ void ProposalLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
     const int bottom_H = bottom[0]->height();
     const int bottom_W = bottom[0]->width();
     // input image height & width
-    const Dtype img_H = p_img_info_cpu[0];
-    const Dtype img_W = p_img_info_cpu[1];
+    const Dtype img_H = im_info[0];
+    const Dtype img_W = im_info[1];
     // scale factor for height & width
-    const Dtype scale_H = p_img_info_cpu[2];
-    const Dtype scale_W = p_img_info_cpu[3];
+    const Dtype scale_H = im_info[2];
+    const Dtype scale_W = im_info[3];
     // minimum box width & height
     const Dtype min_box_H = min_size_ * scale_H;
     const Dtype min_box_W = min_size_ * scale_W;
@@ -97,20 +101,18 @@ void ProposalLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
     // NOTE: for bottom, only foreground scores are passed
     proposals_shape[0] = num_proposals;
     proposals_.Reshape(proposals_shape);
-    enumerate_proposals_cpu(p_bottom_item + num_proposals, p_d_anchor_item,
-                            anchors_.cpu_data(), proposals_.mutable_cpu_data(),
-                            anchors_.shape(0), bottom_H, bottom_W, img_H, img_W,
-                            min_box_H, min_box_W, feat_stride_);
+    EnumerateProposals(bbox + num_proposals, score, anchors_.cpu_data(),
+                       anchors_.shape(0), proposals_.mutable_cpu_data(),
+                       bottom_H, bottom_W, img_H, img_W, min_box_H, min_box_W,
+                       feat_stride_h_, feat_stride_w_);
 
-    sort_box(proposals_.mutable_cpu_data(), 0, num_proposals - 1,
-             pre_nms_topn_);
+    SortBox(proposals_.mutable_cpu_data(), 0, num_proposals - 1, pre_nms_topn_);
 
-    nms_cpu(pre_nms_topn, proposals_.cpu_data(),
-            roi_indices_.mutable_cpu_data(), &num_rois, 0, nms_thresh_,
-            post_nms_topn_);
+    NMS(proposals_.cpu_data(), pre_nms_topn, roi_indices_.mutable_cpu_data(),
+        &num_rois, 0, nms_thresh_, post_nms_topn_);
 
-    retrieve_rois_cpu(num_rois, n, proposals_.cpu_data(),
-                      roi_indices_.cpu_data(), p_roi_item, p_score_item);
+    RetrieveROI(num_rois, n, proposals_.cpu_data(), roi_indices_.cpu_data(),
+                rois, top_score);
 
     top_shape[0] += num_rois;
   }
@@ -125,7 +127,7 @@ void ProposalLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 #ifndef USE_CUDA
 template <typename Dtype>
 void ProposalLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-                                       const vector<Blob<Dtype>*>& top) {}
+                                            const vector<Blob<Dtype>*>& top) {}
 #endif
 
 INSTANTIATE_CLASS(ProposalLayer);
