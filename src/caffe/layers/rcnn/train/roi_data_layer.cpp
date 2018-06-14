@@ -12,9 +12,9 @@
 #include "opencv2/imgproc/imgproc.hpp"
 
 #include "caffe/data_transformer.hpp"
-#include "caffe/internal_thread.hpp"
 #include "caffe/layers/base_data_layer.hpp"
 #include "caffe/util/benchmark.hpp"
+#include "caffe/util/internal_thread.hpp"
 #include "caffe/util/io.hpp"
 #include "caffe/util/math_functions.hpp"
 #include "caffe/util/rng.hpp"
@@ -197,10 +197,10 @@ template <typename Dtype>
 void RoiDataLayer<Dtype>::FlipRois(vector<vector<float> > &rois,
                                    const float cols) {
   for (int i = 0; i < rois.size(); i++) {
-    CHECK_GE(rois[i][DataPrepare::X1], 0)
-        << "rois[i][DataPrepare::X1] : " << rois[i][DataPrepare::X1];
-    CHECK_LT(rois[i][DataPrepare::X2], cols)
-        << "rois[i][DataPrepare::X2] : " << rois[i][DataPrepare::X2];
+    CHECK_GE(rois[i][DataPrepare::X1], 0) << "rois[i][DataPrepare::X1] : "
+                                          << rois[i][DataPrepare::X1];
+    CHECK_LT(rois[i][DataPrepare::X2], cols) << "rois[i][DataPrepare::X2] : "
+                                             << rois[i][DataPrepare::X2];
     float old_x1 = rois[i][DataPrepare::X1];
     float old_x2 = rois[i][DataPrepare::X2];
     rois[i][DataPrepare::X1] = cols - old_x2 - 1;

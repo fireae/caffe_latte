@@ -28,14 +28,14 @@ class InterruptionPoint {
   std::condition_variable cond;
 };
 
-class BaseThread {
+class InternalThread {
  public:
-  ~BaseThread() { Stop(); }
-  void Start() {
+  ~InternalThread() { StopInternalThread(); }
+  void StartInternalThread() {
     thread = std::unique_ptr<std::thread>(
-        new std::thread(std::bind(&BaseThread::ThreadRun, this)));
+        new std::thread(std::bind(&InternalThread::InternalThreadEntry, this)));
   }
-  void Stop() {
+  void StopInternalThread() {
     interruption_point.Interrupt();
     thread->join();
   }
@@ -45,7 +45,7 @@ class BaseThread {
   }
 
  protected:
-  virtual void ThreadRun() {
+  virtual void InternalThreadEntry() {
     try {
       while (!must_stop()) {
       }
