@@ -15,10 +15,12 @@ namespace caffe {
 template <typename Dtype>
 class SGDSolver : public Solver<Dtype> {
  public:
-  explicit SGDSolver(const SolverParameter& param)
-      : Solver<Dtype>(param) { PreSolve(); }
-  explicit SGDSolver(const string& param_file)
-      : Solver<Dtype>(param_file) { PreSolve(); }
+  explicit SGDSolver(const SolverParameter& param) : Solver<Dtype>(param) {
+    PreSolve();
+  }
+  explicit SGDSolver(const string& param_file) : Solver<Dtype>(param_file) {
+    PreSolve();
+  }
   virtual inline const char* type() const { return "SGD"; }
 
   const vector<shared_ptr<Blob<Dtype> > >& history() { return history_; }
@@ -64,9 +66,13 @@ template <typename Dtype>
 class AdaGradSolver : public SGDSolver<Dtype> {
  public:
   explicit AdaGradSolver(const SolverParameter& param)
-      : SGDSolver<Dtype>(param) { constructor_sanity_check(); }
+      : SGDSolver<Dtype>(param) {
+    constructor_sanity_check();
+  }
   explicit AdaGradSolver(const string& param_file)
-      : SGDSolver<Dtype>(param_file) { constructor_sanity_check(); }
+      : SGDSolver<Dtype>(param_file) {
+    constructor_sanity_check();
+  }
   virtual inline const char* type() const { return "AdaGrad"; }
 
  protected:
@@ -79,14 +85,17 @@ class AdaGradSolver : public SGDSolver<Dtype> {
   DISABLE_COPY_AND_ASSIGN(AdaGradSolver);
 };
 
-
 template <typename Dtype>
 class RMSPropSolver : public SGDSolver<Dtype> {
  public:
   explicit RMSPropSolver(const SolverParameter& param)
-      : SGDSolver<Dtype>(param) { constructor_sanity_check(); }
+      : SGDSolver<Dtype>(param) {
+    constructor_sanity_check();
+  }
   explicit RMSPropSolver(const string& param_file)
-      : SGDSolver<Dtype>(param_file) { constructor_sanity_check(); }
+      : SGDSolver<Dtype>(param_file) {
+    constructor_sanity_check();
+  }
   virtual inline const char* type() const { return "RMSProp"; }
 
  protected:
@@ -107,9 +116,13 @@ template <typename Dtype>
 class AdaDeltaSolver : public SGDSolver<Dtype> {
  public:
   explicit AdaDeltaSolver(const SolverParameter& param)
-      : SGDSolver<Dtype>(param) { AdaDeltaPreSolve(); }
+      : SGDSolver<Dtype>(param) {
+    AdaDeltaPreSolve();
+  }
   explicit AdaDeltaSolver(const string& param_file)
-      : SGDSolver<Dtype>(param_file) { AdaDeltaPreSolve(); }
+      : SGDSolver<Dtype>(param_file) {
+    AdaDeltaPreSolve();
+  }
   virtual inline const char* type() const { return "AdaDelta"; }
 
  protected:
@@ -130,10 +143,12 @@ class AdaDeltaSolver : public SGDSolver<Dtype> {
 template <typename Dtype>
 class AdamSolver : public SGDSolver<Dtype> {
  public:
-  explicit AdamSolver(const SolverParameter& param)
-      : SGDSolver<Dtype>(param) { AdamPreSolve();}
-  explicit AdamSolver(const string& param_file)
-      : SGDSolver<Dtype>(param_file) { AdamPreSolve(); }
+  explicit AdamSolver(const SolverParameter& param) : SGDSolver<Dtype>(param) {
+    AdamPreSolve();
+  }
+  explicit AdamSolver(const string& param_file) : SGDSolver<Dtype>(param_file) {
+    AdamPreSolve();
+  }
   virtual inline const char* type() const { return "Adam"; }
 
  protected:

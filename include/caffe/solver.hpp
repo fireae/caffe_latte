@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "caffe/net.hpp"
+#include "caffe/registry.hpp"
 #include "caffe/solver_factory.hpp"
 #include "caffe/util/benchmark.hpp"
 
@@ -18,14 +19,14 @@ namespace caffe {
   * mechanism is used to allow the snapshot to be saved when stopping
   * execution with a SIGINT (Ctrl-C).
   */
-  namespace SolverAction {
-    enum Enum {
-      NONE = 0,  // Take no special action.
-      STOP = 1,  // Stop training. snapshot_after_train controls whether a
-                 // snapshot is created.
-      SNAPSHOT = 2  // Take a snapshot, and keep training.
-    };
-  }
+namespace SolverAction {
+enum Enum {
+  NONE = 0,     // Take no special action.
+  STOP = 1,     // Stop training. snapshot_after_train controls whether a
+                // snapshot is created.
+  SNAPSHOT = 2  // Take a snapshot, and keep training.
+};
+}
 
 /**
  * @brief Type of a function that returns a Solver Action enumeration.
@@ -84,9 +85,7 @@ class Solver {
     friend class Solver;
   };
   const vector<Callback*>& callbacks() const { return callbacks_; }
-  void add_callback(Callback* value) {
-    callbacks_.push_back(value);
-  }
+  void add_callback(Callback* value) { callbacks_.push_back(value); }
 
   void CheckSnapshotWritePermissions();
   /**
@@ -131,7 +130,10 @@ class Solver {
 
   DISABLE_COPY_AND_ASSIGN(Solver);
 };
-
+CAFFE_DECLARE_REGISTRY(SolverFloatRegistry, Solver<float>,
+                       const SolverParameter&);
+CAFFE_DECLARE_REGISTRY(SolverDoubleRegistry, Solver<double>,
+                       const SolverParameter&);
 }  // namespace caffe
 
 #endif  // CAFFE_SOLVER_HPP_
