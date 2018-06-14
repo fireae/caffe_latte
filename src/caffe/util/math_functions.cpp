@@ -1,5 +1,3 @@
-#include <boost/math/special_functions/next.hpp>
-//#include <boost/random.hpp>
 #include <random>
 #include <limits>
 #include "caffe/common.hpp"
@@ -256,7 +254,7 @@ unsigned int caffe_rng_rand() { return (*caffe_rng())(); }
 
 template <typename Dtype>
 Dtype caffe_nextafter(const Dtype b) {
-  return boost::math::nextafter<Dtype>(b, std::numeric_limits<Dtype>::max());
+  return std::nextafter(b, std::numeric_limits<Dtype>::max());
 }
 
 template float caffe_nextafter(const float b);
