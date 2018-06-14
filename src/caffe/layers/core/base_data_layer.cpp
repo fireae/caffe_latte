@@ -1,4 +1,3 @@
-#include <boost/thread.hpp>
 #include <vector>
 
 #include "caffe/blob.hpp"
@@ -99,7 +98,7 @@ void BasePrefetchingDataLayer<Dtype>::InternalThreadEntry() {
 #endif
       prefetch_full_.push(batch);
     }
-  } catch (boost::thread_interrupted&) {
+  } catch (const thread_interrupted&) {
     // Interrupted exception is expected on shutdown
   }
 #ifdef USE_CUDA

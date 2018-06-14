@@ -1,8 +1,3 @@
-#if defined(_MSC_VER)
-#include <process.h>
-#define getpid() _getpid()
-#endif
-
 #include <caffe/logging.hpp>
 #include <cmath>
 #include <cstdio>
@@ -24,20 +19,8 @@ Caffe& Caffe::Get() {
 
 // random seeding
 int64_t cluster_seedgen(void) {
-  int64_t s, seed, pid;
-  FILE* f = fopen("/dev/urandom", "rb");
-  if (f && fread(&seed, 1, sizeof(seed), f) == sizeof(seed)) {
-    fclose(f);
-    return seed;
-  }
-
-  LOG(INFO) << "System entropy source not available, "
-               "using fallback algorithm to generate seed instead.";
-  if (f) fclose(f);
-
-  pid = getpid();
-  s = time(NULL);
-  seed = std::abs(((s * 181) * ((pid - 83) * 359)) % 104729);
+  std::random_device rd;
+  int seed = rd();
   return seed;
 }
 
