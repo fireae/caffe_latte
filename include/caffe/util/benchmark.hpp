@@ -1,12 +1,12 @@
 #ifndef CAFFE_UTIL_BENCHMARK_H_
 #define CAFFE_UTIL_BENCHMARK_H_
 
-#include <boost/date_time/posix_time/posix_time.hpp>
+//#include <boost/date_time/posix_time/posix_time.hpp>
 
+#include <chrono>
 #include "caffe/util/device_alternate.hpp"
-
 namespace caffe {
-
+using namespace std::chrono;
 class Timer {
  public:
   Timer();
@@ -31,8 +31,10 @@ class Timer {
   cudaEvent_t start_gpu_;
   cudaEvent_t stop_gpu_;
 #endif
-  boost::posix_time::ptime start_cpu_;
-  boost::posix_time::ptime stop_cpu_;
+  // boost::posix_time::ptime start_cpu_;
+  // boost::posix_time::ptime stop_cpu_;
+  steady_clock::time_point start_cpu_;
+  steady_clock::time_point stop_cpu_;
   float elapsed_milliseconds_;
   float elapsed_microseconds_;
 };
@@ -49,4 +51,4 @@ class CPUTimer : public Timer {
 
 }  // namespace caffe
 
-#endif   // CAFFE_UTIL_BENCHMARK_H_
+#endif  // CAFFE_UTIL_BENCHMARK_H_
