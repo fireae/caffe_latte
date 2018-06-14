@@ -10,8 +10,6 @@ namespace bp = boost::python;
 #include <map>
 #include <string>
 #include <vector>
-
-//#include "boost/algorithm/string.hpp"
 #include "caffe/caffe.hpp"
 #include "caffe/util/signal_handler.h"
 #include "caffe/util/string.hpp"
@@ -102,7 +100,6 @@ static void get_gpus(vector<int>* gpus) {
     }
   } else if (FLAGS_gpu.size()) {
     vector<string> strings = caffe::SplitString(FLAGS_gpu, ",");
-    // boost::split(strings, FLAGS_gpu, boost::is_any_of(","));
     for (int i = 0; i < strings.size(); ++i) {
       gpus->push_back(std::stoi(strings[i]));
     }
@@ -123,7 +120,6 @@ caffe::Phase get_phase_from_flags(caffe::Phase default_value) {
 // Parse stages from flags
 vector<string> get_stages_from_flags() {
   vector<string> stages = caffe::SplitString(FLAGS_stage, ",");
-  // boost::split(stages, FLAGS_stage, boost::is_any_of(","));
   return stages;
 }
 
@@ -150,7 +146,6 @@ RegisterBrewFunction(device_query);
 // test nets.
 void CopyLayers(caffe::Solver<float>* solver, const std::string& model_list) {
   std::vector<std::string> model_names = caffe::SplitString(model_list, ",");
-  // boost::split(model_names, model_list, boost::is_any_of(","));
   for (int i = 0; i < model_names.size(); ++i) {
     LOG(INFO) << "Finetuning from " << model_names[i];
     solver->net()->CopyTrainedLayersFrom(model_names[i]);

@@ -101,14 +101,11 @@ class CAFFE_API Caffe {
  public:
   ~Caffe();
 
-  // Thread local context for Caffe. Moved to common.cpp instead of
-  // including boost/thread.hpp to avoid a boost/NVCC issues (#1009, #1010)
-  // on OSX. Also fails on Linux with CUDA 7.0.18.
   static Caffe& Get();
 
   enum Brew { CPU, GPU };
 
-  // This random number generator facade hides boost and CUDA rng
+  // This random number generator facade hides  and CUDA rng
   // implementation from one another (for cross-platform compatibility).
   CAFFE_API class RNG {
    public:
