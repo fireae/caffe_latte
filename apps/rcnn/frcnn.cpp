@@ -1,5 +1,5 @@
 #include "frcnn.h"
-#include "caffe/util/frcnn_util.hpp"
+#include "caffe/util/frcnn_utils.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
 #include <memory>

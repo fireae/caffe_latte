@@ -9,9 +9,9 @@
 #define DMLC_LOGGING_H_
 #include <cstdio>
 #include <cstdlib>
+#include <stdexcept>
 #include <string>
 #include <vector>
-#include <stdexcept>
 
 namespace caffe {
 /*!
@@ -23,29 +23,15 @@ struct Error : public std::runtime_error {
    * \brief constructor
    * \param s the error message
    */
-  explicit Error(const std::string &s) : std::runtime_error(s) {}
+  explicit Error(const std::string& s) : std::runtime_error(s) {}
 };
 }  // namespace dmlc
 
-#if DMLC_USE_GLOG
-#include <glog/logging.h>
-
-namespace caffe {
-/*!
- * \brief optionally redirect to google's init log
- * \param argv0 The arguments.
- */
-inline void InitLogging(const char* argv0) {
-  goolge::InitGoogleLogging(argv0);
-}
-}  // namespace dmlc
-
-#else
 // use a light version of glog
 #include <assert.h>
+#include <ctime>
 #include <iostream>
 #include <sstream>
-#include <ctime>
 
 #if defined(_MSC_VER)
 #pragma warning(disable : 4722)
@@ -57,18 +43,22 @@ inline void InitLogging(const char* argv0) {
 }
 
 // Always-on checking
-#define CHECK(x)                                           \
-  if (!(x))                                                \
-    caffe::LogMessageFatal(__FILE__, __LINE__).stream() << "Check "  \
-      "failed: " #x << ' '
+#define CHECK(x)                                                       \
+  if (!(x))                                                            \
+  caffe::LogMessageFatal(__FILE__, __LINE__).stream() << "Check "      \
+                                                         "failed: " #x \
+                                                      << ' '
 #define CHECK_LT(x, y) CHECK((x) < (y))
 #define CHECK_GT(x, y) CHECK((x) > (y))
 #define CHECK_LE(x, y) CHECK((x) <= (y))
 #define CHECK_GE(x, y) CHECK((x) >= (y))
 #define CHECK_EQ(x, y) CHECK((x) == (y))
 #define CHECK_NE(x, y) CHECK((x) != (y))
-#define CHECK_NOTNULL(x) \
-  ((x) == NULL ? caffe::LogMessageFatal(__FILE__, __LINE__).stream() << "Check  notnull: "  #x << ' ', (x) : (x)) // NOLINT(*)
+#define CHECK_NOTNULL(x)                                 \
+  ((x) == NULL                                           \
+   ? caffe::LogMessageFatal(__FILE__, __LINE__).stream() \
+         << "Check  notnull: " #x << ' ',                \
+   (x) : (x))  // NOLINT(*)
 // Debug-only checking.
 #ifdef NDEBUG
 #define DCHECK(x) \
@@ -116,7 +106,8 @@ inline void InitLogging(const char* argv0) {
 #ifdef NDEBUG
 #define LOG_DFATAL LOG_ERROR
 #define DFATAL ERROR
-#define DLOG(severity) true ? (void)0 : caffe::LogMessageVoidify() & LOG(severity)
+#define DLOG(severity) \
+  true ? (void)0 : caffe::LogMessageVoidify() & LOG(severity)
 #define DLOG_IF(severity, condition) \
   (true || !(condition)) ? (void)0 : caffe::LogMessageVoidify() & LOG(severity)
 #else
@@ -141,15 +132,15 @@ class DateLogger {
     _strtime_s(buffer_, sizeof(buffer_));
 #else
     time_t time_value = time(NULL);
-    struct tm *pnow;
+    struct tm* pnow;
 #if !defined(_WIN32)
     struct tm now;
     pnow = localtime_r(&time_value, &now);
 #else
     pnow = localtime(&time_value);  // NOLINT(*)
 #endif
-    snprintf(buffer_, sizeof(buffer_), "%02d:%02d:%02d",
-             pnow->tm_hour, pnow->tm_min, pnow->tm_sec);
+    snprintf(buffer_, sizeof(buffer_), "%02d:%02d:%02d", pnow->tm_hour,
+             pnow->tm_min, pnow->tm_sec);
 #endif
     return buffer_;
   }
@@ -190,9 +181,7 @@ class CustomLogMessage {
     log_stream_ << "[" << DateLogger().HumanDate() << "] " << file << ":"
                 << line << ": ";
   }
-  ~CustomLogMessage() {
-    Log(log_stream_.str());
-  }
+  ~CustomLogMessage() { Log(log_stream_.str()); }
   std::ostream& stream() { return log_stream_; }
   /*!
    * \brief customized logging of the message.
@@ -225,11 +214,11 @@ class LogMessageFatal {
     log_stream_ << "[" << pretty_date_.HumanDate() << "] " << file << ":"
                 << line << ": ";
   }
-  std::ostringstream &stream() { return log_stream_; }
+  std::ostringstream& stream() { return log_stream_; }
   ~LogMessageFatal() DMLC_THROW_EXCEPTION {
-    // throwing out of destructor is evil
-    // hopefully we can do it here
-    // also log the message before throw
+// throwing out of destructor is evil
+// hopefully we can do it here
+// also log the message before throw
 #if DMLC_LOG_BEFORE_THROW
     LOG(ERROR) << log_stream_.str();
 #endif
@@ -257,5 +246,4 @@ class LogMessageVoidify {
 
 }  // namespace dmlc
 
-#endif
 #endif  // DMLC_LOGGING_H_

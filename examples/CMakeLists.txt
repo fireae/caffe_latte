@@ -26,7 +26,7 @@ foreach(source_file ${examples_srcs})
     # Funny command to make tutorials work
     # TODO: remove in future as soon as naming is standardized everywhere
     set(__outname ${PROJECT_BINARY_DIR}/examples/${folder}/${name}${Caffe_POSTFIX})
-    add_custom_command(TARGET ${name} POST_BUILD
-                       COMMAND ln -sf "${__outname}" "${__outname}.bin")
+    #add_custom_command(TARGET ${name} POST_BUILD
+    #                   COMMAND ln -sf "${__outname}" "${__outname}.bin")
   endif()
 endforeach()
