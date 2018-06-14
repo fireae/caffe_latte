@@ -120,7 +120,7 @@ inline int8_t caffe_sign(Dtype val) {
 
 // The following two macros are modifications of DEFINE_VSL_UNARY_FUNC
 //   in include/caffe/util/mkl_alternate.hpp authored by @Rowland Depp.
-// Please refer to commit 7e8ef25c7 of the boost-eigen branch.
+// Please refer to commit 7e8ef25c7 of the  branch.
 // Git cherry picking that commit caused a conflict hard to resolve and
 //   copying that file in convenient for code reviewing.
 // So they have to be pasted here temporarily.

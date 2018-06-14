@@ -75,9 +75,6 @@ class Mat;
 
 namespace caffe {
 
-// We will use the boost shared_ptr instead of the new C++11 one mainly
-// because cuda does not work (at least now) well with C++11 features.
-
 // Common functions and classes from std that caffe often uses.
 using std::fstream;
 using std::ios;
@@ -126,7 +123,7 @@ class CAFFE_API Caffe {
     shared_ptr<Generator> generator_;
   };
 
-  // Getters for boost rng, curand, and cublas handles
+  // Getters for rng, curand, and cublas handles
   inline static RNG& rng_stream() {
     if (!Get().random_generator_) {
       Get().random_generator_.reset(new RNG());
