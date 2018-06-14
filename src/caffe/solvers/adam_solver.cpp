@@ -11,15 +11,14 @@ void AdamSolver<Dtype>::AdamPreSolve() {
   const vector<Blob<Dtype>*>& net_params = this->net_->learnable_params();
   for (int i = 0; i < net_params.size(); ++i) {
     const vector<int>& shape = net_params[i]->shape();
-    this->history_.push_back(
-            shared_ptr<Blob<Dtype> >(new Blob<Dtype>(shape)));
+    this->history_.push_back(shared_ptr<Blob<Dtype> >(new Blob<Dtype>(shape)));
   }
 }
 
 #ifdef USE_CUDA
 template <typename Dtype>
 void adam_update_gpu(int N, Dtype* g, Dtype* m, Dtype* v, Dtype beta1,
-    Dtype beta2, Dtype eps_hat, Dtype corrected_local_rate);
+                     Dtype beta2, Dtype eps_hat, Dtype corrected_local_rate);
 #endif
 
 template <typename Dtype>
@@ -37,58 +36,51 @@ void AdamSolver<Dtype>::ComputeUpdateValue(int param_id, Dtype rate) {
   Blob<Dtype>* val_t = this->temp_[param_id].get();
 
   const int t = this->iter_ + 1;
-  const Dtype correction = std::sqrt(Dtype(1) - pow(beta2, t)) /
-      (Dtype(1.) - pow(beta1, t));
+  const Dtype correction =
+      std::sqrt(Dtype(1) - pow(beta2, t)) / (Dtype(1.) - pow(beta1, t));
   const int N = net_params[param_id]->count();
   const Dtype eps_hat = this->param_.delta();
 
   switch (Caffe::mode()) {
     case Caffe::CPU: {
-    // update m <- \beta_1 m_{t-1} + (1-\beta_1)g_t
-    caffe_cpu_axpby(N, Dtype(1)-beta1,
-        net_params[param_id]->cpu_diff(), beta1,
-        val_m->mutable_cpu_data());
+      // update m <- \beta_1 m_{t-1} + (1-\beta_1)g_t
+      caffe_cpu_axpby(N, Dtype(1) - beta1, net_params[param_id]->cpu_diff(),
+                      beta1, val_m->mutable_cpu_data());
 
-    // update v <- \beta_2 m_{t-1} + (1-\beta_2)g_t^2
-    caffe_mul(N,
-        net_params[param_id]->cpu_diff(),
-        net_params[param_id]->cpu_diff(),
-    val_t->mutable_cpu_data());
-    caffe_cpu_axpby(N, Dtype(1)-beta2,
-        val_t->cpu_data(), beta2,
-        val_v->mutable_cpu_data());
+      // update v <- \beta_2 m_{t-1} + (1-\beta_2)g_t^2
+      caffe_mul(N, net_params[param_id]->cpu_diff(),
+                net_params[param_id]->cpu_diff(), val_t->mutable_cpu_data());
+      caffe_cpu_axpby(N, Dtype(1) - beta2, val_t->cpu_data(), beta2,
+                      val_v->mutable_cpu_data());
 
-    // set update
-    caffe_powx(N,
-        val_v->cpu_data(), Dtype(0.5),
-        val_t->mutable_cpu_data());
-    caffe_add_scalar(N, eps_hat, val_t->mutable_cpu_data());
-    caffe_div(N,
-        val_m->cpu_data(),
-        val_t->cpu_data(),
-        val_t->mutable_cpu_data());
+      // set update
+      caffe_powx(N, val_v->cpu_data(), Dtype(0.5), val_t->mutable_cpu_data());
+      caffe_add_scalar(N, eps_hat, val_t->mutable_cpu_data());
+      caffe_div(N, val_m->cpu_data(), val_t->cpu_data(),
+                val_t->mutable_cpu_data());
 
-    caffe_cpu_scale(N, local_rate*correction,
-        val_t->cpu_data(),
-        net_params[param_id]->mutable_cpu_diff());
-    break;
-  }
-  case Caffe::GPU: {
+      caffe_cpu_scale(N, local_rate * correction, val_t->cpu_data(),
+                      net_params[param_id]->mutable_cpu_diff());
+      break;
+    }
+    case Caffe::GPU: {
 #ifdef USE_CUDA
-    adam_update_gpu(N, net_params[param_id]->mutable_gpu_diff(),
-        val_m->mutable_gpu_data(), val_v->mutable_gpu_data(), beta1, beta2,
-        eps_hat, local_rate*correction);
+      adam_update_gpu(N, net_params[param_id]->mutable_gpu_diff(),
+                      val_m->mutable_gpu_data(), val_v->mutable_gpu_data(),
+                      beta1, beta2, eps_hat, local_rate * correction);
 #else
-    NO_GPU;
+      NO_GPU;
 #endif
-    break;
-  }
-  default:
-    LOG(FATAL) << "Unknown caffe mode: " << Caffe::mode();
+      break;
+    }
+    default:
+      LOG(FATAL) << "Unknown caffe mode: " << Caffe::mode();
   }
 }
 
 INSTANTIATE_CLASS(AdamSolver);
-REGISTER_SOLVER_CLASS(Adam);
+// REGISTER_SOLVER_CLASS(Adam);
+CAFFE_REGISTER_CLASS(SolverFloatRegistry, AdamSolver, AdamSolver<float>);
+CAFFE_REGISTER_CLASS(SolverDoubleRegistry, AdamSolver, AdamSolver<double>);
 
 }  // namespace caffe

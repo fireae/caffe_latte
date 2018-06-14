@@ -348,7 +348,6 @@ void SGDSolver<Dtype>::RestoreSolverStateFromHDF5(const string& state_file) {
 // INSTANTIATE_CLASS(SGDSolver);
 // REGISTER_SOLVER_CLASS(SGD);
 
-CAFFE_REGISTER_CLASS(SolverFloatRegistry, SGDSolver<float>, SGDSolver<float>);
-CAFFE_REGISTER_CLASS(SolverDoubleRegistry, SGDSolver<double>,
-                     SGDSolver<double>);
+CAFFE_REGISTER_CLASS(SolverFloatRegistry, SGD, SGDSolver<float>);
+CAFFE_REGISTER_CLASS(SolverDoubleRegistry, SGD, SGDSolver<double>);
 }  // namespace caffe

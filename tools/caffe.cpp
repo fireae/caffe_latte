@@ -230,7 +230,7 @@ int train() {
                                       GetRequestedAction(FLAGS_sighup_effect));
 
   shared_ptr<caffe::Solver<float> > solver(
-      caffe::SolverRegistry<float>::CreateSolver(solver_param));
+      caffe::SolverFloatRegistry()->Create(solver_param.type(), solver_param));
 
   solver->SetActionFunction(signal_handler.GetActionFunction());
 
