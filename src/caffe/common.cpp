@@ -7,7 +7,6 @@
 #include <cmath>
 #include <cstdio>
 #include <ctime>
-#include <future>
 #include "caffe/common.hpp"
 #include "caffe/util/rng.hpp"
 
