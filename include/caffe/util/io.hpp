@@ -1,7 +1,7 @@
 #ifndef CAFFE_UTIL_IO_H_
 #define CAFFE_UTIL_IO_H_
 
-#include <boost/filesystem.hpp>
+
 #include <iomanip>
 #include <iostream>  // NOLINT(readability/streams)
 #include <string>
@@ -11,25 +11,25 @@
 #include "caffe/common.hpp"
 #include "caffe/proto/caffe.pb.h"
 #include "caffe/util/format.hpp"
+#include "caffe/util/filesystem.hpp"
 
 #ifndef CAFFE_TMP_DIR_RETRIES
 #define CAFFE_TMP_DIR_RETRIES 100
 #endif
 
 namespace caffe {
-
-using ::boost::filesystem::path;
+using caffe::filesystem::path;
 using ::google::protobuf::Message;
 
 inline void MakeTempDir(string* temp_dirname) {
   temp_dirname->clear();
   const path& model =
-      boost::filesystem::temp_directory_path() / "caffe_test.%%%%-%%%%";
+      caffe::filesystem::temp_directory_path() / "caffe_test.%%%%-%%%%";
   for (int i = 0; i < CAFFE_TMP_DIR_RETRIES; i++) {
-    const path& dir = boost::filesystem::unique_path(model).string();
-    bool done = boost::filesystem::create_directory(dir);
+    const path& dir = caffe::filesystem::unique_path(model).str();
+    bool done = caffe::filesystem::create_directory(dir);
     if (done) {
-      *temp_dirname = dir.string();
+      *temp_dirname = dir.str();
       return;
     }
   }
@@ -46,7 +46,7 @@ inline void MakeTempFilename(string* temp_filename) {
     temp_files_subpath = path_string;
   }
   *temp_filename =
-      (temp_files_subpath / caffe::format_int(next_temp_file++, 9)).string();
+      (temp_files_subpath / caffe::format_int(next_temp_file++, 9)).str();
 }
 
 CAFFE_API bool ReadProtoFromTextFile(const char* filename, Message* proto);

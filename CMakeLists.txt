@@ -111,7 +111,7 @@ if(USE_WARP_CTC)
 include_directories(${PROJECT_SOURCE_DIR}/3rdparty/warp-ctc/include)
 #list(APPEND Caffe_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/3rdparty/warp-ctc/include)
 endif()
-
+include_directories(${PROJECT_SOURCE_DIR}/3rdparty/)
 # ---[ Includes & defines for CUDA
 # cuda_compile() does not have per-call dependencies or include pathes
 # (cuda_compile() has per-call flags, but we set them here too for clarity)
