@@ -1,5 +1,4 @@
-#if 0
-#include <opencv2/core/core.hpp>
+#if 1
 
 #include <fstream>   // NOLINT(readability/streams)
 #include <iostream>  // NOLINT(readability/streams)
@@ -20,21 +19,6 @@ namespace caffe {
 template <typename Dtype>
 ImageDataLayer<Dtype>::~ImageDataLayer<Dtype>() {
   this->StopInternalThread();
-}
-void SplitString(const string& str, const string& strSep,
-                 std::vector<std::string>& vStrings) {
-  size_t pos = 0, prepos = 0;
-  while (pos <= str.size()) {
-    pos = str.find(strSep, prepos);
-    if (pos == string::npos) {
-      if (prepos <= (int)str.size() - 1)
-        vStrings.push_back(str.substr(prepos, str.size() - prepos));
-      break;
-    }
-
-    if (pos - prepos > 0) vStrings.push_back(str.substr(prepos, pos - prepos));
-    prepos = pos + strSep.size();
-  }
 }
 
 bool is_digital(const string& str) {
@@ -104,12 +88,13 @@ void ImageDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
       lines_id_ = skip;
     }
     // Read an image, and use it to initialize the top blob.
-    cv::Mat cv_img = ReadImageToCVMat(root_folder + lines_[lines_id_].first,
-                                      new_height, new_width, is_color);
-    CHECK(cv_img.data) << "Could not load " << lines_[lines_id_].first;
-    // Use data_transformer to infer the expected blob shape from a cv_image.
-    vector<int> top_shape = this->data_transformer_->InferBlobShape(cv_img);
-    this->transformed_data_.Reshape(top_shape);
+    // cv::Mat cv_img = ReadImageToCVMat(root_folder + lines_[lines_id_].first,
+    //                                   new_height, new_width, is_color);
+    // CHECK(cv_img.data) << "Could not load " << lines_[lines_id_].first;
+    // // Use data_transformer to infer the expected blob shape from a cv_image.
+    vector<int>
+        top_shape;  // = this->data_transformer_->InferBlobShape(cv_img);
+    // this->transformed_data_.Reshape(top_shape);
     // Reshape prefetch_data and top[0] according to the batch_size.
     const int batch_size = this->layer_param_.image_data_param().batch_size();
     CHECK_GT(batch_size, 0) << "Positive batch size required";
@@ -167,14 +152,15 @@ void ImageDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
       lines_id_ = skip;
     }
     // Read an image, and use it to initialize the top blob.
-    cv::Mat cv_img =
-        ReadImageToCVMat(root_folder + regression_lines_[lines_id_].first,
-                         new_height, new_width, is_color);
-    CHECK(cv_img.data) << "Could not load "
-                       << regression_lines_[lines_id_].first;
+    // cv::Mat cv_img =
+    //    ReadImageToCVMat(root_folder + regression_lines_[lines_id_].first,
+    //                     new_height, new_width, is_color);
+    // CHECK(cv_img.data) << "Could not load "
+    //                   << regression_lines_[lines_id_].first;
     // Use data_transformer to infer the expected blob shape from a cv_image.
-    vector<int> top_shape = this->data_transformer_->InferBlobShape(cv_img);
-    this->transformed_data_.Reshape(top_shape);
+    vector<int>
+        top_shape;  // = this->data_transformer_->InferBlobShape(cv_img);
+    // this->transformed_data_.Reshape(top_shape);
     // Reshape prefetch_data and top[0] according to the batch_size.
     const int batch_size = this->layer_param_.image_data_param().batch_size();
     CHECK_GT(batch_size, 0) << "Positive batch size required";
@@ -228,15 +214,19 @@ void ImageDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
   if (!is_regression) {
     // Reshape according to the first image of each batch
     // on single input batches allows for inputs of varying dimension.
-    cv::Mat cv_img = ReadImageToCVMat(root_folder + lines_[lines_id_].first,
-                                      new_height, new_width, is_color);
-    CHECK(cv_img.data) << "Could not load " << lines_[lines_id_].first;
-    // Use data_transformer to infer the expected blob shape from a cv_img.
-    vector<int> top_shape = this->data_transformer_->InferBlobShape(cv_img);
-    this->transformed_data_.Reshape(top_shape);
-    // Reshape batch according to the batch_size.
-    top_shape[0] = batch_size;
-    batch->data_.Reshape(top_shape);
+    // cv::Mat cv_img = ReadImageToCVMat(root_folder + lines_[lines_id_].first,
+    // new_height, new_width, is_color);
+    // CHECK(cv_img.data) << "Could not load "
+    // << lines_[lines_id_].first;
+    // Use data_transformer to infer the
+    // expected blob shape from a cv_img.
+    // vector<int> top_shape =
+    // this->data_transformer_->InferBlobShape(cv_img);
+    // this->transformed_data_.Reshape(top_shape);
+    // Reshape batch according to the
+    // batch_size.
+    // top_shape[0] = batch_size;
+    // batch->data_.Reshape(top_shape);
 
     Dtype* prefetch_data = batch->data_.mutable_cpu_data();
     Dtype* prefetch_label = batch->label_.mutable_cpu_data();
@@ -247,18 +237,26 @@ void ImageDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
       // get a blob
       timer.Start();
       CHECK_GT(lines_size, lines_id_);
-      cv::Mat cv_img = ReadImageToCVMat(root_folder + lines_[lines_id_].first,
-                                        new_height, new_width, is_color);
-      CHECK(cv_img.data) << "Could not load " << lines_[lines_id_].first;
+      // cv::Mat cv_img =
+      // ReadImageToCVMat(root_folder +
+      // lines_[lines_id_].first,
+      //                                  new_height,
+      //                                  new_width,
+      //                                  is_color);
+      // CHECK(cv_img.data) << "Could not load
+      // " << lines_[lines_id_].first;
       read_time += timer.MicroSeconds();
       timer.Start();
-      // Apply transformations (mirror, crop...) to the image
+      // Apply transformations (mirror,
+      // crop...) to the image
       int offset = batch->data_.offset(item_id);
       this->transformed_data_.set_cpu_data(prefetch_data + offset);
-      this->data_transformer_->Transform(cv_img, &(this->transformed_data_));
+      // this->data_transformer_->Transform(cv_img,
+      // &(this->transformed_data_));
       trans_time += timer.MicroSeconds();
 
-      // prefetch_label[item_id] = lines_[lines_id_].second;
+      // prefetch_label[item_id] =
+      // lines_[lines_id_].second;
       int label_size = lines_[lines_id_].second.size();
       for (int label_id = 0; label_id < label_size; label_id++)
         prefetch_label[item_id * label_size + label_id] =
@@ -267,8 +265,10 @@ void ImageDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
       // go to the next iter
       lines_id_++;
       if (lines_id_ >= lines_size) {
-        // We have reached the end. Restart from the first.
-        // DLOG(INFO) << "Restarting data prefetching from start.";
+        // We have reached the end. Restart
+        // from the first.
+        // DLOG(INFO) << "Restarting data
+        // prefetching from start.";
         lines_id_ = 0;
         if (this->layer_param_.image_data_param().shuffle()) {
           ShuffleImages();
@@ -278,14 +278,15 @@ void ImageDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
   } else {
     // Reshape according to the first image of each batch
     // on single input batches allows for inputs of varying dimension.
-    cv::Mat cv_img =
-        ReadImageToCVMat(root_folder + regression_lines_[lines_id_].first,
-                         new_height, new_width, is_color);
-    CHECK(cv_img.data) << "Could not load "
-                       << regression_lines_[lines_id_].first;
+    // cv::Mat cv_img =
+    //    ReadImageToCVMat(root_folder + regression_lines_[lines_id_].first,
+    //                     new_height, new_width, is_color);
+    // CHECK(cv_img.data) << "Could not load "
+    //                   << regression_lines_[lines_id_].first;
     // Use data_transformer to infer the expected blob shape from a cv_img.
-    vector<int> top_shape = this->data_transformer_->InferBlobShape(cv_img);
-    this->transformed_data_.Reshape(top_shape);
+    vector<int>
+        top_shape;  // = this->data_transformer_->InferBlobShape(cv_img);
+    // this->transformed_data_.Reshape(top_shape);
     // Reshape batch according to the batch_size.
     top_shape[0] = batch_size;
     batch->data_.Reshape(top_shape);
@@ -299,17 +300,17 @@ void ImageDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
       // get a blob
       timer.Start();
       CHECK_GT(lines_size, lines_id_);
-      cv::Mat cv_img =
-          ReadImageToCVMat(root_folder + regression_lines_[lines_id_].first,
-                           new_height, new_width, is_color);
-      CHECK(cv_img.data) << "Could not load "
-                         << regression_lines_[lines_id_].first;
+      // cv::Mat cv_img =
+      //     ReadImageToCVMat(root_folder + regression_lines_[lines_id_].first,
+      //                      new_height, new_width, is_color);
+      // CHECK(cv_img.data) << "Could not load "
+      //                    << regression_lines_[lines_id_].first;
       read_time += timer.MicroSeconds();
       timer.Start();
       // Apply transformations (mirror, crop...) to the image
       int offset = batch->data_.offset(item_id);
       this->transformed_data_.set_cpu_data(prefetch_data + offset);
-      this->data_transformer_->Transform(cv_img, &(this->transformed_data_));
+      // this->data_transformer_->Transform(cv_img, &(this->transformed_data_));
       trans_time += timer.MicroSeconds();
 
       int valuenum = regression_lines_[lines_id_].second.size();
