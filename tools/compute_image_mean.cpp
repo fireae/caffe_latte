@@ -4,7 +4,6 @@
 #include <utility>
 #include <vector>
 
-#include "boost/scoped_ptr.hpp"
 #include "caffe/flags.hpp"
 #include "caffe/logging.hpp"
 
@@ -16,25 +15,25 @@ using namespace caffe;  // NOLINT(build/namespaces)
 
 using std::max;
 using std::pair;
-using boost::scoped_ptr;
 
 CAFFE_DEFINE_string(backend, "lmdb",
-        "The backend {leveldb, lmdb} containing the images");
+                    "The backend {leveldb, lmdb} containing the images");
 
 int main(int argc, char** argv) {
 #ifdef USE_OPENCV
-  //::caffe::InitLogging(argv[0]);
-  // Print output to stderr (while still logging)
-  //FLAGS_alsologtostderr = 1;
+//::caffe::InitLogging(argv[0]);
+// Print output to stderr (while still logging)
+// FLAGS_alsologtostderr = 1;
 
 #ifndef GFLAGS_GFLAGS_H_
   namespace gflags = google;
 #endif
 
-  caffe::SetUsageMessage("Compute the mean_image of a set of images given by"
-        " a leveldb/lmdb\n"
-        "Usage:\n"
-        "    compute_image_mean [FLAGS] INPUT_DB [OUTPUT_FILE]\n");
+  caffe::SetUsageMessage(
+      "Compute the mean_image of a set of images given by"
+      " a leveldb/lmdb\n"
+      "Usage:\n"
+      "    compute_image_mean [FLAGS] INPUT_DB [OUTPUT_FILE]\n");
 
   caffe::ParseCommandLineFlags(&argc, &argv);
 
@@ -62,8 +61,8 @@ int main(int argc, char** argv) {
   sum_blob.set_height(datum.height());
   sum_blob.set_width(datum.width());
   const int data_size = datum.channels() * datum.height() * datum.width();
-  int size_in_datum = std::max<int>(datum.data().size(),
-                                    datum.float_data_size());
+  int size_in_datum =
+      std::max<int>(datum.data().size(), datum.float_data_size());
   for (int i = 0; i < size_in_datum; ++i) {
     sum_blob.add_data(0.);
   }
@@ -74,10 +73,9 @@ int main(int argc, char** argv) {
     DecodeDatumNative(&datum);
 
     const std::string& data = datum.data();
-    size_in_datum = std::max<int>(datum.data().size(),
-        datum.float_data_size());
-    CHECK_EQ(size_in_datum, data_size) << "Incorrect data field size " <<
-        size_in_datum;
+    size_in_datum = std::max<int>(datum.data().size(), datum.float_data_size());
+    CHECK_EQ(size_in_datum, data_size) << "Incorrect data field size "
+                                       << size_in_datum;
     if (data.size() != 0) {
       CHECK_EQ(data.size(), size_in_datum);
       for (int i = 0; i < size_in_datum; ++i) {
@@ -86,8 +84,8 @@ int main(int argc, char** argv) {
     } else {
       CHECK_EQ(datum.float_data_size(), size_in_datum);
       for (int i = 0; i < size_in_datum; ++i) {
-        sum_blob.set_data(i, sum_blob.data(i) +
-            static_cast<float>(datum.float_data(i)));
+        sum_blob.set_data(
+            i, sum_blob.data(i) + static_cast<float>(datum.float_data(i)));
       }
     }
     ++count;

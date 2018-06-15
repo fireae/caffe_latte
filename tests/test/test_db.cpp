@@ -1,7 +1,6 @@
 #if defined(USE_LEVELDB) && defined(USE_LMDB) && defined(USE_OPENCV)
 #include <string>
 
-#include "boost/scoped_ptr.hpp"
 #include "gtest/gtest.h"
 
 #include "caffe/common.hpp"
@@ -13,14 +12,12 @@
 
 namespace caffe {
 
-using boost::scoped_ptr;
-
 template <typename TypeParam>
 class DBTest : public ::testing::Test {
  protected:
   DBTest()
       : backend_(TypeParam::backend),
-      root_images_(string(EXAMPLES_SOURCE_DIR) + string("images/")) {}
+        root_images_(string(EXAMPLES_SOURCE_DIR) + string("images/")) {}
 
   virtual void SetUp() {
     MakeTempDir(&source_);
@@ -40,7 +37,7 @@ class DBTest : public ::testing::Test {
     txn->Commit();
   }
 
-  virtual ~DBTest() { }
+  virtual ~DBTest() {}
 
   DataParameter_DB backend_;
   string source_;

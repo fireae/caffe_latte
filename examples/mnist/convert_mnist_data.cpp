@@ -22,15 +22,13 @@
 #include <fstream>  // NOLINT(readability/streams)
 #include <string>
 
-#include "boost/scoped_ptr.hpp"
 #include "caffe/proto/caffe.pb.h"
 #include "caffe/util/db.hpp"
 #include "caffe/util/format.hpp"
 
-#if defined(USE_LEVELDB) && defined(USE_LMDB)
+#if defined(USE_LMDB)
 
 using namespace caffe;  // NOLINT(build/namespaces)
-using boost::scoped_ptr;
 using std::string;
 
 DEFINE_string(backend, "lmdb", "The backend for storing the result");
@@ -114,7 +112,7 @@ int main(int argc, char** argv) {
   namespace gflags = google;
 #endif
 
-  //FLAGS_alsologtostderr = 1;
+  // FLAGS_alsologtostderr = 1;
 
   caffe::SetUsageMessage(
       "This script converts the MNIST dataset to\n"
@@ -132,7 +130,7 @@ int main(int argc, char** argv) {
 
   if (argc != 4) {
     caffe::ShowUsageWithFlagsRestrict(argv[0],
-                                       "examples/mnist/convert_mnist_data");
+                                      "examples/mnist/convert_mnist_data");
   } else {
     caffe::InitLogging(argv[0]);
     convert_dataset(argv[1], argv[2], argv[3], db_backend);

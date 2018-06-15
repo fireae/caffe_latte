@@ -1,7 +1,6 @@
 #include <map>
 #include <string>
 
-#include "boost/scoped_ptr.hpp"
 #include "google/protobuf/text_format.h"
 #include "gtest/gtest.h"
 
@@ -25,8 +24,8 @@ class SolverFactoryTest : public MultiDeviceTest<TypeParam> {
         "  } "
         "} ";
     SolverParameter solver_param;
-    CHECK(google::protobuf::TextFormat::ParseFromString(
-        solver_proto, &solver_param));
+    CHECK(google::protobuf::TextFormat::ParseFromString(solver_proto,
+                                                        &solver_param));
     return solver_param;
   }
 };
@@ -40,7 +39,8 @@ TYPED_TEST(SolverFactoryTest, TestCreateSolver) {
   shared_ptr<Solver<Dtype> > solver;
   SolverParameter solver_param = this->simple_solver_param();
   for (typename SolverRegistry<Dtype>::CreatorRegistry::iterator iter =
-       registry.begin(); iter != registry.end(); ++iter) {
+           registry.begin();
+       iter != registry.end(); ++iter) {
     solver_param.set_type(iter->first);
     solver.reset(SolverRegistry<Dtype>::CreateSolver(solver_param));
     EXPECT_EQ(iter->first, solver->type());

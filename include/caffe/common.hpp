@@ -142,7 +142,7 @@ class CAFFE_API Caffe {
   // freed in a non-pinned way, which may cause problems - I haven't verified
   // it personally but better to note it here in the header file.
   inline static void set_mode(Brew mode) { Get().mode_ = mode; }
-  // Sets the random seed of both boost and curand
+  // Sets the random seed of both  and curand
   static void set_random_seed(const unsigned int seed);
   // Sets the device. Since we have cublas and curand stuff, set device also
   // requires us to reset those values.

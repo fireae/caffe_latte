@@ -1,7 +1,7 @@
 #include <string>
 #include <vector>
 
-#include "boost/algorithm/string.hpp"
+#include "caffe/util/string.hpp"
 #include "google/protobuf/text_format.h"
 
 #include <memory>
@@ -104,13 +104,13 @@ int feature_extraction_pipeline(int argc, char** argv) {
   feature_extraction_net->CopyTrainedLayersFrom(pretrained_binary_proto);
 
   std::string extract_feature_blob_names(argv[++arg_pos]);
-  std::vector<std::string> blob_names;
-  boost::split(blob_names, extract_feature_blob_names, boost::is_any_of(","));
+  std::vector<std::string> blob_names =
+      caffe::SplitString(extract_feature_blob_names, ",");
 
   std::string save_feature_dataset_names(argv[++arg_pos]);
-  std::vector<std::string> dataset_names;
-  boost::split(dataset_names, save_feature_dataset_names,
-               boost::is_any_of(","));
+  std::vector<std::string> dataset_names =
+      SplitString(save_feature_dataset_names, ",");
+
   CHECK_EQ(blob_names.size(), dataset_names.size())
       << " the number of blob names and dataset names must be equal";
   size_t num_features = blob_names.size();

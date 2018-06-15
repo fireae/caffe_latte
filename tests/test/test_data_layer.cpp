@@ -2,7 +2,6 @@
 #include <string>
 #include <vector>
 
-#include "boost/scoped_ptr.hpp"
 #include "gtest/gtest.h"
 
 #include "caffe/blob.hpp"
@@ -16,8 +15,6 @@
 #include "caffe/test/test_caffe_main.hpp"
 
 namespace caffe {
-
-using boost::scoped_ptr;
 
 template <typename TypeParam>
 class DataLayerTest : public MultiDeviceTest<TypeParam> {
@@ -43,9 +40,9 @@ class DataLayerTest : public MultiDeviceTest<TypeParam> {
   void Fill(const bool unique_pixels, DataParameter_DB backend) {
     backend_ = backend;
     LOG(INFO) << "Using temporary dataset " << *filename_;
-    scoped_ptr<db::DB> db(db::GetDB(backend));
+    shared_ptr<db::DB> db(db::GetDB(backend));
     db->Open(*filename_, db::NEW);
-    scoped_ptr<db::Transaction> txn(db->NewTransaction());
+    shared_ptr<db::Transaction> txn(db->NewTransaction());
     for (int i = 0; i < 5; ++i) {
       Datum datum;
       datum.set_label(i);
@@ -135,9 +132,9 @@ class DataLayerTest : public MultiDeviceTest<TypeParam> {
     const int num_inputs = 5;
     // Save data of varying shapes.
     LOG(INFO) << "Using temporary dataset " << *filename_;
-    scoped_ptr<db::DB> db(db::GetDB(backend));
+    shared_ptr<db::DB> db(db::GetDB(backend));
     db->Open(*filename_, db::NEW);
-    scoped_ptr<db::Transaction> txn(db->NewTransaction());
+    shared_ptr<db::Transaction> txn(db->NewTransaction());
     for (int i = 0; i < num_inputs; ++i) {
       Datum datum;
       datum.set_label(i);
@@ -374,51 +371,6 @@ class DataLayerTest : public MultiDeviceTest<TypeParam> {
 };
 
 TYPED_TEST_CASE(DataLayerTest, TestDtypesAndDevices);
-
-#ifdef USE_LEVELDB
-TYPED_TEST(DataLayerTest, TestReadLevelDB) {
-  const bool unique_pixels = false;  // all pixels the same; images different
-  this->Fill(unique_pixels, DataParameter_DB_LEVELDB);
-  this->TestRead();
-}
-
-TYPED_TEST(DataLayerTest, TestSkipLevelDB) {
-  this->Fill(false, DataParameter_DB_LEVELDB);
-  this->TestSkip();
-}
-
-TYPED_TEST(DataLayerTest, TestReshapeLevelDB) {
-  this->TestReshape(DataParameter_DB_LEVELDB);
-}
-
-TYPED_TEST(DataLayerTest, TestReadCropTrainLevelDB) {
-  const bool unique_pixels = true;  // all images the same; pixels different
-  this->Fill(unique_pixels, DataParameter_DB_LEVELDB);
-  this->TestReadCrop(TRAIN);
-}
-
-// Test that the sequence of random crops is consistent when using
-// Caffe::set_random_seed.
-TYPED_TEST(DataLayerTest, TestReadCropTrainSequenceSeededLevelDB) {
-  const bool unique_pixels = true;  // all images the same; pixels different
-  this->Fill(unique_pixels, DataParameter_DB_LEVELDB);
-  this->TestReadCropTrainSequenceSeeded();
-}
-
-// Test that the sequence of random crops differs across iterations when
-// Caffe::set_random_seed isn't called (and seeds from srand are ignored).
-TYPED_TEST(DataLayerTest, TestReadCropTrainSequenceUnseededLevelDB) {
-  const bool unique_pixels = true;  // all images the same; pixels different
-  this->Fill(unique_pixels, DataParameter_DB_LEVELDB);
-  this->TestReadCropTrainSequenceUnseeded();
-}
-
-TYPED_TEST(DataLayerTest, TestReadCropTestLevelDB) {
-  const bool unique_pixels = true;  // all images the same; pixels different
-  this->Fill(unique_pixels, DataParameter_DB_LEVELDB);
-  this->TestReadCrop(TEST);
-}
-#endif  // USE_LEVELDB
 
 #ifdef USE_LMDB
 TYPED_TEST(DataLayerTest, TestReadLMDB) {

@@ -1,12 +1,11 @@
 #ifndef CAFFE_PYTHON_LAYER_HPP_
 #define CAFFE_PYTHON_LAYER_HPP_
 
-#include <boost/python.hpp>
+#include <pybind11/embed.h>
 #include <vector>
-
 #include "caffe/layer.hpp"
 
-namespace bp = boost::python;
+namespace bp = pybind11;
 
 namespace caffe {
 
@@ -25,7 +24,7 @@ class PythonLayer : public Layer<Dtype> {
       LOG(FATAL) << "PythonLayer does not support CLI Multi-GPU, use train.py";
     }
     self_.attr("param_str") =
-        bp::str(this->layer_param_.python_param().param_str());
+        py::str(this->layer_param_.python_param().param_str());
     self_.attr("phase") = static_cast<int>(this->phase_);
     self_.attr("setup")(bottom, top);
   }
@@ -48,7 +47,7 @@ class PythonLayer : public Layer<Dtype> {
   }
 
  private:
-  bp::object self_;
+  py::module self_;
 };
 
 }  // namespace caffe

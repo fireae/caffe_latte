@@ -1,7 +1,6 @@
 #include <string>
 #include <vector>
 
-#include "boost/scoped_ptr.hpp"
 #include "google/protobuf/text_format.h"
 #include "gtest/gtest.h"
 
@@ -2908,7 +2907,7 @@ TEST_F(NetUpgradeTest, TestUpgradeV1LayerType) {
       #ifdef USE_LEVELDB
       string tmp;
       MakeTempDir(&tmp);
-      boost::scoped_ptr<db::DB> db(db::GetDB(DataParameter_DB_LEVELDB));
+      shared_ptr<db::DB> db(db::GetDB(DataParameter_DB_LEVELDB));
       db->Open(tmp, db::NEW);
       db->Close();
       layer_param.mutable_data_param()->set_source(tmp);
