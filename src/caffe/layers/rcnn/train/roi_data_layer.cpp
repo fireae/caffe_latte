@@ -1,3 +1,4 @@
+#if 0
 #include <opencv2/highgui/highgui_c.h>
 #include <stdint.h>
 
@@ -393,3 +394,4 @@ INSTANTIATE_CLASS(RoiDataLayer);
 REGISTER_LAYER_CLASS(RoiData);
 
 }  // namespace caffe
+#endif

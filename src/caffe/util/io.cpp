@@ -1,3 +1,4 @@
+#if 0
 #include <fcntl.h>
 
 #if defined(_MSC_VER)
@@ -7,12 +8,6 @@
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/text_format.h>
-#ifdef USE_OPENCV
-#include <opencv2/highgui/highgui_c.h>
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#endif  // USE_OPENCV
 #include <stdint.h>
 
 #include <algorithm>
@@ -274,3 +269,4 @@ void CVMatToDatum(const cv::Mat& cv_img, Datum* datum) {
 }
 #endif  // USE_OPENCV
 }  // namespace caffe
+#endif

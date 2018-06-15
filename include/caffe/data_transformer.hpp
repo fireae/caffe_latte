@@ -50,7 +50,6 @@ class DataTransformer {
   void Transform(const vector<Datum>& datum_vector,
                  Blob<Dtype>* transformed_blob);
 
-#ifdef USE_OPENCV
   /**
    * @brief Applies the transformation defined in the data layer's
    * transform_param block to a vector of Mat.
@@ -61,39 +60,46 @@ class DataTransformer {
    *    This is destination blob. It can be part of top blob's data if
    *    set_cpu_data() is used. See memory_layer.cpp for an example.
    */
-  void Transform(const vector<cv::Mat>& mat_vector,
-                 Blob<Dtype>* transformed_blob);
+  // void Transform(const vector<cv::Mat>& mat_vector,
+  //               Blob<Dtype>* transformed_blob);
 
   /**
-   * @brief Applies the transformation defined in the data layer's
+   * @brief Applies the transformation defined in the data
+   * layer's
    * transform_param block to a cv::Mat
    *
    * @param cv_img
    *    cv::Mat containing the data to be transformed.
    * @param transformed_blob
-   *    This is destination blob. It can be part of top blob's data if
-   *    set_cpu_data() is used. See image_data_layer.cpp for an example.
+   *    This is destination blob. It can be part of top blob's
+   * data if
+   *    set_cpu_data() is used. See image_data_layer.cpp for an
+   * example.
    */
-  void Transform(const cv::Mat& cv_img, Blob<Dtype>* transformed_blob);
-#endif  // USE_OPENCV
+  // void Transform(const cv::Mat& cv_img, Blob<Dtype>*
+  // transformed_blob);
 
   /**
-   * @brief Applies the same transformation defined in the data layer's
+   * @brief Applies the same transformation defined in the data
+   * layer's
    * transform_param block to all the num images in a input_blob.
    *
    * @param input_blob
-   *    A Blob containing the data to be transformed. It applies the same
+   *    A Blob containing the data to be transformed. It applies
+   * the same
    *    transformation to all the num images in the blob.
    * @param transformed_blob
-   *    This is destination blob, it will contain as many images as the
+   *    This is destination blob, it will contain as many images
+   * as the
    *    input blob. It can be part of top blob's data.
    */
   void Transform(Blob<Dtype>* input_blob, Blob<Dtype>* transformed_blob);
 
-  void TransformImgAndSeg(const std::vector<cv::Mat>& cv_img_seg,
-                          Blob<Dtype>* transformed_data_blob,
-                          Blob<Dtype>* transformed_label_blob,
-                          const int ignore_label);
+  // void TransformImgAndSeg(const std::vector<cv::Mat>&
+  // cv_img_seg,
+  //                         Blob<Dtype>* transformed_data_blob,
+  //                         Blob<Dtype>* transformed_label_blob,
+  //                         const int ignore_label);
   /**
    * @brief Infers the shape of transformed_blob will have when
    *    the transformation is applied to the data.
@@ -119,8 +125,8 @@ class DataTransformer {
    * @param mat_vector
    *    A vector of Mat containing the data to be transformed.
    */
-#ifdef USE_OPENCV
-  vector<int> InferBlobShape(const vector<cv::Mat>& mat_vector);
+  // vector<int> InferBlobShape(const vector<cv::Mat>&
+  // mat_vector);
   /**
    * @brief Infers the shape of transformed_blob will have when
    *    the transformation is applied to the data.
@@ -128,12 +134,12 @@ class DataTransformer {
    * @param cv_img
    *    cv::Mat containing the data to be transformed.
    */
-  vector<int> InferBlobShape(const cv::Mat& cv_img);
-#endif  // USE_OPENCV
+  // vector<int> InferBlobShape(const cv::Mat& cv_img);
 
  protected:
   /**
-   * @brief Generates a random integer from Uniform({0, 1, ..., n-1}).
+   * @brief Generates a random integer from Uniform({0, 1, ...,
+   * n-1}).
    *
    * @param n
    *    The upperbound (exclusive) value of the random number.

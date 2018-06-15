@@ -1,7 +1,6 @@
 #ifndef CAFFE_UTIL_IO_H_
 #define CAFFE_UTIL_IO_H_
 
-
 #include <iomanip>
 #include <iostream>  // NOLINT(readability/streams)
 #include <string>
@@ -10,8 +9,8 @@
 
 #include "caffe/common.hpp"
 #include "caffe/proto/caffe.pb.h"
-#include "caffe/util/format.hpp"
 #include "caffe/util/filesystem.hpp"
+#include "caffe/util/format.hpp"
 
 #ifndef CAFFE_TMP_DIR_RETRIES
 #define CAFFE_TMP_DIR_RETRIES 100
@@ -135,7 +134,7 @@ inline bool ReadImageToDatum(const string& filename,
 bool DecodeDatumNative(Datum* datum);
 bool DecodeDatum(Datum* datum, bool is_color);
 
-#ifdef USE_OPENCV
+#if 0
 cv::Mat ReadImageToCVMat(const string& filename, const int height,
   const int width, const bool is_color, int* img_height,
   int* img_width);

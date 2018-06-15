@@ -1,8 +1,3 @@
-#ifdef USE_OPENCV
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#endif  // USE_OPENCV
-
 #include <string>
 #include <vector>
 
@@ -134,17 +129,17 @@ void DataTransformer<Dtype>::Transform(const Datum& datum,
   // If datum is encoded, decode and transform the cv::image.
   if (datum.encoded()) {
 #ifdef USE_OPENCV
-    CHECK(!(param_.force_color() && param_.force_gray()))
-        << "cannot set both force_color and force_gray";
-    cv::Mat cv_img;
-    if (param_.force_color() || param_.force_gray()) {
-      // If force_color then decode in color otherwise decode in gray.
-      cv_img = DecodeDatumToCVMat(datum, param_.force_color());
-    } else {
-      cv_img = DecodeDatumToCVMatNative(datum);
-    }
-    // Transform the cv::image into blob.
-    return Transform(cv_img, transformed_blob);
+// CHECK(!(param_.force_color() && param_.force_gray()))
+//     << "cannot set both force_color and force_gray";
+// cv::Mat cv_img;
+// if (param_.force_color() || param_.force_gray()) {
+//   // If force_color then decode in color otherwise decode in gray.
+//   cv_img = DecodeDatumToCVMat(datum, param_.force_color());
+// } else {
+//   cv_img = DecodeDatumToCVMatNative(datum);
+// }
+// // Transform the cv::image into blob.
+// return Transform(cv_img, transformed_blob);
 #else
     LOG(FATAL) << "Encoded datum requires OpenCV; compile with USE_OPENCV.";
 #endif  // USE_OPENCV
@@ -202,7 +197,7 @@ void DataTransformer<Dtype>::Transform(const vector<Datum>& datum_vector,
   }
 }
 
-#ifdef USE_OPENCV
+#if 0
 template <typename Dtype>
 void DataTransformer<Dtype>::Transform(const vector<cv::Mat>& mat_vector,
                                        Blob<Dtype>* transformed_blob) {
@@ -467,6 +462,7 @@ void DataTransformer<Dtype>::Transform(Blob<Dtype>* input_blob,
   }
 }
 
+#if 0
 template <typename Dtype>
 void DataTransformer<Dtype>::TransformImgAndSeg(
     const std::vector<cv::Mat>& cv_img_seg, Blob<Dtype>* transformed_data_blob,
@@ -665,22 +661,23 @@ void DataTransformer<Dtype>::TransformImgAndSeg(
     }
   }
 }
+#endif
 
 template <typename Dtype>
 vector<int> DataTransformer<Dtype>::InferBlobShape(const Datum& datum) {
   if (datum.encoded()) {
 #ifdef USE_OPENCV
-    CHECK(!(param_.force_color() && param_.force_gray()))
-        << "cannot set both force_color and force_gray";
-    cv::Mat cv_img;
-    if (param_.force_color() || param_.force_gray()) {
-      // If force_color then decode in color otherwise decode in gray.
-      cv_img = DecodeDatumToCVMat(datum, param_.force_color());
-    } else {
-      cv_img = DecodeDatumToCVMatNative(datum);
-    }
-    // InferBlobShape using the cv::image.
-    return InferBlobShape(cv_img);
+// CHECK(!(param_.force_color() && param_.force_gray()))
+//     << "cannot set both force_color and force_gray";
+// cv::Mat cv_img;
+// if (param_.force_color() || param_.force_gray()) {
+//   // If force_color then decode in color otherwise decode in gray.
+//   cv_img = DecodeDatumToCVMat(datum, param_.force_color());
+// } else {
+//   cv_img = DecodeDatumToCVMatNative(datum);
+// }
+// // InferBlobShape using the cv::image.
+// return InferBlobShape(cv_img);
 #else
     LOG(FATAL) << "Encoded datum requires OpenCV; compile with USE_OPENCV.";
 #endif  // USE_OPENCV
@@ -714,7 +711,7 @@ vector<int> DataTransformer<Dtype>::InferBlobShape(
   return shape;
 }
 
-#ifdef USE_OPENCV
+#if 0
 template <typename Dtype>
 vector<int> DataTransformer<Dtype>::InferBlobShape(const cv::Mat& cv_img) {
   const int crop_size = param_.crop_size();

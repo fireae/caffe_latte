@@ -1,4 +1,4 @@
-#ifdef USE_OPENCV
+#if 0
 #include <opencv2/highgui/highgui_c.h>
 #include <stdint.h>
 

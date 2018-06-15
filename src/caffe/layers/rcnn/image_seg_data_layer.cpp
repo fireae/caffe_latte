@@ -1,3 +1,4 @@
+#if 0
 #include <algorithm>
 #include <fstream>   // NOLINT(readability/streams)
 #include <iostream>  // NOLINT(readability/streams)
@@ -271,3 +272,4 @@ INSTANTIATE_CLASS(ImageSegDataLayer);
 REGISTER_LAYER_CLASS(ImageSegData);
 
 }  // namespace caffe
+#endif

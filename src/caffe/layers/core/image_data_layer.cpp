@@ -1,4 +1,4 @@
-#ifdef USE_OPENCV
+#if 0
 #include <opencv2/core/core.hpp>
 
 #include <fstream>   // NOLINT(readability/streams)

@@ -14,6 +14,9 @@
 #include <vector>
 #include "caffe/flags.hpp"
 #include "caffe/logging.hpp"
+#define cimg_display 0
+#define cimg_use_jpeg
+#include <CImg.h>
 
 #include "caffe/util/device_alternate.hpp"
 #ifdef _WIN32
@@ -67,11 +70,6 @@
 // A simple macro to mark codes that are not implemented, so that when the code
 // is executed we will see a fatal log.
 #define NOT_IMPLEMENTED LOG(FATAL) << "Not Implemented Yet"
-
-// See PR #1236
-namespace cv {
-class Mat;
-}
 
 namespace caffe {
 

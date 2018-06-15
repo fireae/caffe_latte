@@ -5,7 +5,6 @@
 using std::max;
 
 using namespace std;
-using namespace cv;
 
 namespace caffe {
 
