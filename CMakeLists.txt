@@ -145,6 +145,10 @@ if(BUILD_python)
   add_subdirectory(python)
 endif()
 
+include_directories(/home/wencc/anaconda2/include)
+add_subdirectory(pybind11)
+pybind11_add_module(pycaffe python/caffe/pycaffe.cpp)
+target_link_libraries(pycaffe caffe)
 # ---[ Linter target
 add_custom_target(lint COMMAND ${CMAKE_COMMAND} -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE} -P ${PROJECT_SOURCE_DIR}/cmake/lint.cmake)
 

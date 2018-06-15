@@ -5,7 +5,7 @@ set(Caffe_DEFINITIONS "")
 set(Caffe_COMPILE_OPTIONS "")
 
 # ---[ Boost
-find_package(Boost 1.54 REQUIRED COMPONENTS system thread filesystem)
+find_package(Boost 1.54 REQUIRED COMPONENTS system)
 list(APPEND Caffe_INCLUDE_DIRS PUBLIC ${Boost_INCLUDE_DIRS})
 list(APPEND Caffe_DEFINITIONS PUBLIC -DBOOST_ALL_NO_LIB)
 list(APPEND Caffe_LINKER_LIBS PUBLIC ${Boost_LIBRARIES})
@@ -34,33 +34,8 @@ if(USE_OPENMP)
   list(APPEND Caffe_COMPILE_OPTIONS PRIVATE ${OpenMP_CXX_FLAGS})
 endif()
 
-# ---[ Google-glog
-#include("cmake/External/glog.cmake")
-#list(APPEND Caffe_INCLUDE_DIRS PUBLIC ${GLOG_INCLUDE_DIRS})
-#list(APPEND Caffe_LINKER_LIBS PUBLIC ${GLOG_LIBRARIES})
-
-# ---[ Google-gflags
-#include("cmake/External/gflags.cmake")
-#list(APPEND Caffe_INCLUDE_DIRS PUBLIC ${GFLAGS_INCLUDE_DIRS})
-#list(APPEND Caffe_LINKER_LIBS PUBLIC ${GFLAGS_LIBRARIES})
-
 # ---[ Google-protobuf
 include(cmake/ProtoBuf.cmake)
-
-# ---[ HDF5
-if(MSVC)
-  # Find HDF5 using it's hdf5-config.cmake file with MSVC
-  if(DEFINED HDF5_DIR)
-    list(APPEND CMAKE_MODULE_PATH ${HDF5_DIR})
-  endif()
-  find_package(HDF5 COMPONENTS C HL REQUIRED)
-  set(HDF5_LIBRARIES hdf5-shared)
-  set(HDF5_HL_LIBRARIES hdf5_hl-shared)
-else()
-  find_package(HDF5 COMPONENTS HL REQUIRED)
-endif()
-list(APPEND Caffe_INCLUDE_DIRS PUBLIC ${HDF5_INCLUDE_DIRS})
-list(APPEND Caffe_LINKER_LIBS PUBLIC ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES})
 
 # ---[ LMDB
 if(USE_LMDB)
@@ -71,21 +46,6 @@ if(USE_LMDB)
   if(ALLOW_LMDB_NOLOCK)
     list(APPEND Caffe_DEFINITIONS PRIVATE -DALLOW_LMDB_NOLOCK)
   endif()
-endif()
-
-# ---[ LevelDB
-if(USE_LEVELDB)
-  find_package(LevelDB REQUIRED)
-  list(APPEND Caffe_INCLUDE_DIRS PUBLIC ${LevelDB_INCLUDES})
-  list(APPEND Caffe_LINKER_LIBS PUBLIC ${LevelDB_LIBRARIES})
-  list(APPEND Caffe_DEFINITIONS PUBLIC -DUSE_LEVELDB)
-endif()
-
-# ---[ Snappy
-if(USE_LEVELDB)
-  find_package(Snappy REQUIRED)
-  list(APPEND Caffe_INCLUDE_DIRS PRIVATE ${Snappy_INCLUDE_DIR})
-  list(APPEND Caffe_LINKER_LIBS PRIVATE ${Snappy_LIBRARIES})
 endif()
 
 # ---[ CUDA
@@ -135,7 +95,7 @@ endif()
 
 # ---[ BLAS
 if(NOT APPLE)
-  set(BLAS "Atlas" CACHE STRING "Selected BLAS library")
+  set(BLAS "open" CACHE STRING "Selected BLAS library")
   set_property(CACHE BLAS PROPERTY STRINGS "Atlas;Open;MKL")
 
   if(BLAS STREQUAL "Atlas" OR BLAS STREQUAL "atlas")
@@ -213,29 +173,4 @@ if(BUILD_python)
   endif()
 endif()
 
-# ---[ Matlab
-if(BUILD_matlab)
-  if(MSVC)
-    find_package(Matlab COMPONENTS MAIN_PROGRAM MX_LIBRARY)
-    if(MATLAB_FOUND)
-      set(HAVE_MATLAB TRUE)
-    endif()
-  else()
-    find_package(MatlabMex)
-    if(MATLABMEX_FOUND)
-      set(HAVE_MATLAB TRUE)
-    endif()
-  endif()
-  # sudo apt-get install liboctave-dev
-  find_program(Octave_compiler NAMES mkoctfile DOC "Octave C++ compiler")
 
-  if(HAVE_MATLAB AND Octave_compiler)
-    set(Matlab_build_mex_using "Matlab" CACHE STRING "Select Matlab or Octave if both detected")
-    set_property(CACHE Matlab_build_mex_using PROPERTY STRINGS "Matlab;Octave")
-  endif()
-endif()
-
-# ---[ Doxygen
-if(BUILD_docs)
-  find_package(Doxygen)
-endif()
