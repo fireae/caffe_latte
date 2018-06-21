@@ -7,6 +7,7 @@
 
 #include "google/protobuf/message.h"
 
+#include "CImg.h"
 #include "caffe/common.hpp"
 #include "caffe/proto/caffe.pb.h"
 #include "caffe/util/filesystem.hpp"
@@ -20,7 +21,7 @@ namespace caffe {
 using caffe::filesystem::path;
 using ::google::protobuf::Message;
 
-inline void MakeTempDir(string* temp_dirname) {
+CAFFE_API inline void MakeTempDir(string* temp_dirname) {
   temp_dirname->clear();
   const path& model =
       caffe::filesystem::temp_directory_path() / "caffe_test.%%%%-%%%%";
@@ -35,7 +36,7 @@ inline void MakeTempDir(string* temp_dirname) {
   LOG(FATAL) << "Failed to create a temporary directory.";
 }
 
-inline void MakeTempFilename(string* temp_filename) {
+CAFFE_API inline void MakeTempFilename(string* temp_filename) {
   static path temp_files_subpath;
   static uint64_t next_temp_file = 0;
   temp_filename->clear();
@@ -50,11 +51,13 @@ inline void MakeTempFilename(string* temp_filename) {
 
 CAFFE_API bool ReadProtoFromTextFile(const char* filename, Message* proto);
 
-inline bool ReadProtoFromTextFile(const string& filename, Message* proto) {
+CAFFE_API inline bool ReadProtoFromTextFile(const string& filename,
+                                            Message* proto) {
   return ReadProtoFromTextFile(filename.c_str(), proto);
 }
 
-inline void ReadProtoFromTextFileOrDie(const char* filename, Message* proto) {
+CAFFE_API inline void ReadProtoFromTextFileOrDie(const char* filename,
+                                                 Message* proto) {
   CHECK(ReadProtoFromTextFile(filename, proto));
 }
 
@@ -63,77 +66,91 @@ CAFFE_API inline void ReadProtoFromTextFileOrDie(const string& filename,
   ReadProtoFromTextFileOrDie(filename.c_str(), proto);
 }
 
-void WriteProtoToTextFile(const Message& proto, const char* filename);
-inline void WriteProtoToTextFile(const Message& proto, const string& filename) {
+CAFFE_API void WriteProtoToTextFile(const Message& proto, const char* filename);
+CAFFE_API inline void WriteProtoToTextFile(const Message& proto,
+                                           const string& filename) {
   WriteProtoToTextFile(proto, filename.c_str());
 }
 
 CAFFE_API bool ReadProtoFromBinaryFile(const char* filename, Message* proto);
 
-inline bool ReadProtoFromBinaryFile(const string& filename, Message* proto) {
+CAFFE_API inline bool ReadProtoFromBinaryFile(const string& filename,
+                                              Message* proto) {
   return ReadProtoFromBinaryFile(filename.c_str(), proto);
 }
 
-inline void ReadProtoFromBinaryFileOrDie(const char* filename, Message* proto) {
+CAFFE_API inline void ReadProtoFromBinaryFileOrDie(const char* filename,
+                                                   Message* proto) {
   CHECK(ReadProtoFromBinaryFile(filename, proto));
 }
 
-inline void ReadProtoFromBinaryFileOrDie(const string& filename,
-                                         Message* proto) {
+CAFFE_API inline void ReadProtoFromBinaryFileOrDie(const string& filename,
+                                                   Message* proto) {
   ReadProtoFromBinaryFileOrDie(filename.c_str(), proto);
 }
 
 CAFFE_API void WriteProtoToBinaryFile(const Message& proto,
                                       const char* filename);
-inline void WriteProtoToBinaryFile(const Message& proto,
-                                   const string& filename) {
+CAFFE_API inline void WriteProtoToBinaryFile(const Message& proto,
+                                             const string& filename) {
   WriteProtoToBinaryFile(proto, filename.c_str());
 }
 
-bool ReadFileToDatum(const string& filename, const std::vector<int>& labels,
-                     Datum* datum);
+CAFFE_API bool ReadFileToDatum(const string& filename,
+                               const std::vector<int>& labels, Datum* datum);
 
-inline bool ReadFileToDatum(const string& filename, Datum* datum) {
+CAFFE_API inline bool ReadFileToDatum(const string& filename, Datum* datum) {
   return ReadFileToDatum(filename, std::vector<int>(1, -1), datum);
 }
 
-bool ReadImageToDatum(const string& filename, const std::vector<int>& labels,
-                      const int height, const int width, const bool is_color,
-                      const std::string& encoding, Datum* datum);
+CAFFE_API bool ReadImageToDatum(const string& filename,
+                                const std::vector<int>& labels,
+                                const int height, const int width,
+                                const bool is_color,
+                                const std::string& encoding, Datum* datum);
 
-inline bool ReadImageToDatum(const string& filename,
-                             const std::vector<int>& labels, const int height,
-                             const int width, const bool is_color,
-                             Datum* datum) {
+CAFFE_API inline bool ReadImageToDatum(const string& filename,
+                                       const std::vector<int>& labels,
+                                       const int height, const int width,
+                                       const bool is_color, Datum* datum) {
   return ReadImageToDatum(filename, labels, height, width, is_color, "", datum);
 }
 
-inline bool ReadImageToDatum(const string& filename,
-                             const std::vector<int>& labels, const int height,
-                             const int width, Datum* datum) {
+CAFFE_API inline bool ReadImageToDatum(const string& filename,
+                                       const std::vector<int>& labels,
+                                       const int height, const int width,
+                                       Datum* datum) {
   return ReadImageToDatum(filename, labels, height, width, true, datum);
 }
 
-inline bool ReadImageToDatum(const string& filename,
-                             const std::vector<int>& labels,
-                             const bool is_color, Datum* datum) {
+CAFFE_API inline bool ReadImageToDatum(const string& filename,
+                                       const std::vector<int>& labels,
+                                       const bool is_color, Datum* datum) {
   return ReadImageToDatum(filename, labels, 0, 0, is_color, datum);
 }
 
-inline bool ReadImageToDatum(const string& filename,
-                             const std::vector<int>& labels, Datum* datum) {
+CAFFE_API inline bool ReadImageToDatum(const string& filename,
+                                       const std::vector<int>& labels,
+                                       Datum* datum) {
   return ReadImageToDatum(filename, labels, 0, 0, true, datum);
 }
 
-inline bool ReadImageToDatum(const string& filename,
-                             const std::vector<int>& labels,
-                             const std::string& encoding, Datum* datum) {
+CAFFE_API inline bool ReadImageToDatum(const string& filename,
+                                       const std::vector<int>& labels,
+                                       const std::string& encoding,
+                                       Datum* datum) {
   return ReadImageToDatum(filename, labels, 0, 0, true, encoding, datum);
 }
 
-bool DecodeDatumNative(Datum* datum);
-bool DecodeDatum(Datum* datum, bool is_color);
-
+CAFFE_API bool DecodeDatumNative(Datum* datum);
+CAFFE_API bool DecodeDatum(Datum* datum, bool is_color);
+CAFFE_API CImg<unsigned char> ReadImage(const string& filename,
+                                        const int height, const int width,
+                                        const bool is_color, int* img_height,
+                                        int* img_width);
+CAFFE_API CImg<unsigned char> ReadImage(const string& filename,
+                                        const int height, const int width,
+                                        const bool is_color);
 #if 0
 cv::Mat ReadImageToCVMat(const string& filename, const int height,
   const int width, const bool is_color, int* img_height,

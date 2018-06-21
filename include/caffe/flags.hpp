@@ -4,10 +4,6 @@
 // on gflags. If you have gflags installed, set the macro CAFFE2_USE_GFLAGS will
 // seamlessly route everything to gflags.
 
-#ifdef CAFFE2_USE_GFLAGS
-#include <gflags/gflags.h>
-#endif
-
 #include "caffe/registry.hpp"
 
 namespace caffe {
@@ -136,7 +132,6 @@ CAFFE_DECLARE_REGISTRY(CaffeFlagsRegistry, CaffeFlagParser, const string&);
 #define CAFFE_DECLARE_double(name) CAFFE_DECLARE_typed_var(double, name)
 #define CAFFE_DECLARE_bool(name) CAFFE_DECLARE_typed_var(bool, name)
 #define CAFFE_DECLARE_string(name) CAFFE_DECLARE_typed_var(string, name)
-
-#endif  // CAFFE2_USE_GFLAGS
+#endif
 
 #endif  // CAFFE2_CORE_FLAGS_H_

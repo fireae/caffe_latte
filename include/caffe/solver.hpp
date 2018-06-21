@@ -6,7 +6,6 @@
 
 #include "caffe/net.hpp"
 #include "caffe/registry.hpp"
-//#include "caffe/solver_factory.hpp"
 #include "caffe/util/benchmark.hpp"
 
 namespace caffe {
@@ -40,7 +39,7 @@ typedef std::function<SolverAction::Enum()> ActionCallback;
  * given the current state of the Net parameters.
  */
 template <typename Dtype>
-class Solver {
+class CAFFE_API Solver {
  public:
   explicit Solver(const SolverParameter& param);
   explicit Solver(const string& param_file);
@@ -98,7 +97,6 @@ class Solver {
   virtual void ApplyUpdate() = 0;
   string SnapshotFilename(const string extension);
   string SnapshotToBinaryProto();
-  string SnapshotToHDF5();
   // The test routine
   void TestAll();
   void Test(const int test_net_id = 0);

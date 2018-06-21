@@ -6,7 +6,7 @@
 #include <utility>
 #include <vector>
 
-#include "caffe/data_transformer.hpp"
+//#include "caffe/data_transformer.hpp"
 #include "caffe/layers/base_data_layer.hpp"
 #include "caffe/layers/image_data_layer.hpp"
 #include "caffe/util/benchmark.hpp"
@@ -88,13 +88,8 @@ void ImageDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
       lines_id_ = skip;
     }
     // Read an image, and use it to initialize the top blob.
-    // cv::Mat cv_img = ReadImageToCVMat(root_folder + lines_[lines_id_].first,
-    //                                   new_height, new_width, is_color);
-    // CHECK(cv_img.data) << "Could not load " << lines_[lines_id_].first;
-    // // Use data_transformer to infer the expected blob shape from a cv_image.
-    vector<int>
-        top_shape;  // = this->data_transformer_->InferBlobShape(cv_img);
-    // this->transformed_data_.Reshape(top_shape);
+
+    vector<int> top_shape;
     // Reshape prefetch_data and top[0] according to the batch_size.
     const int batch_size = this->layer_param_.image_data_param().batch_size();
     CHECK_GT(batch_size, 0) << "Positive batch size required";
@@ -152,15 +147,7 @@ void ImageDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
       lines_id_ = skip;
     }
     // Read an image, and use it to initialize the top blob.
-    // cv::Mat cv_img =
-    //    ReadImageToCVMat(root_folder + regression_lines_[lines_id_].first,
-    //                     new_height, new_width, is_color);
-    // CHECK(cv_img.data) << "Could not load "
-    //                   << regression_lines_[lines_id_].first;
-    // Use data_transformer to infer the expected blob shape from a cv_image.
-    vector<int>
-        top_shape;  // = this->data_transformer_->InferBlobShape(cv_img);
-    // this->transformed_data_.Reshape(top_shape);
+    vector<int> top_shape;
     // Reshape prefetch_data and top[0] according to the batch_size.
     const int batch_size = this->layer_param_.image_data_param().batch_size();
     CHECK_GT(batch_size, 0) << "Positive batch size required";
@@ -228,6 +215,17 @@ void ImageDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
     // top_shape[0] = batch_size;
     // batch->data_.Reshape(top_shape);
 
+    CImg<unsigned char> img = ReadImage(root_folder + lines_[lines_id_].first,
+                                        new_height, new_width, is_color);
+    vector<int> top_shape(4, 0);
+    top_shape[0] = 1;
+    top_shape[1] = img.spectrum();
+    top_shape[2] = img.height();
+    top_shape[3] = img.width();
+    this->transformed_data_.Reshape(top_shape);
+    top_shape[0] = batch_size;
+    batch->data_.Reshape(top_shape);
+
     Dtype* prefetch_data = batch->data_.mutable_cpu_data();
     Dtype* prefetch_label = batch->label_.mutable_cpu_data();
 
@@ -237,14 +235,10 @@ void ImageDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
       // get a blob
       timer.Start();
       CHECK_GT(lines_size, lines_id_);
-      // cv::Mat cv_img =
-      // ReadImageToCVMat(root_folder +
-      // lines_[lines_id_].first,
-      //                                  new_height,
-      //                                  new_width,
-      //                                  is_color);
-      // CHECK(cv_img.data) << "Could not load
-      // " << lines_[lines_id_].first;
+      CImg<unsigned char> cv_img =
+          ReadImage(root_folder + lines_[lines_id_].first, new_height,
+                    new_width, is_color);
+      CHECK(cv_img.data()) << "Could not load" << lines_[lines_id_].first;
       read_time += timer.MicroSeconds();
       timer.Start();
       // Apply transformations (mirror,
@@ -253,10 +247,10 @@ void ImageDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
       this->transformed_data_.set_cpu_data(prefetch_data + offset);
       // this->data_transformer_->Transform(cv_img,
       // &(this->transformed_data_));
+
       trans_time += timer.MicroSeconds();
 
-      // prefetch_label[item_id] =
-      // lines_[lines_id_].second;
+      // prefetch_label[item_id] = lines_[lines_id_].second;
       int label_size = lines_[lines_id_].second.size();
       for (int label_id = 0; label_id < label_size; label_id++)
         prefetch_label[item_id * label_size + label_id] =

@@ -146,6 +146,7 @@ if(BUILD_python)
 endif()
 
 include_directories(/home/wencc/anaconda2/include)
+include_directories(${PROJECT_SOURCE_DIR}/3rdparty/eigen)
 add_subdirectory(pybind11)
 pybind11_add_module(pycaffe python/caffe/pycaffe.cpp)
 target_link_libraries(pycaffe caffe)

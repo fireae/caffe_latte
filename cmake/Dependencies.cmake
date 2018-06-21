@@ -5,14 +5,6 @@ set(Caffe_DEFINITIONS "")
 set(Caffe_COMPILE_OPTIONS "")
 
 
-if(DEFINED MSVC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 18.0.40629.0)
-  # Required for VS 2013 Update 4 or earlier.
-  list(APPEND Caffe_DEFINITIONS PUBLIC -DBOOST_NO_CXX11_TEMPLATE_ALIASES)
-endif()
-# ---[ Threads
-find_package(Threads REQUIRED)
-list(APPEND Caffe_LINKER_LIBS PRIVATE ${CMAKE_THREAD_LIBS_INIT})
-
 # ---[ OpenMP
 if(USE_OPENMP)
   # Ideally, this should be provided by the BLAS library IMPORTED target. However,
@@ -76,21 +68,9 @@ if(USE_NCCL)
   add_definitions(-DUSE_NCCL)
 endif()
 
-# ---[ OpenCV
-if(USE_OPENCV)
-  find_package(OpenCV QUIET COMPONENTS core highgui imgproc imgcodecs)
-  if(NOT OpenCV_FOUND) # if not OpenCV 3.x, then imgcodecs are not found
-    find_package(OpenCV REQUIRED COMPONENTS core highgui imgproc)
-  endif()
-  list(APPEND Caffe_INCLUDE_DIRS PUBLIC ${OpenCV_INCLUDE_DIRS})
-  list(APPEND Caffe_LINKER_LIBS PUBLIC ${OpenCV_LIBS})
-  message(STATUS "OpenCV found (${OpenCV_CONFIG_PATH})")
-  list(APPEND Caffe_DEFINITIONS PUBLIC -DUSE_OPENCV)
-endif()
-
 # ---[ BLAS
 if(NOT APPLE)
-  set(BLAS "open" CACHE STRING "Selected BLAS library")
+  set(BLAS "eigen" CACHE STRING "Selected BLAS library")
   set_property(CACHE BLAS PROPERTY STRINGS "Atlas;Open;MKL")
 
   if(BLAS STREQUAL "Atlas" OR BLAS STREQUAL "atlas")
@@ -101,6 +81,10 @@ if(NOT APPLE)
     find_package(OpenBLAS REQUIRED)
     list(APPEND Caffe_INCLUDE_DIRS PUBLIC ${OpenBLAS_INCLUDE_DIR})
     list(APPEND Caffe_LINKER_LIBS PUBLIC ${OpenBLAS_LIB})
+  elseif(BLAS STREQUAL "Eigen" OR BLAS STREQUAL "eigen")
+    #find_package(OpenBLAS REQUIRED)
+    list(APPEND Caffe_INCLUDE_DIRS PUBLIC ${PROJECT_SOURCE_DIR}/3rdparty/eigen)
+    #list(APPEND Caffe_LINKER_LIBS PUBLIC ${OpenBLAS_LIB})
   elseif(BLAS STREQUAL "MKL" OR BLAS STREQUAL "mkl")
     find_package(MKL REQUIRED)
     list(APPEND Caffe_INCLUDE_DIRS PUBLIC ${MKL_INCLUDE_DIR})
@@ -119,53 +103,5 @@ elseif(APPLE)
   endif()
 endif()
 
-# ---[ Python
-# if(BUILD_python)
-#   if(NOT "${python_version}" VERSION_LESS "3.0.0")
-#     # use python3
-#     find_package(PythonInterp 3.0)
-#     find_package(PythonLibs 3.0)
-#     find_package(NumPy 1.7.1)
-#     # Find the matching boost python implementation
-#     set(version ${PYTHONLIBS_VERSION_STRING})
-
-#     STRING( REGEX REPLACE "[^0-9]" "" boost_py_version ${version} )
-#     find_package(Boost 1.46 COMPONENTS "python-py${boost_py_version}")
-#     set(Boost_PYTHON_FOUND ${Boost_PYTHON-PY${boost_py_version}_FOUND})
-
-#     while(NOT "${version}" STREQUAL "" AND NOT Boost_PYTHON_FOUND)
-#       STRING( REGEX REPLACE "([0-9.]+).[0-9]+" "\\1" version ${version} )
-
-#       STRING( REGEX REPLACE "[^0-9]" "" boost_py_version ${version} )
-#       find_package(Boost 1.46 COMPONENTS "python-py${boost_py_version}")
-#       set(Boost_PYTHON_FOUND ${Boost_PYTHON-PY${boost_py_version}_FOUND})
-
-#       STRING( REGEX MATCHALL "([0-9.]+).[0-9]+" has_more_version ${version} )
-#       if("${has_more_version}" STREQUAL "")
-#         break()
-#       endif()
-#     endwhile()
-#     if(NOT Boost_PYTHON_FOUND)
-#       find_package(Boost 1.46 COMPONENTS python)
-#     endif()
-#   else()
-#     # disable Python 3 search
-#     find_package(PythonInterp 2.7)
-#     find_package(PythonLibs 2.7)
-#     find_package(NumPy 1.7.1)
-#     find_package(Boost 1.46 COMPONENTS python)
-#   endif()
-#   if(PYTHONLIBS_FOUND AND NUMPY_FOUND AND Boost_PYTHON_FOUND)
-#     set(HAVE_PYTHON TRUE)
-#     if(Boost_USE_STATIC_LIBS AND MSVC)
-#       list(APPEND Caffe_DEFINITIONS PUBLIC -DBOOST_PYTHON_STATIC_LIB)
-#     endif()
-#     if(BUILD_python_layer)
-#       list(APPEND Caffe_DEFINITIONS PRIVATE -DWITH_PYTHON_LAYER)
-#       list(APPEND Caffe_INCLUDE_DIRS PRIVATE ${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} PUBLIC ${Boost_INCLUDE_DIRS})
-#       list(APPEND Caffe_LINKER_LIBS PRIVATE ${PYTHON_LIBRARIES} PUBLIC ${Boost_LIBRARIES})
-#     endif()
-#   endif()
-# endif()
 
 

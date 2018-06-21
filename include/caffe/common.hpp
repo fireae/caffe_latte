@@ -14,16 +14,22 @@
 #include <vector>
 #include "caffe/flags.hpp"
 #include "caffe/logging.hpp"
+#include "caffe/os_def.hpp"
+
+#ifndef USE_CIMG
+#define USE_CIMG
+#define cimg_use_display
 #define cimg_display 0
 #define cimg_use_jpeg
 #include <CImg.h>
+#endif
 
 #include "caffe/util/device_alternate.hpp"
-#ifdef _WIN32
-#ifdef SIMPLE_EXPORT
-#define CAFFE_API __declspec(dllimport)
-#else
+#ifdef Q_OS_WIN
+#ifdef CAFFE_EXPORT_
 #define CAFFE_API __declspec(dllexport)
+#else
+#define CAFFE_API __declspec(dllimport)
 #endif
 #else
 #define CAFFE_API
@@ -88,10 +94,11 @@ using std::shared_ptr;
 using std::string;
 using std::stringstream;
 using std::vector;
+using namespace cimg_library;
 
 // A global initialization function that you should call in your main function.
 // Currently it initializes google flags and google logging.
-void GlobalInit(int* pargc, char*** pargv);
+CAFFE_API void GlobalInit(int* pargc, char*** pargv);
 
 // A singleton class to hold common caffe stuff, such as the handler that
 // caffe is going to use for cublas, curand, etc.
@@ -105,9 +112,9 @@ class CAFFE_API Caffe {
 
   // This random number generator facade hides  and CUDA rng
   // implementation from one another (for cross-platform compatibility).
-  CAFFE_API class RNG {
+  class CAFFE_API RNG {
    public:
-    CAFFE_API RNG();
+    RNG();
     explicit RNG(unsigned int seed);
     explicit RNG(const RNG&);
     RNG& operator=(const RNG&);
@@ -181,6 +188,29 @@ class CAFFE_API Caffe {
 
   DISABLE_COPY_AND_ASSIGN(Caffe);
 };
+
+// fix cuda bug
+
+#ifdef USE_CUDA
+
+#include <cuda.h>
+#if !defined(__CUDA_ARCH__) || __CUDA_ARCH__ >= 600
+#else
+// CUDA: atomicAdd is not defined for doubles
+static __inline__ __device__ double atomicAdd(double* address, double val) {
+  unsigned long long int* address_as_ull = (unsigned long long int*)address;
+  unsigned long long int old = *address_as_ull, assumed;
+  if (val == 0.0) return __longlong_as_double(old);
+  do {
+    assumed = old;
+    old = atomicCAS(address_as_ull, assumed,
+                    __double_as_longlong(val + __longlong_as_double(assumed)));
+  } while (assumed != old);
+  return __longlong_as_double(old);
+}
+#endif
+
+#endif  // USE_CUDA
 
 }  // namespace caffe
 

@@ -5,8 +5,8 @@
  *  allows use of GLOG, fall back to internal
  *  implementation when disabled
  */
-#ifndef DMLC_LOGGING_H_
-#define DMLC_LOGGING_H_
+#ifndef CAFFE_LOGGING_H_
+#define CAFFE_LOGGING_H_
 #include <cstdio>
 #include <cstdlib>
 #include <stdexcept>
@@ -246,4 +246,4 @@ class LogMessageVoidify {
 
 }  // namespace dmlc
 
-#endif  // DMLC_LOGGING_H_
+#endif  // CAFFE_LOGGING_H_

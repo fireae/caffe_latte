@@ -2,8 +2,8 @@
 
 #include <string>
 #include <vector>
-
 #include "caffe/solver.hpp"
+#include "caffe/util/benchmark.hpp"
 #include "caffe/util/format.hpp"
 #include "caffe/util/io.hpp"
 #include "caffe/util/upgrade_proto.hpp"
@@ -406,9 +406,6 @@ void Solver<Dtype>::Snapshot() {
     case caffe::SolverParameter_SnapshotFormat_BINARYPROTO:
       model_filename = SnapshotToBinaryProto();
       break;
-    case caffe::SolverParameter_SnapshotFormat_HDF5:
-      model_filename = SnapshotToHDF5();
-      break;
     default:
       LOG(FATAL) << "Unsupported snapshot format.";
   }
@@ -447,14 +444,6 @@ string Solver<Dtype>::SnapshotToBinaryProto() {
   NetParameter net_param;
   net_->ToProto(&net_param, param_.snapshot_diff());
   WriteProtoToBinaryFile(net_param, model_filename);
-  return model_filename;
-}
-
-template <typename Dtype>
-string Solver<Dtype>::SnapshotToHDF5() {
-  string model_filename = SnapshotFilename(".caffemodel.h5");
-  LOG(INFO) << "Snapshotting to HDF5 file " << model_filename;
-  net_->ToHDF5(model_filename, param_.snapshot_diff());
   return model_filename;
 }
 

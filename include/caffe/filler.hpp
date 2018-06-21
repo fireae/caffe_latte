@@ -21,10 +21,10 @@ class Filler {
   explicit Filler(const FillerParameter& param) : filler_param_(param) {}
   virtual ~Filler() {}
   virtual void Fill(Blob<Dtype>* blob) = 0;
+
  protected:
   FillerParameter filler_param_;
 };  // class Filler
-
 
 /// @brief Fills a Blob with constant values @f$ x = 0 @f$.
 template <typename Dtype>
@@ -41,7 +41,7 @@ class ConstantFiller : public Filler<Dtype> {
       data[i] = value;
     }
     CHECK_EQ(this->filler_param_.sparse(), -1)
-         << "Sparsity not supported by this Filler.";
+        << "Sparsity not supported by this Filler.";
   }
 };
 
@@ -49,14 +49,14 @@ class ConstantFiller : public Filler<Dtype> {
 template <typename Dtype>
 class UniformFiller : public Filler<Dtype> {
  public:
-  explicit UniformFiller(const FillerParameter& param)
-      : Filler<Dtype>(param) {}
+  explicit UniformFiller(const FillerParameter& param) : Filler<Dtype>(param) {}
   virtual void Fill(Blob<Dtype>* blob) {
     CHECK(blob->count());
     caffe_rng_uniform<Dtype>(blob->count(), Dtype(this->filler_param_.min()),
-        Dtype(this->filler_param_.max()), blob->mutable_cpu_data());
+                             Dtype(this->filler_param_.max()),
+                             blob->mutable_cpu_data());
     CHECK_EQ(this->filler_param_.sparse(), -1)
-         << "Sparsity not supported by this Filler.";
+        << "Sparsity not supported by this Filler.";
   }
 };
 
@@ -70,7 +70,8 @@ class GaussianFiller : public Filler<Dtype> {
     Dtype* data = blob->mutable_cpu_data();
     CHECK(blob->count());
     caffe_rng_gaussian<Dtype>(blob->count(), Dtype(this->filler_param_.mean()),
-        Dtype(this->filler_param_.std()), blob->mutable_cpu_data());
+                              Dtype(this->filler_param_.std()),
+                              blob->mutable_cpu_data());
     int sparse = this->filler_param_.sparse();
     CHECK_GE(sparse, -1);
     if (sparse >= 0) {
@@ -120,7 +121,7 @@ class PositiveUnitballFiller : public Filler<Dtype> {
       }
     }
     CHECK_EQ(this->filler_param_.sparse(), -1)
-         << "Sparsity not supported by this Filler.";
+        << "Sparsity not supported by this Filler.";
   }
 };
 
@@ -143,8 +144,7 @@ class PositiveUnitballFiller : public Filler<Dtype> {
 template <typename Dtype>
 class XavierFiller : public Filler<Dtype> {
  public:
-  explicit XavierFiller(const FillerParameter& param)
-      : Filler<Dtype>(param) {}
+  explicit XavierFiller(const FillerParameter& param) : Filler<Dtype>(param) {}
   virtual void Fill(Blob<Dtype>* blob) {
     CHECK(blob->count());
     int fan_in = blob->count() / blob->num();
@@ -154,14 +154,14 @@ class XavierFiller : public Filler<Dtype> {
         FillerParameter_VarianceNorm_AVERAGE) {
       n = (fan_in + fan_out) / Dtype(2);
     } else if (this->filler_param_.variance_norm() ==
-        FillerParameter_VarianceNorm_FAN_OUT) {
+               FillerParameter_VarianceNorm_FAN_OUT) {
       n = fan_out;
     }
     Dtype scale = sqrt(Dtype(3) / n);
     caffe_rng_uniform<Dtype>(blob->count(), -scale, scale,
-        blob->mutable_cpu_data());
+                             blob->mutable_cpu_data());
     CHECK_EQ(this->filler_param_.sparse(), -1)
-         << "Sparsity not supported by this Filler.";
+        << "Sparsity not supported by this Filler.";
   }
 };
 
@@ -185,8 +185,7 @@ class XavierFiller : public Filler<Dtype> {
 template <typename Dtype>
 class MSRAFiller : public Filler<Dtype> {
  public:
-  explicit MSRAFiller(const FillerParameter& param)
-      : Filler<Dtype>(param) {}
+  explicit MSRAFiller(const FillerParameter& param) : Filler<Dtype>(param) {}
   virtual void Fill(Blob<Dtype>* blob) {
     CHECK(blob->count());
     int fan_in = blob->count() / blob->num();
@@ -196,14 +195,14 @@ class MSRAFiller : public Filler<Dtype> {
         FillerParameter_VarianceNorm_AVERAGE) {
       n = (fan_in + fan_out) / Dtype(2);
     } else if (this->filler_param_.variance_norm() ==
-        FillerParameter_VarianceNorm_FAN_OUT) {
+               FillerParameter_VarianceNorm_FAN_OUT) {
       n = fan_out;
     }
     Dtype std = sqrt(Dtype(2) / n);
     caffe_rng_gaussian<Dtype>(blob->count(), Dtype(0), std,
-        blob->mutable_cpu_data());
+                              blob->mutable_cpu_data());
     CHECK_EQ(this->filler_param_.sparse(), -1)
-         << "Sparsity not supported by this Filler.";
+        << "Sparsity not supported by this Filler.";
   }
 };
 
@@ -257,7 +256,7 @@ class BilinearFiller : public Filler<Dtype> {
       data[i] = (1 - fabs(x / f - c)) * (1 - fabs(y / f - c));
     }
     CHECK_EQ(this->filler_param_.sparse(), -1)
-         << "Sparsity not supported by this Filler.";
+        << "Sparsity not supported by this Filler.";
   }
 };
 
@@ -289,6 +288,11 @@ Filler<Dtype>* GetFiller(const FillerParameter& param) {
   }
   return (Filler<Dtype>*)(NULL);
 }
+
+CAFFE_DECLARE_REGISTRY(FillerFloatRegistry, Filler<float>,
+                       const FillerParameter&);
+CAFFE_DECLARE_REGISTRY(FillerDoubleRegistry, Filler<double>,
+                       const FillerParameter&);
 
 }  // namespace caffe
 
