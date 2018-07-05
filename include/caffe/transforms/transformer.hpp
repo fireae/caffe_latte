@@ -46,7 +46,7 @@ class Transformer {
     if (param_.scale() != 1.0) {
       vector<float> scales;
       scales.push_back(param_.scale());
-      Transformation* scale = new Scale(scales);
+      Transformation* a = new Scale(scales);
       transformations_.push_back(a);
     }
 
@@ -63,6 +63,7 @@ class Transformer {
       CImg<unsigned char> trans_image = transformer->Transform(new_image);
       new_image = trans_image;
     }
+    return new_image;
   }
 
   template <typename Dtype>

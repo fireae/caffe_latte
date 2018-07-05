@@ -10542,7 +10542,8 @@ namespace cimg_library_suffixed {
      each pixel value being of type \c T. The image grid can have up to 4 dimensions: width, height, depth
      and number of channels.
      Usually, the three first dimensions are used to describe spatial coordinates <tt>(x,y,z)</tt>,
-     while the number of channels is rather used as a vector-valued dimension
+     while the numbe
+     r of channels is rather used as a vector-valued dimension
      (it may describe the R,G,B color channels for instance).
      If you need a fifth dimension, you can use image lists \c CImgList<T> rather than simple images \c CImg<T>.
 

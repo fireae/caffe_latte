@@ -105,8 +105,8 @@ template <typename Dtype>
 void SGDSolver<Dtype>::ApplyUpdate() {
   Dtype rate = GetLearningRate();
   if (this->param_.display() && this->iter_ % this->param_.display() == 0) {
-    LOG_IF(INFO, Caffe::root_solver()) << "Iteration " << this->iter_
-                                       << ", lr = " << rate;
+    LOG_IF(INFO, Caffe::root_solver())
+        << "Iteration " << this->iter_ << ", lr = " << rate;
   }
   ClipGradients();
   for (int param_id = 0; param_id < this->net_->learnable_params().size();
@@ -248,9 +248,6 @@ void SGDSolver<Dtype>::SnapshotSolverState(const string& model_filename) {
     case caffe::SolverParameter_SnapshotFormat_BINARYPROTO:
       SnapshotSolverStateToBinaryProto(model_filename);
       break;
-    case caffe::SolverParameter_SnapshotFormat_HDF5:
-      SnapshotSolverStateToHDF5(model_filename);
-      break;
     default:
       LOG(FATAL) << "Unsupported snapshot format.";
   }
@@ -294,7 +291,6 @@ void SGDSolver<Dtype>::RestoreSolverStateFromBinaryProto(
     history_[i]->FromProto(state.history(i));
   }
 }
-
 
 // INSTANTIATE_CLASS(SGDSolver);
 // REGISTER_SOLVER_CLASS(SGD);

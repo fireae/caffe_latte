@@ -9,6 +9,7 @@
 //#include "caffe/data_transformer.hpp"
 #include "caffe/layers/base_data_layer.hpp"
 #include "caffe/layers/image_data_layer.hpp"
+#include "caffe/transforms/transformer.hpp"
 #include "caffe/util/benchmark.hpp"
 #include "caffe/util/io.hpp"
 #include "caffe/util/math_functions.hpp"
@@ -198,22 +199,10 @@ void ImageDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
   string root_folder = image_data_param.root_folder();
   const bool is_regression = image_data_param.regression();
 
+  Transformer transformer(this->layer_param_.transform_param());
   if (!is_regression) {
     // Reshape according to the first image of each batch
     // on single input batches allows for inputs of varying dimension.
-    // cv::Mat cv_img = ReadImageToCVMat(root_folder + lines_[lines_id_].first,
-    // new_height, new_width, is_color);
-    // CHECK(cv_img.data) << "Could not load "
-    // << lines_[lines_id_].first;
-    // Use data_transformer to infer the
-    // expected blob shape from a cv_img.
-    // vector<int> top_shape =
-    // this->data_transformer_->InferBlobShape(cv_img);
-    // this->transformed_data_.Reshape(top_shape);
-    // Reshape batch according to the
-    // batch_size.
-    // top_shape[0] = batch_size;
-    // batch->data_.Reshape(top_shape);
 
     CImg<unsigned char> img = ReadImage(root_folder + lines_[lines_id_].first,
                                         new_height, new_width, is_color);

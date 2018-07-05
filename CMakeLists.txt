@@ -41,7 +41,7 @@ include(cmake/TargetResolvePrerequesites.cmake)
 caffe_option(USE_CUDA  "Build Caffe without CUDA support" OFF) 
 caffe_option(USE_CUDNN "Build Caffe with cuDNN library support" ON IF USE_CUDA)
 caffe_option(USE_NCCL "Build Caffe with NCCL library support" OFF)
-caffe_option(BUILD_python "Build Python wrapper" OFF)
+caffe_option(BUILD_python "Build Python wrapper" ON)
 set(python_version "2" CACHE STRING "Specify which Python version to use")
 caffe_option(BUILD_matlab "Build Matlab wrapper" OFF)
 caffe_option(BUILD_tools  "Build tools" OFF)
@@ -141,28 +141,18 @@ if(BUILD_examples)
   add_subdirectory(examples)
 endif()
 
-if(BUILD_python)
-  add_subdirectory(python)
-endif()
 
 include_directories(/home/wencc/anaconda2/include)
 include_directories(${PROJECT_SOURCE_DIR}/3rdparty/eigen)
 add_subdirectory(pybind11)
 pybind11_add_module(pycaffe python/caffe/pycaffe.cpp)
-target_link_libraries(pycaffe caffe)
+target_link_libraries(pycaffe caffe jpeg)
+
+add_executable(caffe_bin tools/caffe.cpp)
+target_link_libraries(caffe_bin caffe jpeg)
+
 # ---[ Linter target
 add_custom_target(lint COMMAND ${CMAKE_COMMAND} -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE} -P ${PROJECT_SOURCE_DIR}/cmake/lint.cmake)
-
-# ---[ pytest target
-if(BUILD_python)
-  if(UNIX)
-    set(python_executable python${python_version})
-  else()
-    set(python_executable ${PYTHON_EXECUTABLE})
-  endif()
-  add_custom_target(pytest COMMAND ${python_executable} -m unittest discover -s caffe/test WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/python )
-  add_dependencies(pytest pycaffe)
-endif()
 
 # ---[ uninstall target
 configure_file(

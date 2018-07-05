@@ -1,8 +1,8 @@
+#include "caffe/common.hpp"
 #include <caffe/logging.hpp>
 #include <cmath>
 #include <cstdio>
 #include <ctime>
-#include "caffe/common.hpp"
 #include "caffe/util/rng.hpp"
 
 namespace caffe {
@@ -24,18 +24,7 @@ int64_t cluster_seedgen(void) {
   return seed;
 }
 
-void GlobalInit(int* pargc, char*** pargv) {
-// Google flags.
-//::caffe::ParseCommandLineFlags(pargc, pargv, true);
-// Google logging.
-//::caffe::InitLogging(*(pargv)[0]);
-// Provide a backtrace on segfault.
-
-// Windows port of glogs doesn't have this function built
-#if !defined(_MSC_VER)
-//::google::InstallFailureSignalHandler();
-#endif
-}
+void GlobalInit(int* pargc, char*** pargv) {}
 
 #ifndef USE_CUDA
 

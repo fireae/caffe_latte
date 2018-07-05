@@ -1,12 +1,12 @@
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 // these need to be included after boost on OS X
 #include <fstream>  // NOLINT
 #include <string>   // NOLINT(build/include_order)
 #include <vector>   // NOLINT(build/include_order)
-
+#if 1
 #include "caffe/caffe.hpp"
-#include "caffe/layers/memory_data_layer.hpp"
-//#include "caffe/layers/python_layer.hpp"
+#include "caffe/layer_factory.hpp"
 #include "caffe/sgd_solvers.hpp"
 
 namespace py = pybind11;
@@ -18,14 +18,8 @@ namespace caffe {
 void set_mode_cpu() { Caffe::set_mode(Caffe::CPU); }
 void set_mode_gpu() { Caffe::set_mode(Caffe::GPU); }
 
-void InitLog() {
-  ::caffe::InitLogging("");
-  //::google::InstallFailureSignalHandler();
-}
-void InitLogLevel(int level) {
-  // FLAGS_minloglevel = level;
-  InitLog();
-}
+void InitLog() { ::caffe::InitLogging(""); }
+void InitLogLevel(int level) { InitLog(); }
 void InitLogLevelPipe(int level, bool stderr) {
   // FLAGS_minloglevel = level;
   // FLAGS_logtostderr = stderr;
@@ -54,14 +48,6 @@ void Net_Save(const Net<Dtype>& net, string filename) {
   // WriteProtoToBinaryFile(net_param, filename.c_str());
 }
 
-void Net_SaveHDF5(const Net<Dtype>& net, string filename) {
-  net.ToHDF5(filename);
-}
-
-void Net_LoadHDF5(Net<Dtype>* net, string filename) {
-  net->CopyTrainedLayersFromHDF5(filename.c_str());
-}
-
 Solver<Dtype>* GetSolverFromFile(const string& filename) {
   SolverParameter param;
   ReadSolverParamsFromTextFileOrDie(filename, &param);
@@ -74,5 +60,16 @@ PYBIND11_MODULE(pycaffe, m) {
   m.def("init_log", &InitLogLevel, "a function init log");
   m.def("init_log", &InitLogLevelPipe, "a function init log");
   m.def("log", &Log, "a function init log");
+  m.def("set_mode_cpu", &set_mode_cpu);
+  m.def("set_mode_gpu", &set_mode_gpu);
+  m.def("set_random_seed", &set_random_seed);
+  m.def("set_device", &Caffe::SetDevice);
+  m.def("solver_count", &Caffe::solver_count);
+  m.def("set_solver_count", &Caffe::set_solver_count);
+  m.def("solver_rank", &Caffe::solver_rank);
+  m.def("set_solver_rank", &Caffe::set_solver_rank);
+  m.def("layer_type_list", &LayerRegistry<Dtype>::LayerTypeList);
 }
-}
+
+}  // namespace caffe
+#endif

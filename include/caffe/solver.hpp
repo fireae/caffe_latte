@@ -11,13 +11,13 @@
 namespace caffe {
 
 /**
-  * @brief Enumeration of actions that a client of the Solver may request by
-  * implementing the Solver's action request function, which a
-  * client may optionally provide in order to request early termination
-  * or saving a snapshot without exiting. In the executable caffe, this
-  * mechanism is used to allow the snapshot to be saved when stopping
-  * execution with a SIGINT (Ctrl-C).
-  */
+ * @brief Enumeration of actions that a client of the Solver may request by
+ * implementing the Solver's action request function, which a
+ * client may optionally provide in order to request early termination
+ * or saving a snapshot without exiting. In the executable caffe, this
+ * mechanism is used to allow the snapshot to be saved when stopping
+ * execution with a SIGINT (Ctrl-C).
+ */
 namespace SolverAction {
 enum Enum {
   NONE = 0,     // Take no special action.
@@ -101,7 +101,6 @@ class CAFFE_API Solver {
   void TestAll();
   void Test(const int test_net_id = 0);
   virtual void SnapshotSolverState(const string& model_filename) = 0;
-  virtual void RestoreSolverStateFromHDF5(const string& state_file) = 0;
   virtual void RestoreSolverStateFromBinaryProto(const string& state_file) = 0;
   void DisplayOutputBlobs(const int net_id);
   void UpdateSmoothedLoss(Dtype loss, int start_iter, int average_loss);
