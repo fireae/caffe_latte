@@ -8,6 +8,7 @@
 #include "caffe/util/io.hpp"
 #include "caffe/util/upgrade_proto.hpp"
 
+
 namespace caffe {
 
 template <typename Dtype>

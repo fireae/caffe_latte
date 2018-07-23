@@ -145,6 +145,7 @@ void caffe_cpu_axpby<double>(const int N, const double alpha, const double* X,
   cblas_daxpby(N, alpha, X, 1, beta, Y, 1);
 }
 
+
 template <>
 void caffe_add<float>(const int n, const float* a, const float* b, float* y) {
   vsAdd(n, a, b, y);

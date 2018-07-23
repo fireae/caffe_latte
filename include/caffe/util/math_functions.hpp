@@ -111,6 +111,10 @@ Dtype caffe_cpu_strided_dot(const int n, const Dtype* x, const int incx,
 template <typename Dtype>
 Dtype caffe_cpu_asum(const int n, const Dtype* x);
 
+template <typename Dtype> 
+Dtype caffe_max(Dtype a, Dtype b) {
+	return a > b ? a : b;
+}
 // the branchless, type-safe version from
 // http://stackoverflow.com/questions/1903954/is-there-a-standard-sign-function-signum-sgn-in-c-c
 template <typename Dtype>

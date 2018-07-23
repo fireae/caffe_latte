@@ -5,7 +5,7 @@
 #include <vector>
 #include "caffe/layer.hpp"
 
-namespace bp = pybind11;
+namespace py = pybind11;
 
 namespace caffe {
 
@@ -17,6 +17,7 @@ class PythonLayer : public Layer<Dtype> {
 
   virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
                           const vector<Blob<Dtype>*>& top) {
+							  py::scoped_interpreter guard{};
     // Disallow PythonLayer in MultiGPU training stage, due to GIL issues
     // Details: https://github.com/BVLC/caffe/issues/2936
     if (this->phase_ == TRAIN && Caffe::solver_count() > 1 &&

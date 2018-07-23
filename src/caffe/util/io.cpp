@@ -71,32 +71,6 @@ void WriteProtoToBinaryFile(const Message& proto, const char* filename) {
   fstream output(filename, ios::out | ios::trunc | ios::binary);
   CHECK(proto.SerializeToOstream(&output));
 }
-CImg<unsigned char> ReadImage(const string& filename, const int height,
-                              const int width, const bool is_color,
-                              int* img_height, int* img_width) {
-  CImg<unsigned char> image;
-  CImg<unsigned char> org_image(filename.c_str());
-  if (!org_image.data()) {
-    LOG(ERROR) << "Could not open or find file " << filename;
-    return org_image;
-  }
-  if (height > 0 && width > 0) {
-    image = org_image.resize(width, height);
-  } else {
-    image = org_image;
-  }
-  if (img_height != NULL) {
-    *img_height = height;
-  }
-  if (img_width != NULL) {
-    *img_width = width;
-  }
-  return image;
-}
-CImg<unsigned char> ReadImage(const string& filename, const int height,
-                              const int width, const bool is_color) {
-  return ReadImage(filename, height, width, is_color, NULL, NULL);
-}
 
 #ifdef USE_OPENCV
 cv::Mat ReadImageToCVMat(const string& filename, const int height,

@@ -1,7 +1,6 @@
-#include <thread>
+#include <string>
 #include <mutex>
 #include <condition_variable>
-#include <string>
 
 #include "caffe/layers/base_data_layer.hpp"
 #include "caffe/parallel.hpp"
@@ -12,7 +11,7 @@ namespace caffe {
 template<typename T>
 class BlockingQueue<T>::sync {
  public:
-  mutable std::mutex mutex_;
+  std::mutex mutex_;
   std::condition_variable condition_;
 };
 
@@ -88,6 +87,5 @@ size_t BlockingQueue<T>::size() const {
 }
 
 template class BlockingQueue<Batch<float>*>;
-template class BlockingQueue<Batch<double>*>;
-
-}  // namespace caffe
+template class BlockingQueue<Batch<double>*>;    
+}

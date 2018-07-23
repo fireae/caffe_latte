@@ -6,8 +6,6 @@
 #include <string>
 
 #include "google/protobuf/message.h"
-
-#include "CImg.h"
 #include "caffe/common.hpp"
 #include "caffe/proto/caffe.pb.h"
 #include "caffe/util/filesystem.hpp"
@@ -102,7 +100,7 @@ CAFFE_API bool ReadFileToDatum(const string& filename,
 CAFFE_API inline bool ReadFileToDatum(const string& filename, Datum* datum) {
   return ReadFileToDatum(filename, std::vector<int>(1, -1), datum);
 }
-
+#if 0
 CAFFE_API bool ReadImageToDatum(const string& filename,
                                 const std::vector<int>& labels,
                                 const int height, const int width,
@@ -141,16 +139,9 @@ CAFFE_API inline bool ReadImageToDatum(const string& filename,
                                        Datum* datum) {
   return ReadImageToDatum(filename, labels, 0, 0, true, encoding, datum);
 }
-
+#endif 
 CAFFE_API bool DecodeDatumNative(Datum* datum);
 CAFFE_API bool DecodeDatum(Datum* datum, bool is_color);
-CAFFE_API CImg<unsigned char> ReadImage(const string& filename,
-                                        const int height, const int width,
-                                        const bool is_color, int* img_height,
-                                        int* img_width);
-CAFFE_API CImg<unsigned char> ReadImage(const string& filename,
-                                        const int height, const int width,
-                                        const bool is_color);
 #if 0
 cv::Mat ReadImageToCVMat(const string& filename, const int height,
   const int width, const bool is_color, int* img_height,

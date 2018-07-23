@@ -16,15 +16,16 @@
 #include "caffe/logging.hpp"
 #include "caffe/os_def.hpp"
 
-#ifndef USE_CIMG
-#define USE_CIMG
-#define cimg_use_display
-#define cimg_display 0
-#define cimg_use_jpeg
-#include <CImg.h>
-#endif
+// #ifndef USE_CIMG
+// #define USE_CIMG
+// #define cimg_use_display
+// #define cimg_display 0
+// #define cimg_use_jpeg
+// #include <CImg.h>
+// #endif
 
 #include "caffe/util/device_alternate.hpp"
+#define CAFFE_EXPORT_
 #ifdef Q_OS_WIN
 #ifdef CAFFE_EXPORT_
 #define CAFFE_API __declspec(dllexport)
@@ -94,7 +95,6 @@ using std::shared_ptr;
 using std::string;
 using std::stringstream;
 using std::vector;
-using namespace cimg_library;
 
 // A global initialization function that you should call in your main function.
 // Currently it initializes google flags and google logging.

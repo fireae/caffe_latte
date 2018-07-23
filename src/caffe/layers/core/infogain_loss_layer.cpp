@@ -106,7 +106,7 @@ Dtype InfogainLossLayer<Dtype>::get_normalizer(
   }
   // Some users will have no labels for some examples in order to 'turn off' a
   // particular loss in a multi-task setup. The max prevents NaNs in that case.
-  return std::max(Dtype(1.0), normalizer);
+  return caffe_max<Dtype>(1.0, normalizer);
 }
 
 template <typename Dtype>
@@ -150,7 +150,7 @@ void InfogainLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       for (int l = 0; l < num_labels_; l++) {
         loss -=
             infogain_mat[label_value * num_labels_ + l] *
-            log(std::max(
+            std::log(caffe_max<Dtype>(
                 prob_data[i * inner_num_ * num_labels_ + l * inner_num_ + j],
                 Dtype(kLOG_THRESHOLD)));
       }

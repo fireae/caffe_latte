@@ -1,12 +1,5 @@
-cmake_minimum_required(VERSION 2.8.7)
-if(MSVC)
-  # CMake 3.4 introduced a WINDOWS_EXPORT_ALL_SYMBOLS target property that makes it possible to
-  # build shared libraries without using the usual declspec() decoration.
-  # See: https://blog.kitware.com/create-dlls-on-windows-without-declspec-using-new-cmake-export-all-feature/
-  # and https://cmake.org/cmake/help/v3.5/prop_tgt/WINDOWS_EXPORT_ALL_SYMBOLS.html
-  # for details.
-  cmake_minimum_required(VERSION 3.4)
-endif()
+cmake_minimum_required(VERSION 3.4)
+
 if(POLICY CMP0046)
   cmake_policy(SET CMP0046 NEW)
 endif()
@@ -24,18 +17,9 @@ add_definitions(-DCAFFE_VERSION=${CAFFE_TARGET_VERSION})
 
 # ---[ Using cmake scripts and modules
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/Modules)
-list(APPEND CMAKE_MODULE_PATH /home/wencc/Apps/miniconda3/share/cmake-3.6/Modules)
-include(ExternalProject)
-include(GNUInstallDirs)
 
 include(cmake/Utils.cmake)
 include(cmake/Targets.cmake)
-include(cmake/Misc.cmake)
-include(cmake/msvc.cmake)
-include(cmake/Summary.cmake)
-include(cmake/ConfigGen.cmake)
-include(cmake/WindowsCreateLinkHeader.cmake)
-include(cmake/TargetResolvePrerequesites.cmake)
 
 # ---[ Options
 caffe_option(USE_CUDA  "Build Caffe without CUDA support" OFF) 
@@ -75,12 +59,6 @@ if(MSVC AND BUILD_SHARED_LIBS)
   # to protobuf this problem should not happen. Use at your own risk.
   message(WARNING "Some tests (solvers) will fail when building as a shared library with MSVC")
 endif()
-
-# ---[ Prebuild dependencies on windows
-include(cmake/WindowsDownloadPrebuiltDependencies.cmake)
-
-# ---[ Dependencies
-include(cmake/Dependencies.cmake)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 # ---[ Flags
@@ -128,45 +106,14 @@ if(HAVE_CUDA)
   list(REMOVE_ITEM Caffe_ALL_DEFINITIONS PRIVATE PUBLIC)
   list(APPEND CUDA_NVCC_FLAGS ${Caffe_ALL_DEFINITIONS})
 endif()
-
+include_directories(D:\\Projects\\mini-caffe\\3rdparty\\include)
+include_directories(D:\\Projects\\mini-caffe\\3rdparty\\include\\openblas)
+link_directories(D:\\Projects\\mini-caffe\\3rdparty\\lib)
 # ---[ Subdirectories
-add_subdirectory(src)
-#add_subdirectory(apps)
-add_subdirectory(3rdparty/warp_ctc)
-if(BUILD_tools)
-  add_subdirectory(tools)
-endif()
-
-if(BUILD_examples)
-  add_subdirectory(examples)
-endif()
-
-
-include_directories(/home/wencc/anaconda2/include)
-include_directories(${PROJECT_SOURCE_DIR}/3rdparty/eigen)
 add_subdirectory(pybind11)
-pybind11_add_module(pycaffe python/caffe/pycaffe.cpp)
-target_link_libraries(pycaffe caffe jpeg)
+include_directories(${PROJECT_SOURCE_DIR}/pybind11/include)
+add_subdirectory(src)
+add_subdirectory(3rdparty/warp_ctc)
 
-add_executable(caffe_bin tools/caffe.cpp)
-target_link_libraries(caffe_bin caffe jpeg)
 
-# ---[ Linter target
-add_custom_target(lint COMMAND ${CMAKE_COMMAND} -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE} -P ${PROJECT_SOURCE_DIR}/cmake/lint.cmake)
-
-# ---[ uninstall target
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Uninstall.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/cmake/Uninstall.cmake
-    IMMEDIATE @ONLY)
-
-add_custom_target(uninstall
-    COMMAND ${CMAKE_COMMAND} -P
-    ${CMAKE_CURRENT_BINARY_DIR}/cmake/Uninstall.cmake)
-
-# ---[ Configuration summary
-caffe_print_configuration_summary()
-
-# ---[ Export configs generation
-caffe_generate_export_configs()
 

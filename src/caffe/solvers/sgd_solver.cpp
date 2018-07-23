@@ -292,7 +292,7 @@ void SGDSolver<Dtype>::RestoreSolverStateFromBinaryProto(
   }
 }
 
-// INSTANTIATE_CLASS(SGDSolver);
+INSTANTIATE_CLASS(SGDSolver);
 // REGISTER_SOLVER_CLASS(SGD);
 
 CAFFE_REGISTER_CLASS(SolverFloatRegistry, SGD, SGDSolver<float>);
