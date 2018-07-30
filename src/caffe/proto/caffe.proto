@@ -496,9 +496,8 @@ message LayerParameter {
   optional SpatialDropoutParameter spatial_dropout_param = 152;
   optional AnchorTargetParameter anchor_target_param = 153;
   optional ProposalParameter proposal_param = 154;
-  optional FrcnnConfigParameter frcnn_config_param = 155;
-
   optional ProposalTargetParameter proposal_target_param = 156;
+  
   optional ROIDataParameter roi_data_param = 157;
   optional CTCDecoderParameter ctc_decoder_param = 158;
   optional CTCLossParameter ctc_loss_param = 159;
@@ -508,9 +507,13 @@ message LayerParameter {
   optional InterpParameter interp_param = 162;
   optional ShuffleChannelParameter shuffle_channel_param = 164;
   optional PairImageDataParameter pair_image_data_param= 165;
+  repeated LSTMConvolutionParameter lstm_conv_param = 166;
+  optional LSTMDebugParameter lstm_debug_param = 167;
+  
   
   optional BoxAnnotatorOHEMParameter box_annotator_ohem_param = 170;
-  optional PSROIPoolingParameter psroi_pooling_param = 172;
+  optional PSROIPoolingParameter psroi_pooling_param = 171;
+  optional PSROIAlignParameter psroi_align_param=172;
   optional DeformablePSROIPoolingParameter deformable_psroi_pooling_param = 173;
   optional ROIAlignParameter roi_align_param = 174;
   optional MaskResizeParameter mask_resize_param = 175;
@@ -530,8 +533,222 @@ message LayerParameter {
 
   optional TransposeParameter transpose_param=200;
   optional LSTMParameter lstm_param = 201;
+  optional UpsampleParameter upsample_param = 202;
+  optional BNParameter bn_param = 203;
+  optional RepackParameter repack_param = 204;
+  optional SpatialTransformerParameter spatialtransformer_param=205;
+  optional SRNNFormatParameter srnnformat_param=206;
+  
+  optional GaussianAttentionParameter gaussian_attention_param = 210;
+  optional CompactBilinearParameter compact_bilinear_param=211;
+  optional SpatialSoftmaxParameter spatial_softmax_param = 212;
+  optional STParameter st_param = 213;
+  optional STLossParameter st_loss_param = 214;
+  optional PowerFileParameter power_file_param = 215;
+  optional LocLossParameter loc_loss_param = 216;
+  
   optional LabelSpecificAddParameter label_specific_add_param = 241;
   
+}
+
+// spatial transformer layer parameters
+message SpatialTransformerParameter {
+  enum Rotate {
+    NOROTATE = 0;
+	ROTATE90 = 1; //clockwise
+	ROTATE180 = 2;
+	ROTATE270 = 3;
+  }
+  enum Operation {
+    TRANSFORM = 0;
+    UNTRANSFORM = 1;
+  }
+  optional bool mirror = 1 [default = true]; //whether to do horizontal mirror
+  optional Rotate rotate = 2 [default = NOROTATE];
+  optional Operation operation = 3 [default = TRANSFORM];
+}
+
+// spatial RNN format layer parameters
+message SRNNFormatParameter {
+  enum Operation {
+    FORMAT = 0;
+    UNFORMAT = 1;
+  }
+  optional Operation operation = 1 [default = FORMAT];
+}
+
+message PowerFileParameter {
+
+	optional string shift_file = 1;
+}
+
+message STLossParameter {
+	
+	// Indicate the resolution of the output images after ST transformation
+	required int32 output_H = 1;
+	required int32 output_W = 2;
+}
+
+message LocLossParameter {
+	
+	required double threshold = 1;
+}
+
+message STParameter {
+
+	// How to use the parameter passed by localisation network
+	optional string transform_type = 1 [default = "affine"];
+	// What is the sampling technique
+	optional string sampler_type = 2 [default = "bilinear"];
+	
+	// If not set,stay same with the input dimension H and W
+	optional int32 output_H = 3;
+	optional int32 output_W = 4;
+	
+	// If false, only compute dTheta, DO NOT compute dU
+	optional bool to_compute_dU = 5 [default = true];
+	
+	// The default value for some parameters
+	optional double theta_1_1 = 6; 
+	optional double theta_1_2 = 7;
+	optional double theta_1_3 = 8;
+	optional double theta_2_1 = 9;
+	optional double theta_2_2 = 10;
+	optional double theta_2_3 = 11;
+}
+
+// Message that stores parameters used by SpatialSoftmaxLayer
+message SpatialSoftmaxParameter {
+  enum Engine {
+    DEFAULT = 0;
+    CAFFE = 1;
+    CUDNN = 2;
+  }
+  optional Engine engine = 1 [default = DEFAULT];
+  optional float temperature = 2 [default = 1.0];
+}
+
+// Message that stores parameters used by GaussianAttentionLayer
+message GaussianAttentionParameter {
+  enum Engine {
+    DEFAULT = 0;
+    CAFFE = 1;
+    CUDNN = 2;
+  }
+  optional Engine engine = 1 [default = DEFAULT];
+
+  optional float sigma = 2 [default = 0.5];
+}
+
+message CompactBilinearParameter {
+	// compact bilinear pooling output number of channels
+	// two inputs are of size N*C1*H*W and N*C2*H*W, the output has size
+	// N*num_output*1(H)*(W), depending on whether do sum pooling. 
+	optional uint32 num_output = 1;
+	
+	// by default, do sum pooling over spatial locations.
+	// In the case of caring spatio location, such as semantic segmentation,
+	// one might don't want to be pooled spatially. 
+	optional bool sum_pool = 2 [default = true]; 
+}
+
+message LSTMDebugParameter {
+  // Allows to expose ANY internal blob (not just c_T, h_T as in 'expose_hidden')
+  // Usage Example: lstm_debug_param { expose: "c_t=5" }
+  // Which reveals the cell state at t=5
+  repeated string expose = 1;
+
+  // The hadamard term is implemented via a Scale layer
+  // May disable it with this option
+  optional bool disable_hadamard = 2;
+  optional uint32 axis_hadamard = 3 [ default = 3 ];
+  optional uint32 num_axes_hadamard = 4 [ default = 2 ];
+  optional bool ignore_x = 5 [ default = false ];
+}
+
+message LSTMConvolutionParameter {
+  optional uint32 num_output = 1; // The number of outputs for the layer
+  optional bool bias_term = 2 [default = true]; // whether to have bias terms
+
+  // Pad, kernel size, and stride are all given as a single value for equal
+  // dimensions in all spatial dimensions, or once per spatial dimension.
+  repeated uint32 pad = 3; // The padding size; defaults to 0
+  repeated uint32 kernel_size = 4; // The kernel size
+  repeated uint32 stride = 6; // The stride; defaults to 1
+  // Factor used to dilate the kernel, (implicitly) zero-filling the resulting
+  // holes. (Kernel dilation is sometimes referred to by its use in the
+  // algorithme à trous from Holschneider et al. 1987.)
+  repeated uint32 dilation = 18; // The dilation; defaults to 1
+
+  // For 2D convolution only, the *_h and *_w versions may also be used to
+  // specify both spatial dimensions.
+  optional uint32 pad_h = 9 [default = 0]; // The padding height (2D only)
+  optional uint32 pad_w = 10 [default = 0]; // The padding width (2D only)
+  optional uint32 kernel_h = 11; // The kernel height (2D only)
+  optional uint32 kernel_w = 12; // The kernel width (2D only)
+  optional uint32 stride_h = 13; // The stride height (2D only)
+  optional uint32 stride_w = 14; // The stride width (2D only)
+
+  optional uint32 group = 5 [default = 1]; // The group size for group conv
+
+  optional FillerParameter weight_filler = 7; // The filler for the weight
+  optional FillerParameter bias_filler = 8; // The filler for the bias
+  enum Engine {
+    DEFAULT = 0;
+    CAFFE = 1;
+    CUDNN = 2;
+  }
+  optional Engine engine = 15 [default = DEFAULT];
+
+  // The axis to interpret as "channels" when performing convolution.
+  // Preceding dimensions are treated as independent inputs;
+  // succeeding dimensions are treated as "spatial".
+  // With (N, C, H, W) inputs, and axis == 1 (the default), we perform
+  // N independent 2D convolutions, sliding C-channel (or (C/g)-channels, for
+  // groups g>1) filters across the spatial axes (H, W) of the input.
+  // With (N, C, D, H, W) inputs, and axis == 1, we perform
+  // N independent 3D convolutions, sliding (C/g)-channels
+  // filters across the spatial axes (D, H, W) of the input.
+  optional int32 axis = 16 [default = 1];
+
+  // Whether to force use of the general ND convolution, even if a specific
+  // implementation for blobs of the appropriate number of spatial dimensions
+  // is available. (Currently, there is only a 2D-specific convolution
+  // implementation; for input blobs with num_axes != 2, this option is
+  // ignored and the ND implementation will be used.)
+  optional bool force_nd_im2col = 17 [default = false];
+
+  optional string type = 19 [default = "all"];
+}
+
+message BNParameter {
+  enum BNMode {
+    LEARN = 0;
+    INFERENCE = 1;
+  }
+  optional BNMode bn_mode = 3 [default = LEARN];
+  optional FillerParameter scale_filler = 1;  // The filler for the scale
+  optional FillerParameter shift_filler = 2;  // The filler for the shift
+}
+
+message UpsampleParameter {
+  // DEPRECATED. No need to specify upsampling scale factors when
+  // exact output shape is given by upsample_h, upsample_w parameters.
+  optional uint32 scale = 1 [default = 2];
+  // DEPRECATED. No need to specify upsampling scale factors when
+  // exact output shape is given by upsample_h, upsample_w parameters.
+  optional uint32 scale_h = 2;
+  // DEPRECATED. No need to specify upsampling scale factors when
+  // exact output shape is given by upsample_h, upsample_w parameters.
+  optional uint32 scale_w = 3;
+  // DEPRECATED. Specify exact output height using upsample_h. This
+  // parameter only works when scale is 2
+  optional bool pad_out_h = 4 [default = false];
+  // DEPRECATED. Specify exact output width using upsample_w. This
+  // parameter only works when scale is 2
+  optional bool pad_out_w = 5 [default = false];
+  optional uint32 upsample_h = 6;
+  optional uint32 upsample_w = 7;
 }
 
 message LabelSpecificAddParameter {
@@ -732,6 +949,12 @@ message PSROIPoolingParameter {
    required int32 output_dim = 2; // output channel number
    required int32 group_size = 3; // number of groups to encode position-sensitive score maps
 }
+message PSROIAlignParameter {
+   required float spatial_scale = 1; 
+   required int32 output_dim = 2; // output channel number
+   required int32 group_size = 3; // number of groups to encode position-sensitive score maps
+   optional int32 sample_num = 4 [default = 2]; // 
+ }
 message DeformablePSROIPoolingParameter {
    required float spatial_scale = 1; 
    required int32 output_dim = 2; // output channel number
@@ -1588,11 +1811,23 @@ message PoolingParameter {
   optional bool ceil_mode = 13 [default = true];
 }
 
+message RepackParameter {
+  enum Operation {
+    PACK_IMAGE = 0;
+    UNPACK_IMAGE = 1;
+  }
+  optional Operation operation = 1 [default = PACK_IMAGE];
+  optional uint32 stride = 2 [default = 1]; // The stride (equal in Y, X)
+  optional uint32 stride_h = 3; // The stride height
+  optional uint32 stride_w = 4; // The stride width
+}
+
 message PowerParameter {
   // PowerLayer computes outputs y = (shift + scale * x) ^ power.
   optional float power = 1 [default = 1.0];
   optional float scale = 2 [default = 1.0];
   optional float shift = 3 [default = 0.0];
+  optional float eps = 4 [default = 0.001];
 }
 
 message PythonParameter {

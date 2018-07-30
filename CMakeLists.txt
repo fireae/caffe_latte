@@ -80,7 +80,7 @@ caffe_warnings_disable(CMAKE_CXX_FLAGS -Wno-sign-compare -Wno-uninitialized)
 configure_file(cmake/Templates/caffe_config.h.in "${PROJECT_BINARY_DIR}/caffe_config.h")
 
 # ---[ Includes
-set(Caffe_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
+set(Caffe_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src)
 set(Caffe_SRC_DIR ${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_BINARY_DIR})
 include_directories(${Caffe_INCLUDE_DIR} ${Caffe_SRC_DIR})
@@ -114,6 +114,7 @@ add_subdirectory(pybind11)
 include_directories(${PROJECT_SOURCE_DIR}/pybind11/include)
 add_subdirectory(src)
 add_subdirectory(3rdparty/warp_ctc)
+add_subdirectory(pycaffe)
 
 
 
