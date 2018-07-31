@@ -12,12 +12,12 @@ namespace caffe {
 template <typename Dtype>
 class PythonLayer : public Layer<Dtype> {
  public:
-  PythonLayer(PyObject* self, const LayerParameter& param)
-      : Layer<Dtype>(param), self_(bp::handle<>(bp::borrowed(self))) {}
+  PythonLayer(py::object self, const LayerParameter& param)
+      : Layer<Dtype>(param), self_(self) {}
 
   virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
                           const vector<Blob<Dtype>*>& top) {
-							  py::scoped_interpreter guard{};
+    py::scoped_interpreter guard{};
     // Disallow PythonLayer in MultiGPU training stage, due to GIL issues
     // Details: https://github.com/BVLC/caffe/issues/2936
     if (this->phase_ == TRAIN && Caffe::solver_count() > 1 &&
@@ -48,7 +48,7 @@ class PythonLayer : public Layer<Dtype> {
   }
 
  private:
-  py::module self_;
+  py::object self_;
 };
 
 }  // namespace caffe

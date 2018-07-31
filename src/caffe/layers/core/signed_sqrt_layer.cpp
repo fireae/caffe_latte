@@ -7,33 +7,35 @@
 
 namespace caffe {
 
-const float SignedSqrtLayer<float>::epsilon = 0.03f;
-const double SignedSqrtLayer<double>::epsilon = 0.03;
+// const float SignedSqrtLayer<float>::epsilon = 0.03f;
+// const double SignedSqrtLayer<double>::epsilon = 0.03;
+#define epsilon 0.03
 template <typename Dtype>
 void SignedSqrtLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
-    CHECK(top[0] != bottom[0]) << "do not support in place operation.";
-    top[0]->Reshape(bottom[0]->shape());
+                                     const vector<Blob<Dtype>*>& top) {
+  CHECK(top[0] != bottom[0]) << "do not support in place operation.";
+  top[0]->Reshape(bottom[0]->shape());
 }
 
 template <typename Dtype>
 void SignedSqrtLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-    const vector<Blob<Dtype>*>& top) {
+                                         const vector<Blob<Dtype>*>& top) {
   const Dtype* bottom_data = bottom[0]->cpu_data();
   Dtype* top_data = top[0]->mutable_cpu_data();
   const int count = bottom[0]->count();
 
   for (int i = 0; i < count; i++) {
-      if (bottom_data[i] >= 0)
-        top_data[i] = sqrt(bottom_data[i]);
-      else
-        top_data[i] = -sqrt(-bottom_data[i]);
+    if (bottom_data[i] >= 0)
+      top_data[i] = sqrt(bottom_data[i]);
+    else
+      top_data[i] = -sqrt(-bottom_data[i]);
   }
 }
 
 template <typename Dtype>
 void SignedSqrtLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
-    const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {
+                                          const vector<bool>& propagate_down,
+                                          const vector<Blob<Dtype>*>& bottom) {
   if (propagate_down[0]) {
     const int count = bottom[0]->count();
 
@@ -42,7 +44,7 @@ void SignedSqrtLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
     const Dtype* top_data = top[0]->cpu_data();
 
     caffe_abs(count, top_data, bottom_diff);
-    caffe_add_scalar(count, epsilon, bottom_diff);
+    caffe_add_scalar(count, static_cast<Dtype>(epsilon), bottom_diff);
     caffe_div(count, top_diff, bottom_diff, bottom_diff);
     caffe_scal(count, Dtype(0.5), bottom_diff);
   }
