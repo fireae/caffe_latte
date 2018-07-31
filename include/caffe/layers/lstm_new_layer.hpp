@@ -1,3 +1,7 @@
+/*
+* author junhyukoh
+*/
+
 #ifndef CAFFE_LSTM_LAYER_JUN_HPP_
 #define CAFFE_LSTM_LAYER_JUN_HPP_
 
@@ -12,20 +16,20 @@
 
 namespace caffe {
 
-/**
+/** 
  * @brief Long-short term memory layer.
  * TODO(dox): thorough documentation for Forward, Backward, and proto params.
  */
 template <typename Dtype>
-class LstmLayer : public Layer<Dtype> {
+class LstmNewLayer : public Layer<Dtype> {
  public:
-  explicit LstmLayer(const LayerParameter& param) : Layer<Dtype>(param) {}
+  explicit LstmNewLayer(const LayerParameter& param) : Layer<Dtype>(param) {}
   virtual void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
                           const vector<Blob<Dtype>*>& top);
   virtual void Reshape(const vector<Blob<Dtype>*>& bottom,
                        const vector<Blob<Dtype>*>& top);
 
-  virtual inline const char* type() const { return "LSTMEM"; }
+  virtual inline const char* type() const { return "LstmNew"; }
   virtual bool IsRecurrent() const { return true; }
 
  protected:

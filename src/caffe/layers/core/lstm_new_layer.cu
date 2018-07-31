@@ -7,7 +7,7 @@
 #include "caffe/filler.hpp"
 #include "caffe/layer.hpp"
 #include "caffe/util/math_functions.hpp"
-#include "caffe/layers/lstm_junhyuk_layer.hpp"
+#include "caffe/layers/lstm_new_layer.hpp"
 
 namespace caffe {
 
@@ -122,7 +122,7 @@ __global__ void ActivationBackward(const int nthreads, const int H,
 }
 
 template <typename Dtype>
-void LstmLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
+void LstmNewLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     const vector<Blob<Dtype>*>& top) {
   CHECK_EQ(top[0]->gpu_data(), top_.gpu_data());
   Dtype* top_data = top_.mutable_gpu_data();
@@ -184,7 +184,7 @@ void LstmLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
 }
 
 template <typename Dtype>
-void LstmLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
+void LstmNewLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
     const vector<bool>& propagate_down,
     const vector<Blob<Dtype>*>& bottom) {
   const Dtype* top_data = top_.gpu_data();
@@ -263,6 +263,6 @@ void LstmLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>& top,
 
 }
 
-INSTANTIATE_LAYER_GPU_FUNCS(LstmLayer);
+INSTANTIATE_LAYER_GPU_FUNCS(LstmNewLayer);
 
 }  // namespace caffe

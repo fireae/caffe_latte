@@ -4,7 +4,7 @@
 #include "caffe/common.hpp"
 #include "caffe/filler.hpp"
 #include "caffe/layer.hpp"
-#include "caffe/layers/lstm_junhyuk_layer.hpp"
+#include "caffe/layers/lstm_new_layer.hpp"
 #include "caffe/util/math_functions.hpp"
 
 namespace caffe {
@@ -15,7 +15,7 @@ inline Dtype sigmoid(Dtype x) {
 }
 
 template <typename Dtype>
-void LstmLayer<Dtype>::LayerSetUp(
+void LstmNewLayer<Dtype>::LayerSetUp(
     const vector<Blob<Dtype>*>& bottom,  // bottom[0]: [T]x[N]x[Channels]
     const vector<Blob<Dtype>*>& top) {
   clipping_threshold_ = this->layer_param_.lstm_param().clipping_threshold();
@@ -75,7 +75,7 @@ void LstmLayer<Dtype>::LayerSetUp(
 }
 
 template <typename Dtype>
-void LstmLayer<Dtype>::Reshape(
+void LstmNewLayer<Dtype>::Reshape(
     const vector<Blob<Dtype>*>& bottom,  // bottom[0]: [T]x[N]x[Channels]
     const vector<Blob<Dtype>*>& top) {   // top[0] [T*N]x[H]
   // Figure out the dimensions
@@ -132,7 +132,7 @@ void LstmLayer<Dtype>::Reshape(
 }
 
 template <typename Dtype>
-void LstmLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
+void LstmNewLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
                                    const vector<Blob<Dtype>*>& top) {
   CHECK_EQ(top[0]->cpu_data(), top_.cpu_data());
   Dtype* top_data = top_.mutable_cpu_data();
@@ -212,7 +212,7 @@ void LstmLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
 }
 
 template <typename Dtype>
-void LstmLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
+void LstmNewLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
                                     const vector<bool>& propagate_down,
                                     const vector<Blob<Dtype>*>& bottom) {
   const Dtype* top_data = top_.cpu_data();
@@ -334,10 +334,10 @@ void LstmLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
 }
 
 #ifndef USE_CUDA
-STUB_GPU(LstmLayer);
+STUB_GPU(LstmNewLayer);
 #endif
 
-INSTANTIATE_CLASS(LstmLayer);
-REGISTER_LAYER_CLASS(Lstm);
+INSTANTIATE_CLASS(LstmNewLayer);
+REGISTER_LAYER_CLASS(LstmNew);
 
 }  // namespace caffe

@@ -518,10 +518,10 @@ message LayerParameter {
   optional ROIAlignParameter roi_align_param = 174;
   optional MaskResizeParameter mask_resize_param = 175;
   optional FocalLossParameter focal_loss_param = 176;
+
   optional ReLUXParameter relux_param = 180;
   optional ROIMaskAlignParameter roi_mask_align_param = 181;
   optional ROIMaskPoolingParameter roi_mask_pooling_param = 182;
-
   optional BoxesObjParameter boxes_obj_param = 183;
   optional SeLuParameter selu_param = 184;
   optional SeLuDropoutParameter selu_dropout_param = 185;
@@ -529,6 +529,7 @@ message LayerParameter {
   optional ROIWarpingParameter roi_warping_param = 187;
   optional LargeMarginInnerProductParameter largemargin_inner_product_param = 188;
   optional DeformableConvolutionParameter deformable_convolution_param = 189;
+  
   optional DenseCRFParameter dense_crf_param = 190;
 
   optional TransposeParameter transpose_param=200;
