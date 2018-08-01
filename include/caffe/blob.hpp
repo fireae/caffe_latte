@@ -21,19 +21,18 @@ namespace caffe {
  * TODO(dox): more thorough description.
  */
 template <typename Dtype>
-class CAFFE_API  Blob {
+class CAFFE_API Blob {
  public:
-  Blob()
-       : data_(), diff_(), count_(0), capacity_(0) {}
+  Blob() : data_(), diff_(), count_(0), capacity_(0) {}
 
   /// @brief Deprecated; use <code>Blob(const vector<int>& shape)</code>.
   explicit Blob(const int num, const int channels, const int height,
-      const int width);
+                const int width);
   explicit Blob(const vector<int>& shape);
 
   /// @brief Deprecated; use <code>Reshape(const vector<int>& shape)</code>.
   void Reshape(const int num, const int channels, const int height,
-      const int width);
+               const int width);
   /**
    * @brief Change the dimensions of the blob, allocating new memory if
    *        necessary.
@@ -151,7 +150,7 @@ class CAFFE_API  Blob {
   }
 
   inline int offset(const int n, const int c = 0, const int h = 0,
-      const int w = 0) const {
+                    const int w = 0) const {
     CHECK_GE(n, 0);
     CHECK_LE(n, num());
     CHECK_GE(channels(), 0);
@@ -186,15 +185,15 @@ class CAFFE_API  Blob {
    *        shape if necessary
    */
   void CopyFrom(const Blob<Dtype>& source, bool copy_diff = false,
-      bool reshape = false);
+                bool reshape = false);
 
   inline Dtype data_at(const int n, const int c, const int h,
-      const int w) const {
+                       const int w) const {
     return cpu_data()[offset(n, c, h, w)];
   }
 
   inline Dtype diff_at(const int n, const int c, const int h,
-      const int w) const {
+                       const int w) const {
     return cpu_diff()[offset(n, c, h, w)];
   }
 
@@ -274,7 +273,7 @@ class CAFFE_API  Blob {
   int count_;
   int capacity_;
 
-  DISABLE_COPY_AND_ASSIGN(Blob);
+  // DISABLE_COPY_AND_ASSIGN(Blob);
 };  // class Blob
 
 }  // namespace caffe
