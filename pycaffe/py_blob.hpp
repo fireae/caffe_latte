@@ -16,10 +16,9 @@ namespace py = pybind11;
 namespace pybind11 {
 namespace detail {
 template <typename T>
-struct type_caster<Blob<T> > {
+struct type_caster<Blob<T>> {
  public:
   PYBIND11_TYPE_CASTER(Blob<T>, _("Blob<T>"));
-
   // conversion part1 (python -> c++)
   bool load(py::handle src, bool convert) {
     if (!convert && !py::array_t<T>::check_(src)) {
@@ -44,9 +43,9 @@ struct type_caster<Blob<T> > {
       shape[i] = buf.shape()[i];
     }
 
-    Blob<T> tmp(shape);
-    tmp.set_cpu_data(const_cast<T*>(buf.data()));
-    value.CopyFrom(tmp, false, true);
+    value.Reshape(shape);
+    value.set_cpu_data(const_cast<T*>(buf.data()));
+
     return true;
   }
 
@@ -59,25 +58,16 @@ struct type_caster<Blob<T> > {
     for (int i = 0; i < src.shape().size(); i++) {
       shape[i] = src.shape(i);
     }
-    strides[0] = shape[1] * shape[2] * shape[3];
-    strides[1] = shape[2] * shape[3];
-    strides[2] = shape[3];
-    strides[3] = 1;
-    const T* v = src.cpu_data();
-    for (int i = 0; i < src.count(); i++) {
-      py::print(v[i]);
-    }
-    float data[24];
-    for (int k = 0; k < 24; k++) {
-      data[k] = float(k);
-    }
+    strides[0] = shape[1] * shape[2] * shape[3] * sizeof(float);
+    strides[1] = shape[2] * shape[3] * sizeof(float);
+    strides[2] = shape[3] * sizeof(float);
+    strides[3] = 1 * sizeof(float);
     strides.clear();
-    py::array a(std::move(shape), std::move(strides), data);
-    py::print("shape ", a.shape());
-    py::print("strides ", a.strides());
-    py::print("a[11] ", a.data(1, 1, 1, 1));
-    return a.release();
+    const T* data = src.cpu_data();
+    py::array_t<T> ary(std::move(shape), std::move(strides), data);
+    return ary.release();
   }
 };
+
 }  // namespace detail
 }  // namespace pybind11

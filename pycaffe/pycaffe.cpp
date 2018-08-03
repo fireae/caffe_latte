@@ -1,4 +1,10 @@
+#include <Python.h>  // NOLINT(build/include_alpha)
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#include <numpy/arrayobject.h>
+
+#include <pybind11/embed.h>
 #include <pybind11/functional.h>
+#include <pybind11/numpy.h>
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -6,17 +12,16 @@
 #include <functional>
 #include <string>
 #include <vector>
-#include "py_blob.hpp"
+//#include "py_blob.hpp"
 
 #include "caffe/blob.hpp"
 #include "caffe/caffe.hpp"
 #include "caffe/common.hpp"
 #include "caffe/layer.hpp"
-#include "caffe/layers/python_layer.hpp"
 
 namespace py = pybind11;
 typedef float Dtype;
-
+const int NPY_DTYPE = NPY_FLOAT32;
 namespace caffe {
 using namespace std;
 
@@ -124,22 +129,69 @@ void shared_weights(Solver<Dtype>* solver, Net<Dtype>* net) {
   net->ShareTrainedLayersWith(solver->net().get());
 }
 
-Blob<Dtype> add(Blob<Dtype>& a, const Blob<Dtype>& b) {
-  Blob<Dtype> c;
-  c.CopyFrom(a, false, true);
-  float* ad = a.mutable_cpu_data();
-  const float* bd = b.cpu_data();
-  float* cd = c.mutable_cpu_data();
-  for (int i = 0; i < a.count(); i++) {
-    cd[i] += bd[i];
-    py::print("%f ", cd[i]);
+struct NdarrayConverterGenerator {
+  template <typename T>
+  struct apply;
+};
+
+template <>
+struct NdarrayConverterGenerator::apply<Dtype*> {
+  struct type {
+    PyObject* operator()(Dtype* data) const {
+      // Just store the data pointer, and add the shape information in postcall.
+      return PyArray_SimpleNewFromData(0, NULL, NPY_DTYPE, data);
+    }
+    const PyTypeObject* get_pytype() { return &PyArray_Type; }
+  };
+};
+
+struct NdarrayCallPolicies {
+  typedef NdarrayConverterGenerator result_converter;
+  PyObject* postcall(PyObject* pyargs, PyObject* result) {
+    py::object pyblob = py::cast<py::tuple>(pyargs)[0];
+    shared_ptr<Blob<Dtype>> blob = (pyblob).cast<shared_ptr<Blob<Dtype>>>();
+    // Free the temporary pointer-holding array, and construct a new one with
+    // the shape information from the blob.
+    void* data = PyArray_DATA(reinterpret_cast<PyArrayObject*>(result));
+    Py_DECREF(result);
+    const int num_axes = blob->num_axes();
+    vector<npy_intp> dims(blob->shape().begin(), blob->shape().end());
+    PyObject* arr_obj =
+        PyArray_SimpleNewFromData(num_axes, dims.data(), NPY_FLOAT32, data);
+    // SetBaseObject steals a ref, so we need to INCREF.
+    Py_INCREF(pyblob.ptr());
+    PyArray_SetBaseObject(reinterpret_cast<PyArrayObject*>(arr_obj),
+                          pyblob.ptr());
+    return arr_obj;
   }
-  return c;
+};
+
+void Add2(int a) {
+  //   py::scoped_interpreter guard{};
+  py::module calc = py::module::import("calc");
+  py::object res = calc.attr("add22")(a, 1);
+  int n = res.cast<int>();
+  py::print(n);
 }
 
-void Net_Blobs(Net<Dtype>& net) {
-  vector<shared_ptr<Blob<Dtype>>> blobs = net.blobs();
-}
+class PyLayer : public Layer<Dtype> {
+ public:
+  // using caffe::Layer<Dtype>;
+  void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
+                  const vector<Blob<Dtype>*>& top) {
+    PYBIND11_OVERLOAD_PURE(void, Layer<Dtype>, LayerSetup, bottom, top);
+  }
+
+  void Reshape(const vector<Blob<Dtype>*>& bottom,
+               const vector<Blob<Dtype>*>& top) {
+    PYBIND11_OVERLOAD_PURE(void, Layer<Dtype>, LayerReshape, bottom, top);
+  }
+
+  void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
+                   const vector<Blob<Dtype>*>& top) {
+    PYBIND11_OVERLOAD_PURE(void, Layer<Dtype>, Forward_cpu, bottom, top);
+  }
+};
 
 PYBIND11_MODULE(pycaffe, m) {
   m.doc() = "pybind11 pycaffe plugin";
@@ -155,7 +207,7 @@ PYBIND11_MODULE(pycaffe, m) {
   m.def("set_solver_rank", &Caffe::set_solver_rank);
   m.def("set_multiprocess", &Caffe::set_multiprocess);
   m.def("layer_type_list", &LayerRegistry<Dtype>::LayerTypeList);
-
+  m.def("add2", &Add2);
   py::class_<Net<Dtype>, shared_ptr<Net<Dtype>>> net(m, "Net");
   net.def(py::init(&Net_Init));
   net.def("forward", &Net<Dtype>::ForwardFromTo);
@@ -167,47 +219,19 @@ PYBIND11_MODULE(pycaffe, m) {
   net.def("share_with", &Net<Dtype>::ShareTrainedLayersWith);
   net.def("save", &Net_Save);
 
-  net.def("blob_loss_weights", &Net<Dtype>::blob_loss_weights,
-          py::return_value_policy::reference_internal);
-  net.def("bottom_ids", &Net<Dtype>::bottom_ids,
-          py::return_value_policy::reference_internal);
-  net.def("top_ids", &Net<Dtype>::top_ids,
-          py::return_value_policy::reference_internal);
-  //   net.def(
-  //       "blobs",
-  //       py::overload_cast<vector<shared_ptr<Blob<Dtype>>>&>(&Net<Dtype>::blobs),
-  //       py::return_value_policy::copy);
-  net.def("layers", &Net<Dtype>::layers,
-          py::return_value_policy::reference_internal);
-  net.def("blob_names", &Net<Dtype>::blob_names,
-          py::return_value_policy::reference_internal);
-  net.def("layer_names", &Net<Dtype>::layer_names,
-          py::return_value_policy::reference_internal);
-  net.def("inputs", &Net<Dtype>::input_blob_indices,
-          py::return_value_policy::reference_internal);
-  net.def("outputs", &Net<Dtype>::output_blob_indices,
-          py::return_value_policy::reference_internal);
+  net.def("blob_loss_weights", &Net<Dtype>::blob_loss_weights);
+  net.def("bottom_ids", &Net<Dtype>::bottom_ids);
+  net.def("top_ids", &Net<Dtype>::top_ids);
+  net.def("blobs", &Net<Dtype>::blobs);
+  net.def("layers", &Net<Dtype>::layers);
+  net.def("blob_names", &Net<Dtype>::blob_names);
+  net.def("layer_names", &Net<Dtype>::layer_names);
+  net.def("inputs", &Net<Dtype>::input_blob_indices);
+  net.def("outputs", &Net<Dtype>::output_blob_indices);
   //   net.def("set_input_arrays", &Net<Dtype>::bottom_ids,
   //                     py::return_value_policy::reference_internal);
 
-  m.def("add", &add);
-  //   py::class_<Blob<Dtype>, shared_ptr<Blob<Dtype>>> blob(m, "Blob");
-  //   blob.def(py::init<>());
-  //   blob.def_property_readonly(
-  //       "shape",
-  //       (const vector<int>& (Blob<Dtype>::*)() const) &
-  //       Blob<Dtype>::shape, py::return_value_policy::copy);
-  m.def("num", &Blob<Dtype>::num);
-  //   blob.def_property_readonly("channels", &Blob<Dtype>::channels);
-  //   blob.def_property_readonly("height", &Blob<Dtype>::height);
-  //   blob.def_property_readonly("width", &Blob<Dtype>::width);
-  //   blob.def_property_readonly(
-  //       "count", (int (Blob<Dtype>::*)() const) & Blob<Dtype>::count);
-  //   blob.def("reshape", [](Blob<Dtype>& self, py::args a, py::kwargs kw)
-  //   {
-  //     Blob_Reshape(self, a, kw);
-  //   });
-  py::class_<Layer<Dtype>> layer(m, "Layer");
+  py::class_<Layer<Dtype>, shared_ptr<Layer<Dtype>>> layer(m, "Layer");
   // layer.def(py::init<const caffe::LayerParameter&>());
   layer.def("setup", &Layer<Dtype>::LayerSetUp);
   layer.def("reshape", &Layer<Dtype>::Reshape);
