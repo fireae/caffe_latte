@@ -106,9 +106,9 @@ if(HAVE_CUDA)
   list(REMOVE_ITEM Caffe_ALL_DEFINITIONS PRIVATE PUBLIC)
   list(APPEND CUDA_NVCC_FLAGS ${Caffe_ALL_DEFINITIONS})
 endif()
-#include_directories(D:\\Projects\\mini-caffe\\3rdparty\\include)
-#include_directories(D:\\Projects\\mini-caffe\\3rdparty\\include\\openblas)
-#link_directories(D:\\Projects\\mini-caffe\\3rdparty\\lib)
+include_directories(D:\\Projects\\mini-caffe\\3rdparty\\include)
+include_directories(D:\\Projects\\mini-caffe\\3rdparty\\include\\openblas)
+link_directories(D:\\Projects\\mini-caffe\\3rdparty\\lib)
 include_directories(/home/wencc/anaconda2/include)
 link_directories(/home/wencc/anaconda2/lib)
 # ---[ Subdirectories
@@ -117,6 +117,6 @@ include_directories(${PROJECT_SOURCE_DIR}/pybind11/include)
 add_subdirectory(src)
 add_subdirectory(3rdparty/warp_ctc)
 add_subdirectory(pycaffe)
-
+#add_subdirectory(apps)
 
 
