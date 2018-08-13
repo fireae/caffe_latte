@@ -232,7 +232,7 @@ PYBIND11_MODULE(pycaffe, m) {
   //                     py::return_value_policy::reference_internal);
 
   py::class_<Layer<Dtype>, shared_ptr<Layer<Dtype>>> layer(m, "Layer");
-  // layer.def(py::init<const caffe::LayerParameter&>());
+  // layer.def(py::init<const LayerParameter&>());
   layer.def("setup", &Layer<Dtype>::LayerSetUp);
   layer.def("reshape", &Layer<Dtype>::Reshape);
   layer.def_property_readonly("type", &Layer<Dtype>::type);
