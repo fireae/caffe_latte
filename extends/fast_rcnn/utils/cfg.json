@@ -1,0 +1,25 @@
+{
+    "TRAIN" : {
+        "SCALES" : [600],
+        "MAX_SIZE": 1000,
+        "IMS_PER_BATCH": 2,
+        "BATCH_SIZE": 128,
+        "FG_FRACTION": 0.25,
+        "FG_THRESH": 0.5,
+        "BG_THRESH_HI": 0.5,
+        "BG_THRESH_LO": 0.1,
+        "USE_FLIPPED": false,
+        "BBOX_REG": true,
+        "BBOX_THRESH": 0.5,
+        "SNAPSHOT_ITERS": 10000,
+        "SNAPSHOT_INFIX": "",
+        "USE_PREFETCH": false,
+        "BBOX_NORMALIZE_TARGETS": true,
+        "BBOX_INSIDE_WEIGHTS":[1.0,1.0,1.0,1.0],
+        "BBOX_NORMALIZE_TARGETS_PRECOMPUTED":false,
+        "BBOX_NORMALIZE_MEANS":[0.0, 0.0, 0.0, 0.0],
+        "BBOX_NORMALIZE_STDS":[0.1, 0.1, 0.2, 0.2]
+
+    },
+    "DATA_DIR" : "./"
+}

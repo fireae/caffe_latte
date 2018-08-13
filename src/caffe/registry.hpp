@@ -9,32 +9,31 @@
 #include <cstdlib>
 #include <functional>
 #include <iostream>
-#include <memory>
-#include <mutex>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <set>
-#include <string>
 #include <sstream>
+#include <string>
 #include <type_traits>
 #include <vector>
 
+
 #include "caffe/common.hpp"
 
+namespace caffe {
+  
 using std::set;
 using std::string;
 using std::unique_ptr;
 using std::vector;
-
-namespace caffe {
 
 // Note(Yangqing): NVCC does not play well with unordered_map on some platforms,
 // forcing us to use std::map instead of unordered_map. This may affect speed
 // in some cases, but in most of the computation code we do not access map very
 // often, so it should be fine for us. I am putting a CaffeMap alias so we can
 // change it more easily if things work out for unordered_map down the road.
-template <typename Key, typename Value>
-using CaffeMap = std::map<Key, Value>;
+template <typename Key, typename Value> using CaffeMap = std::map<Key, Value>;
 
 /**
  * @brief A template class that allows one to register classes by keys.
@@ -46,14 +45,13 @@ using CaffeMap = std::map<Key, Value>;
  * helper macros below to declare specific registries as well as registering
  * objects.
  */
-template <class SrcType, class ObjectType, class... Args>
-class Registry {
- public:
-  typedef std::function<std::unique_ptr<ObjectType> (Args ...)> Creator;
+template <class SrcType, class ObjectType, class... Args> class Registry {
+public:
+  typedef std::function<std::unique_ptr<ObjectType>(Args...)> Creator;
 
   Registry() : registry_() {}
 
-  void Register(const SrcType& key, Creator creator) {
+  void Register(const SrcType &key, Creator creator) {
     // The if statement below is essentially the same as the following line:
     // CHECK_EQ(registry_.count(key), 0) << "Key " << key
     //                                   << " registered twice.";
@@ -68,14 +66,14 @@ class Registry {
     registry_[key] = creator;
   }
 
-  void Register(const SrcType& key, Creator creator, const string& help_msg) {
+  void Register(const SrcType &key, Creator creator, const string &help_msg) {
     Register(key, creator);
     help_message_[key] = help_msg;
   }
 
-  inline bool Has(const SrcType& key) { return (registry_.count(key) != 0); }
+  inline bool Has(const SrcType &key) { return (registry_.count(key) != 0); }
 
-  unique_ptr<ObjectType> Create(const SrcType& key, Args ... args) {
+  unique_ptr<ObjectType> Create(const SrcType &key, Args... args) {
     if (registry_.count(key) == 0) {
       // Returns nullptr if the key is not registered.
       return nullptr;
@@ -88,36 +86,33 @@ class Registry {
    */
   vector<SrcType> Keys() {
     vector<SrcType> keys;
-    for (const auto& it : registry_) {
+    for (const auto &it : registry_) {
       keys.push_back(it.first);
     }
     return keys;
   }
 
-  const CaffeMap<SrcType, string>& HelpMessage() const {
-    return help_message_;
-  }
+  const CaffeMap<SrcType, string> &HelpMessage() const { return help_message_; }
 
- private:
+private:
   CaffeMap<SrcType, Creator> registry_;
   CaffeMap<SrcType, string> help_message_;
   std::mutex register_mutex_;
 
-  //DISABLE_COPY_AND_ASSIGN(Registry);
+  // DISABLE_COPY_AND_ASSIGN(Registry);
 };
 
-template <class SrcType, class ObjectType, class... Args>
-class Registerer {
- public:
-  Registerer(const SrcType& key,
-             Registry<SrcType, ObjectType, Args...>* registry,
+template <class SrcType, class ObjectType, class... Args> class Registerer {
+public:
+  Registerer(const SrcType &key,
+             Registry<SrcType, ObjectType, Args...> *registry,
              typename Registry<SrcType, ObjectType, Args...>::Creator creator,
-             const string& help_msg="") {
+             const string &help_msg = "") {
     registry->Register(key, creator, help_msg);
   }
 
   template <class DerivedType>
-  static unique_ptr<ObjectType> DefaultCreator(Args ... args) {
+  static unique_ptr<ObjectType> DefaultCreator(Args... args) {
     // TODO(jiayq): old versions of NVCC does not handle make_unique well
     // so we are forced to use a unique_ptr constructor here. Check if it is
     // fine to use make_unique in the future.
@@ -144,53 +139,53 @@ class Registerer {
  * declaration, as well as creating a convenient typename for its corresponding
  * registerer.
  */
-#define CAFFE_DECLARE_TYPED_REGISTRY(RegistryName, SrcType, ObjectType, ...) \
-  Registry<SrcType, ObjectType, ##__VA_ARGS__>* RegistryName();              \
-  typedef Registerer<SrcType, ObjectType, ##__VA_ARGS__>                     \
+#define CAFFE_DECLARE_TYPED_REGISTRY(RegistryName, SrcType, ObjectType, ...)   \
+  Registry<SrcType, ObjectType, ##__VA_ARGS__> *RegistryName();                \
+  typedef Registerer<SrcType, ObjectType, ##__VA_ARGS__>                       \
       Registerer##RegistryName;
 
-#define CAFFE_DEFINE_TYPED_REGISTRY(RegistryName, SrcType, ObjectType, ...) \
-  Registry<SrcType, ObjectType, ##__VA_ARGS__>* RegistryName() {            \
-    static Registry<SrcType, ObjectType, ##__VA_ARGS__>* registry =         \
-        new Registry<SrcType, ObjectType, ##__VA_ARGS__>();                 \
-    return registry;                                                        \
+#define CAFFE_DEFINE_TYPED_REGISTRY(RegistryName, SrcType, ObjectType, ...)    \
+  Registry<SrcType, ObjectType, ##__VA_ARGS__> *RegistryName() {               \
+    static Registry<SrcType, ObjectType, ##__VA_ARGS__> *registry =            \
+        new Registry<SrcType, ObjectType, ##__VA_ARGS__>();                    \
+    return registry;                                                           \
   }
 
 // Note(Yangqing): The __VA_ARGS__ below allows one to specify a templated
 // creator with comma in its templated arguments.
-#define CAFFE_REGISTER_TYPED_CREATOR(RegistryName, key, ...)                  \
-  namespace {                                                                 \
-  static Registerer##RegistryName CAFFE_ANONYMOUS_VARIABLE(g_##RegistryName)( \
-      key, RegistryName(), __VA_ARGS__);                                      \
+#define CAFFE_REGISTER_TYPED_CREATOR(RegistryName, key, ...)                   \
+  namespace {                                                                  \
+  static Registerer##RegistryName                                              \
+      CAFFE_ANONYMOUS_VARIABLE(g_##RegistryName)(key, RegistryName(),          \
+                                                 __VA_ARGS__);                 \
   }
 
-#define CAFFE_REGISTER_TYPED_CLASS(RegistryName, key, ...)                    \
-  namespace {                                                                 \
-  static Registerer##RegistryName CAFFE_ANONYMOUS_VARIABLE(g_##RegistryName)( \
-      key,                                                                    \
-      RegistryName(),                                                         \
-      Registerer##RegistryName::DefaultCreator<__VA_ARGS__>);                 \
+#define CAFFE_REGISTER_TYPED_CLASS(RegistryName, key, ...)                     \
+  namespace {                                                                  \
+  static Registerer##RegistryName CAFFE_ANONYMOUS_VARIABLE(g_##RegistryName)(  \
+      key, RegistryName(),                                                     \
+      Registerer##RegistryName::DefaultCreator<__VA_ARGS__>);                  \
   }
 
 // CAFFE_DECLARE_REGISTRY and CAFFE_DEFINE_REGISTRY are hard-wired to use string
 // as the key
 // type, because that is the most commonly used cases.
-#define CAFFE_DECLARE_REGISTRY(RegistryName, ObjectType, ...) \
-  CAFFE_DECLARE_TYPED_REGISTRY(                               \
-      RegistryName, std::string, ObjectType, ##__VA_ARGS__)
+#define CAFFE_DECLARE_REGISTRY(RegistryName, ObjectType, ...)                  \
+  CAFFE_DECLARE_TYPED_REGISTRY(RegistryName, std::string, ObjectType,          \
+                               ##__VA_ARGS__)
 
-#define CAFFE_DEFINE_REGISTRY(RegistryName, ObjectType, ...) \
-  CAFFE_DEFINE_TYPED_REGISTRY(                               \
-      RegistryName, std::string, ObjectType, ##__VA_ARGS__)
+#define CAFFE_DEFINE_REGISTRY(RegistryName, ObjectType, ...)                   \
+  CAFFE_DEFINE_TYPED_REGISTRY(RegistryName, std::string, ObjectType,           \
+                              ##__VA_ARGS__)
 
 // CAFFE_REGISTER_CREATOR and CAFFE_REGISTER_CLASS are hard-wired to use string
 // as the key
 // type, because that is the most commonly used cases.
-#define CAFFE_REGISTER_CREATOR(RegistryName, key, ...) \
+#define CAFFE_REGISTER_CREATOR(RegistryName, key, ...)                         \
   CAFFE_REGISTER_TYPED_CREATOR(RegistryName, #key, __VA_ARGS__)
 
-#define CAFFE_REGISTER_CLASS(RegistryName, key, ...) \
+#define CAFFE_REGISTER_CLASS(RegistryName, key, ...)                           \
   CAFFE_REGISTER_TYPED_CLASS(RegistryName, #key, __VA_ARGS__)
 
-}  // namespace caffe2
-#endif  // CAFFE2_CORE_REGISTRY_H_
+} // namespace caffe
+#endif // CAFFE2_CORE_REGISTRY_H_

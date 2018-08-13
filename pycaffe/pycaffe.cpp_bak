@@ -18,7 +18,7 @@
 #include "caffe/caffe.hpp"
 #include "caffe/common.hpp"
 #include "caffe/layer.hpp"
-
+#include "py_layer.h"
 namespace py = pybind11;
 typedef float Dtype;
 //const int NPY_DTYPE = NPY_FLOAT32;
@@ -169,32 +169,6 @@ struct NdarrayCallPolicies {
 #endif
 
 
-void Add2(py::module calc, int a) {
-  //   py::scoped_interpreter guard{};
-  
-  py::object res = calc.attr("add22")(a, 1);
-  int n = res.cast<int>();
-  py::print(n);
-}
-
-class PyLayer : public Layer<Dtype> {
- public:
-  // using caffe::Layer<Dtype>;
-  void LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-                  const vector<Blob<Dtype>*>& top) {
-    PYBIND11_OVERLOAD_PURE(void, Layer<Dtype>, LayerSetup, bottom, top);
-  }
-
-  void Reshape(const vector<Blob<Dtype>*>& bottom,
-               const vector<Blob<Dtype>*>& top) {
-    PYBIND11_OVERLOAD_PURE(void, Layer<Dtype>, LayerReshape, bottom, top);
-  }
-
-  void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
-                   const vector<Blob<Dtype>*>& top) {
-    PYBIND11_OVERLOAD_PURE(void, Layer<Dtype>, Forward_cpu, bottom, top);
-  }
-};
 
 PYBIND11_MODULE(pycaffe, m) {
   m.doc() = "pybind11 pycaffe plugin";
@@ -210,7 +184,8 @@ PYBIND11_MODULE(pycaffe, m) {
   m.def("set_solver_rank", &Caffe::set_solver_rank);
   m.def("set_multiprocess", &Caffe::set_multiprocess);
   m.def("layer_type_list", &LayerRegistry<Dtype>::LayerTypeList);
-  m.def("add2", &Add2);
+ 
+
   py::class_<Net<Dtype>, shared_ptr<Net<Dtype>>> net(m, "Net");
   net.def(py::init(&Net_Init));
   net.def("forward", &Net<Dtype>::ForwardFromTo);
@@ -234,16 +209,11 @@ PYBIND11_MODULE(pycaffe, m) {
   //   net.def("set_input_arrays", &Net<Dtype>::bottom_ids,
   //                     py::return_value_policy::reference_internal);
 
-  py::class_<Layer<Dtype>, PyLayer> layer(m, "Layer");
-  //layer.def(py::init<const caffe::LayerParameter&>());
+  py::class_<Layer<Dtype>, PyLayer > layer(m, "Layer");
   layer.def("setup", &Layer<Dtype>::LayerSetUp);
   layer.def("reshape", &Layer<Dtype>::Reshape);
   layer.def_property_readonly("type", &Layer<Dtype>::type);
-
-  py::class_<Blob<Dtype>, shared_ptr<Blob<Dtype>> > blob(m, "Blob");
-  blob.def("num", &Blob<Dtype>::num);
-  blob.def("to_numpy", &Blob<Dtype>::mutable_cpu_data);
-  blob.def("from_numpy", &Blob<Dtype>::data);
+  
 
   py::class_<SolverParameter>(m, "SolverParameter")
       .def_property_readonly("max_iter", &SolverParameter::max_iter)

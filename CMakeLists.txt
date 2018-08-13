@@ -112,11 +112,12 @@ link_directories(D:\\Projects\\mini-caffe\\3rdparty\\lib)
 include_directories(/home/wencc/anaconda2/include)
 link_directories(/home/wencc/anaconda2/lib)
 # ---[ Subdirectories
-add_subdirectory(pybind11)
-include_directories(${PROJECT_SOURCE_DIR}/pybind11/include)
+add_subdirectory(3rdparty/pybind11)
+include_directories(${PROJECT_SOURCE_DIR}/3rdparty/pybind11/include)
 add_subdirectory(src)
 add_subdirectory(3rdparty/warp_ctc)
 add_subdirectory(pycaffe)
+#add_subdirectory(python)
 #add_subdirectory(apps)
 
 

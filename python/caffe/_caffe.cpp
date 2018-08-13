@@ -15,7 +15,7 @@
 #include <fstream>  // NOLINT
 
 #include "caffe/caffe.hpp"
-#include "caffe/layers/memory_data_layer.hpp"
+//#include "caffe/layers/memory_data_layer.hpp"
 #include "caffe/layers/python_layer.hpp"
 #include "caffe/sgd_solvers.hpp"
 
@@ -59,11 +59,11 @@ void InitLogLevel(int level) {
   //FLAGS_minloglevel = level;
   InitLog();
 }
-void InitLogLevelPipe(int level, bool stderr) {
+//void InitLogLevelPipe(int level, bool stderr) {
   //FLAGS_minloglevel = level;
   //FLAGS_logtostderr = stderr;
-  InitLog();
-}
+//  InitLog();
+//}
 void Log(const string& s) {
   LOG(INFO) << s;
 }
@@ -155,7 +155,7 @@ void Net_Save(const Net<Dtype>& net, string filename) {
   net.ToProto(&net_param, false);
   WriteProtoToBinaryFile(net_param, filename.c_str());
 }
-
+#if 0
 void Net_SaveHDF5(const Net<Dtype>& net, string filename) {
   net.ToHDF5(filename);
 }
@@ -195,11 +195,13 @@ void Net_SetInputArrays(Net<Dtype>* net, bp::object data_obj,
       static_cast<Dtype*>(PyArray_DATA(labels_arr)),
       PyArray_DIMS(data_arr)[0]);
 }
+#endif
 
 Solver<Dtype>* GetSolverFromFile(const string& filename) {
-  SolverParameter param;
-  ReadSolverParamsFromTextFileOrDie(filename, &param);
-  return SolverRegistry<Dtype>::CreateSolver(param);
+  //SolverParameter param;
+  //ReadSolverParamsFromTextFileOrDie(filename, &param);
+  //return SolverRegistry<Dtype>::CreateSolver(param);
+	return NULL;
 }
 
 struct NdarrayConverterGenerator {
@@ -387,7 +389,7 @@ BOOST_PYTHON_MODULE(_caffe) {
   // Caffe utility functions
   bp::def("init_log", &InitLog);
   bp::def("init_log", &InitLogLevel);
-  bp::def("init_log", &InitLogLevelPipe);
+//  bp::def("init_log", &InitLogLevelPipe);
   bp::def("log", &Log);
   bp::def("has_nccl", &HasNCCL);
   bp::def("set_mode_cpu", &set_mode_cpu);
@@ -438,11 +440,11 @@ BOOST_PYTHON_MODULE(_caffe) {
     .add_property("_outputs",
         bp::make_function(&Net<Dtype>::output_blob_indices,
         bp::return_value_policy<bp::copy_const_reference>()))
-    .def("_set_input_arrays", &Net_SetInputArrays,
-        bp::with_custodian_and_ward<1, 2, bp::with_custodian_and_ward<1, 3> >())
+    ///.def("_set_input_arrays", &Net_SetInputArrays,
+    //    bp::with_custodian_and_ward<1, 2, bp::with_custodian_and_ward<1, 3> >())
     .def("save", &Net_Save)
-    .def("save_hdf5", &Net_SaveHDF5)
-    .def("load_hdf5", &Net_LoadHDF5)
+    //.def("save_hdf5", &Net_SaveHDF5)
+    //.def("load_hdf5", &Net_LoadHDF5)
     .def("before_forward", &Net_before_forward)
     .def("after_forward", &Net_after_forward)
     .def("before_backward", &Net_before_backward)
