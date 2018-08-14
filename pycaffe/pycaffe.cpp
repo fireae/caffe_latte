@@ -138,8 +138,7 @@ PYBIND11_MODULE(pycaffe, m) {
                             &Net<Dtype>::blob_loss_weights);
   net.def_property_readonly("_bottom_ids", &Net<Dtype>::bottom_ids);
   net.def_property_readonly("_top_ids", &Net<Dtype>::top_ids);
-  net.def("layers", &Net<Dtype>::layers,
-          py::return_value_policy::reference_internal);
+  net.def_property_readonly("layers", &Net<Dtype>::layers);
   net.def_property_readonly("_blob_names", &Net<Dtype>::blob_names);
   net.def_property_readonly("_layer_names", &Net<Dtype>::layer_names);
   net.def_property_readonly("_inputs", &Net<Dtype>::input_blob_indices);
@@ -164,7 +163,7 @@ PYBIND11_MODULE(pycaffe, m) {
 
   py::class_<LayerParameter>(m, "LayerParameter").def(py::init<>());
 
-  py::class_<Layer<Dtype>, PyLayer> layer(m, "Layer");
+  py::class_<Layer<Dtype>, shared_ptr<Layer<Dtype>>> layer(m, "Layer");
   layer.def("setup", &Layer<Dtype>::LayerSetUp);
   layer.def("reshape", &Layer<Dtype>::Reshape);
   layer.def("blobs", &Layer<Dtype>::blobs);
