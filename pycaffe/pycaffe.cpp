@@ -169,6 +169,13 @@ PYBIND11_MODULE(pycaffe, m) {
   layer.def("blobs", &Layer<Dtype>::blobs);
   layer.def_property_readonly("type", &Layer<Dtype>::type);
 
+  py::class_<PyLayer> py_layer(m, "PyLayer", layer);
+  py_layer.def(py::init<const LayerParameter &>());
+  py_layer.def("setup", &Layer<Dtype>::LayerSetUp);
+  py_layer.def("reshape", &Layer<Dtype>::Reshape);
+  py_layer.def("blobs", &Layer<Dtype>::blobs);
+  py_layer.def_property_readonly("type", &Layer<Dtype>::type);
+
   py::class_<SolverParameter>(m, "SolverParameter")
       .def_property_readonly("max_iter", &SolverParameter::max_iter)
       .def_property_readonly("display", &SolverParameter::display)
