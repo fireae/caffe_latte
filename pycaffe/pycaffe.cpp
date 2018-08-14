@@ -103,66 +103,6 @@ void Net_Save(const Net<Dtype> &net, string filename) {
   WriteProtoToBinaryFile(net_param, filename);
 }
 
-py::dict Net_Blobs(const Net<Dtype> &net) {
-  py::dict d;
-  const vector<shared_ptr<Blob<Dtype>>> blobs = net.blobs();
-  const vector<string> names = net.blob_names();
-  for (int i = 0; i < blobs.size(); i++) {
-    d[names[i].c_str()] = blobs[i];
-  }
-  return d;
-}
-
-py::dict Net_BlobLossWeights(const Net<Dtype> &net) {
-  py::dict d;
-  const vector<Dtype> blobs = net.blob_loss_weights();
-  const vector<string> names = net.blob_names();
-  for (int i = 0; i < blobs.size(); i++) {
-    d[names[i].c_str()] = blobs[i];
-  }
-  return d;
-}
-
-py::dict Net_LayerDict(const Net<Dtype> &net) {
-  py::dict d;
-  const vector<shared_ptr<Layer<Dtype>>> layers = net.layers();
-  const vector<string> names = net.layer_names();
-  for (int i = 0; i < layers.size(); i++) {
-    d[names[i].c_str()] = layers[i];
-  }
-  return d;
-}
-
-py::dict Net_Params(const Net<Dtype> &net) {
-  py::dict d;
-  const vector<shared_ptr<Layer<Dtype>>> layers = net.layers();
-  const vector<string> names = net.layer_names();
-  for (int i = 0; i < layers.size(); i++) {
-    d[names[i].c_str()] = layers[i]->blobs();
-  }
-  return d;
-}
-
-py::list Net_Inputs(const Net<Dtype> &net) {
-  py::list l;
-  vector<int> inputs = net.input_blob_indices();
-  const vector<string> names = net.blob_names();
-  for (int i = 0; i < inputs.size(); i++) {
-    l.append(names[inputs[i]]);
-  }
-  return l;
-}
-
-py::list Net_Outputs(const Net<Dtype> &net) {
-  py::list l;
-  vector<int> inputs = net.output_blob_indices();
-  const vector<string> names = net.blob_names();
-  for (int i = 0; i < inputs.size(); i++) {
-    l.append(names[inputs[i]]);
-  }
-  return l;
-}
-
 void share_weights(Solver<Dtype> *solver, Net<Dtype> *net) {
   net->ShareTrainedLayersWith(solver->net().get());
 }
@@ -182,30 +122,29 @@ PYBIND11_MODULE(pycaffe, m) {
   m.def("set_multiprocess", &Caffe::set_multiprocess);
   m.def("layer_type_list", &LayerRegistry<Dtype>::LayerTypeList);
 
-  py::class_<Net<Dtype>, shared_ptr<Net<Dtype>>> net(m, "Net");
-  net.def(py::init(&Net_Init));
-  net.def("forward", &Net<Dtype>::ForwardFromTo);
-  net.def("backward", &Net<Dtype>::BackwardFromTo);
+  py::class_<Net<Dtype>, shared_ptr<Net<Dtype>>> net(m, "Net",
+                                                     py::dynamic_attr());
+  // net.def(py::init(&Net_Init, py::arg("phase") = 0, py::arg("level") = 0));
+  net.def(py::init<>(&Net_Init_Load));
+  net.def("_forward", &Net<Dtype>::ForwardFromTo);
+  net.def("_backward", &Net<Dtype>::BackwardFromTo);
   net.def("reshape", &Net<Dtype>::Reshape);
   net.def("clear_param_diffs", &Net<Dtype>::ClearParamDiffs);
   net.def("copy_from", static_cast<void (Net<Dtype>::*)(const string)>(
                            &Net<Dtype>::CopyTrainedLayersFrom));
   net.def("share_with", &Net<Dtype>::ShareTrainedLayersWith);
   net.def("save", &Net_Save);
-
-  // net.def("blob_loss_weights", &Net<Dtype>::blob_loss_weights);
-  net.def("bottom_ids", &Net<Dtype>::bottom_ids);
-  net.def("top_ids", &Net<Dtype>::top_ids);
-  net.def("layers", &Net<Dtype>::layers);
-  net.def("blob_names", &Net<Dtype>::blob_names);
-  net.def("layer_names", &Net<Dtype>::layer_names);
-  // net.def("inputs", &Net<Dtype>::input_blob_indices);
-  net.def("inputs", &Net_Inputs);
-  net.def("outputs", &Net_Outputs);
-  net.def("blobs", &Net_Blobs);
-  net.def("blob_loss_weights", &Net_BlobLossWeights);
-  net.def("layer_dict", &Net_LayerDict);
-  net.def("params", &Net_Params);
+  net.def_property_readonly("_blob_loss_weights",
+                            &Net<Dtype>::blob_loss_weights);
+  net.def_property_readonly("_bottom_ids", &Net<Dtype>::bottom_ids);
+  net.def_property_readonly("_top_ids", &Net<Dtype>::top_ids);
+  net.def("layers", &Net<Dtype>::layers,
+          py::return_value_policy::reference_internal);
+  net.def_property_readonly("_blob_names", &Net<Dtype>::blob_names);
+  net.def_property_readonly("_layer_names", &Net<Dtype>::layer_names);
+  net.def_property_readonly("_inputs", &Net<Dtype>::input_blob_indices);
+  net.def_property_readonly("_outputs", &Net<Dtype>::output_blob_indices);
+  net.def_property_readonly("_blobs", &Net<Dtype>::blobs);
 
   py::class_<Blob<Dtype>, shared_ptr<Blob<Dtype>>> blob(m, "Blob",
                                                         py::buffer_protocol());
@@ -228,6 +167,7 @@ PYBIND11_MODULE(pycaffe, m) {
   py::class_<Layer<Dtype>, PyLayer> layer(m, "Layer");
   layer.def("setup", &Layer<Dtype>::LayerSetUp);
   layer.def("reshape", &Layer<Dtype>::Reshape);
+  layer.def("blobs", &Layer<Dtype>::blobs);
   layer.def_property_readonly("type", &Layer<Dtype>::type);
 
   py::class_<SolverParameter>(m, "SolverParameter")
