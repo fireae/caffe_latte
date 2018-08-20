@@ -12,12 +12,13 @@
 #include "caffe/util/db.hpp"
 #include "caffe/util/format.hpp"
 #include "caffe/util/io.hpp"
+#include "caffe/util/string.hpp"
 
-using std::shared_ptr;
 using caffe::Blob;
 using caffe::Caffe;
 using caffe::Datum;
 using caffe::Net;
+using std::shared_ptr;
 using std::string;
 namespace db = caffe::db;
 
@@ -109,7 +110,7 @@ int feature_extraction_pipeline(int argc, char** argv) {
 
   std::string save_feature_dataset_names(argv[++arg_pos]);
   std::vector<std::string> dataset_names =
-      SplitString(save_feature_dataset_names, ",");
+      caffe::SplitString(save_feature_dataset_names, ",");
 
   CHECK_EQ(blob_names.size(), dataset_names.size())
       << " the number of blob names and dataset names must be equal";

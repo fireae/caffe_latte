@@ -15,6 +15,10 @@ set(CAFFE_TARGET_VERSION "1.0.0" CACHE STRING "Caffe logical version")
 set(CAFFE_TARGET_SOVERSION "1.0.0" CACHE STRING "Caffe soname version")
 add_definitions(-DCAFFE_VERSION=${CAFFE_TARGET_VERSION})
 
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Output/Lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Output/Lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Output/Bin)
+
 # ---[ Using cmake scripts and modules
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/Modules)
 
@@ -116,8 +120,9 @@ add_subdirectory(3rdparty/pybind11)
 include_directories(${PROJECT_SOURCE_DIR}/3rdparty/pybind11/include)
 add_subdirectory(src)
 add_subdirectory(3rdparty/warp_ctc)
-add_subdirectory(pycaffe)
-#add_subdirectory(python)
+#add_subdirectory(pycaffe)
+add_subdirectory(python)
+add_subdirectory(tools)
 #add_subdirectory(apps)
 
 
