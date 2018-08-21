@@ -1,0 +1,6 @@
+#ifndef CAFFE_UTIL_IMAGE_UTILS_HPP
+#define CAFFE_UTIL_IMAGE_UTILS_HPP
+
+namespace caffe {}
+
+#endif  // CAFFE_UTIL_IMAGE_UTILS_HPP
