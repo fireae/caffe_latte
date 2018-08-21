@@ -1,8 +1,21 @@
+#include "caffe/layers/anchor_target_layer.hpp"
 #include "caffe/util/detect_utils.hpp"
+#include "caffe/util/frcnn_param.hpp"
 
 namespace caffe {
 namespace frcnn {
-
+/*************************************************
+Faster-rcnn anchor target layer
+Assign anchors to ground-truth targets. Produces anchor classification
+labels and bounding-box regression targets.
+bottom: 'rpn_cls_score'
+bottom: 'gt_boxes'
+bottom: 'im_info'
+top: 'rpn_labels'
+top: 'rpn_bbox_targets'
+top: 'rpn_bbox_inside_weights'
+top: 'rpn_bbox_outside_weights'
+**************************************************/
 template <typename Dtype>
 void AnchorTargetLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype> *> &bottom,
                                           const vector<Blob<Dtype> *> &top) {
@@ -71,7 +84,7 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype> *> &bottom,
   vector<int> gt_argmax_overlaps(gt_boxes.size(), -1);
 
   vector<vector<Dtype>> ious =
-      GetIOU(anchors, gt_boxes, this->use_gpu_nms_in_forward_cpu);
+      ComputeIOUs(anchors, gt_boxes, this->use_gpu_nms_in_forward_cpu);
   this->use_gpu_nms_in_forward_cpu = false;
 
   for (int ia = 0; ia < n_anchors; ++ia) {
@@ -114,6 +127,26 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype> *> &bottom,
       }
     }
   }
+  // subsample positive labels if we have too many
+  int num_fg = float(FrcnnParam::rpn_fg_fraction) * FrcnnParam::rpn_batchsize;
+  const int fg_inds_size = std::count(labels.begin(), labels.end(), 1);
+  if (fg_inds_size > num_fg) {
+    vector<int> fg_inds;
+    for (size_t index = 0; index < labels.size(); ++index) {
+      if (labels[index] == 1) fg_inds.push_back(index);
+
+      std::set<int> ind_set;
+      while (ind_set.size() < fg_inds.size() - num_fg) {
+        int tmp_idx = caffe::caffe_rng_rand() % fg_inds.size();
+        ind_set.insert(fg_inds[tmp_idx]);
+      }
+
+      for (std::set<int>::iterator it = ind_set.begin(); it != ind_set.end();
+           ++it) {
+        labels[*it] = -1;
+      }
+    }
+  }
 
   // subsample negative labels if we have too many
   int num_bg =
@@ -122,8 +155,7 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype> *> &bottom,
   if (bg_inds_size > num_bg) {
     vector<int> bg_inds;
     for (size_t i = 0; i < labels.size(); i++) {
-      if (labels[i] == 0)
-        bg_inds.push_back(i);
+      if (labels[i] == 0) bg_inds.push_back(i);
     }
 
     std::set<int> ind_set;
@@ -143,7 +175,8 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype> *> &bottom,
     if (argmax_overlaps[i] < 0) {
       bbox_targets.push_back(RectBox<Dtype>());
     } else {
-      bbox_targets.push_back();
+      bbox_targets.push_back(
+          TransformRectBox(anchors[i], gt_boxes[argmax_overlaps[i]]));
     }
   }
 
@@ -205,6 +238,10 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype> *> &bottom,
   Dtype *top_bbox_targets = top[1]->mutable_cpu_data();
   Dtype *top_bbox_inside_weights = top[2]->mutable_cpu_data();
   Dtype *top_bbox_outside_weights = top[3]->mutable_cpu_data();
+  caffe_set(top[0]->count(), Dtype(-1), top_labels);
+  caffe_set(top[1]->count(), Dtype(0), top_bbox_targets);
+  caffe_set(top[2]->count(), Dtype(0), top_bbox_inside_weights);
+  caffe_set(top[3]->count(), Dtype(0), top_bbox_outside_weights);
 
   for (size_t index = 0; index < inds_inside.size(); index++) {
     const int _anchor = inds_inside[index] % config_n_anchors_;
@@ -226,5 +263,5 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype> *> &bottom,
   }
 }
 
-} // namespace frcnn
-} // namespace caffe
+}  // namespace frcnn
+}  // namespace caffe

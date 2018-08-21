@@ -59,7 +59,7 @@ class AnchorTargetLayer : public Layer<Dtype> {
   }
 
   int feat_stride_;  // resolution
-  Blob<Dtype> anchors_;
+  vector<Dtype> anchors_;
   int num_anchors_;
   int base_size_;
 #if 0

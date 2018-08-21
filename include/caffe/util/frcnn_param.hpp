@@ -1,9 +1,12 @@
-#ifndef CAFFE_UTIL_FRCNN_PARAM_HPP_
-#define CAFFE_UTIL_FRCNN_PARAM_HPP_
+#ifndef CAFFE_FRCNN_PRARM_HPP_
+#define CAFFE_FRCNN_PRARM_HPP_
+
 #include <string>
 #include <vector>
 
 namespace caffe {
+
+namespace frcnn {
 
 class FrcnnParam {
  public:
@@ -20,7 +23,33 @@ class FrcnnParam {
   // ifoverlap in [LO, HI))
   static float bg_thresh_hi;
   static float bg_thresh_lo;
+  // fyk: data enhancement
+  static bool use_retinex;
+  static bool use_haze_free;
+  // if 0,not use ,if 1 do intensity_hist_equalize;if 2 do_channel_hist_equalize
+  static int use_hist_equalize;
+  // fyk: data random augment
   static bool use_flipped;
+  // fyk: same as YOLO(darknet) param
+  static float data_jitter;
+  static float data_rand_scale;
+  static bool data_rand_rotate;
+  static float data_hue;
+  static float data_saturation;
+  static float data_exposure;
+  // for FPN
+  // align image size to avoid Deconv upsampled size not equal to original due
+  // to odd number
+  static int im_size_align;
+  // Hyperparameters for the RoI-to-FPN level mapping heuristic
+  // assign roi to level (4 + log(side_size)/224)
+  static int roi_canonical_scale;  // default: 224
+  static int roi_canonical_level;  // default: 4
+  // soft nms
+  static int test_soft_nms;
+  static bool test_use_gpu_nms;
+  static bool test_bbox_vote;
+  static bool test_decrypt_model;
 
   // Train bounding-box regressors
   static bool bbox_reg;
@@ -28,9 +57,9 @@ class FrcnnParam {
   static std::string snapshot_infix;
   // Normalize the targets (subtract empirical mean, divide by empirical stddev)
   static bool bbox_normalize_targets;
-  static float bbox_inside_weights[4];
-  static float bbox_normalize_means[4];
-  static float bbox_normalize_stds[4];
+  static std::vector<float> bbox_inside_weights;
+  static std::vector<float> bbox_normalize_means;
+  static std::vector<float> bbox_normalize_stds;
 
   // RPN to detect objects
   static float rpn_positive_overlap;
@@ -46,7 +75,7 @@ class FrcnnParam {
   // orig image scale)
   static float rpn_min_size;
   // Deprecated (outside weights)
-  static float rpn_bbox_inside_weights[4];
+  static std::vector<float> rpn_bbox_inside_weights;  //[4]
   // Give the positive RPN examples weight of p * 1 / {num positives}
   // and give negatives a weight of (1 - p)
   // Set to -1.0 to use uniform example weighting
@@ -70,7 +99,7 @@ class FrcnnParam {
 
   // ========================================
   // Means PIXEL
-  static float pixel_means[3];  // BGR
+  static std::vector<float> pixel_means;  // [3]BGR
   static int rng_seed;
   static float eps;
   static float inf;
@@ -79,13 +108,16 @@ class FrcnnParam {
   static int feat_stride;
   static std::vector<float> anchors;
   static float test_score_thresh;
+  static float test_rpn_score_thresh;  // fyk for speed up NMS
   static int n_classes;
   static int iter_test;
   // ========================================
-  //static void load_param(const std::string default_config_path);
-  static void print_param();
+  static void LoadParam(const std::string default_config_path);
+  static void PrintParam();
 };
+
+}  // namespace frcnn
 
 }  // namespace caffe
 
-#endif  //
+#endif  // CAFFE_FRCNN_PRARM_HPP_
