@@ -13,7 +13,7 @@
 #include "caffe/util/internal_thread.hpp"
 
 namespace caffe {
-
+namespace frcnn {
 /*************************************************
  * FRCNN_ROI_DATA
  * The data layer used during training to train a Fast R-CNN network.
@@ -87,9 +87,9 @@ class RoiDataLayer : public BasePrefetchingDataLayer<Dtype> {
   vector<float> scales_;
   bool use_flipped_;
   int rng_seed_;
-  vector<float> pixel_means_;
 };
 
+} //namespace frcnn
 }  // namespace caffe
 
 #endif  // CAFFE_FRCNN_ROI_DATA_LAYER_HPP_
