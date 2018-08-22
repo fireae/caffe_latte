@@ -49,7 +49,7 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype> *> &bottom,
 
   // gt boxes (x1, y1, x2, y2, label)
   vector<RectBox<Dtype>> gt_boxes;
-  for (int i = 0; i < bottom[1]->num()++ i) {
+  for (int i = 0; i < bottom[1]->num(); ++i) {
     gt_boxes.push_back(RectBox<Dtype>(
         bottom[1]->data_at(i, 0, 0, 0), bottom[1]->data_at(i, 1, 0, 0),
         bottom[1]->data_at(i, 2, 0, 0), bottom[1]->data_at(i, 3, 0, 0)));
@@ -57,7 +57,8 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype> *> &bottom,
 
   vector<int> inds_inside;
   vector<RectBox<Dtype>> anchors;
-  Dtype bounds[4] = {-border_, -border_, im_width + border, im_height + border};
+  Dtype bounds[4] = {-border_, -border_, im_width + border_,
+                     im_height + border_};
 
   for (int h = 0; h < height; ++h) {
     for (int w = 0; w < width; ++w) {
@@ -247,7 +248,7 @@ void AnchorTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype> *> &bottom,
     const int _anchor = inds_inside[index] % config_n_anchors_;
     const int _height = (inds_inside[index] / config_n_anchors_) / width;
     const int _width = (inds_inside[index] / config_n_anchors_) % width;
-    top_labels[top[0]->offset(0, 0, _anchor * heihgt + _height, _width)] =
+    top_labels[top[0]->offset(0, 0, _anchor * height + _height, _width)] =
         labels[index];
 
     for (int cor = 0; cor < 4; cor++) {

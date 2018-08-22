@@ -1,18 +1,20 @@
-#include "caffe/layers/roi_data_layer.hpp"
-#include "caffe/util/frcnn_param.hpp"
-#include "caffe/util/detect_utils.hpp"
-#include "caffe/util/io.hpp"
-#include "caffe/util/rng.hpp"
 #include <algorithm>
 #include <map>
+#include <random>
 #include <string>
 #include <utility>
 #include <vector>
+#include "caffe/layers/roi_data_layer.hpp"
+#include "caffe/util/detect_utils.hpp"
+#include "caffe/util/frcnn_param.hpp"
+#include "caffe/util/io.hpp"
+#include "caffe/util/rng.hpp"
 
 namespace caffe {
 namespace frcnn {
 
-template <typename Dtype> RoiDataLayer<Dtype>::~RoiDataLayer<Dtype>() {
+template <typename Dtype>
+RoiDataLayer<Dtype>::~RoiDataLayer<Dtype>() {
   this->StopInternalThread();
 }
 
@@ -20,19 +22,20 @@ template <typename Dtype>
 void RoiDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype> *> &bottom,
                                          const vector<Blob<Dtype> *> &top) {
   std::string default_config_file =
-      this->layer_param_.window_data_param().config();
+      this->layer_param_.roi_data_param().config();
   FrcnnParam::LoadParam(default_config_file);
   FrcnnParam::PrintParam();
-  std::ifstream infile(this->layer_param_.window_data_param().source().c_str());
+  std::ifstream infile(this->layer_param_.roi_data_param().source().c_str());
   CHECK(infile.good()) << "Failed to open roi_data file"
-                       << this->layer_param_.window_data_param().source();
+                       << this->layer_param_.roi_data_param().source();
   std::map<int, int> label_hist;
   label_hist.insert(std::make_pair(0, 0));
   roi_database_.clear();
 
   BoxDataInfo box_data;
   while (box_data.LoadwithDifficult(infile)) {
-    string image_path = box_data.GetImagePath();
+    string image_path = box_data.GetImagePath(
+        this->layer_param_.roi_data_param().root_folder());
     image_database_.push_back(image_path);
     lines_.push_back(image_database_.size() - 1);
     if (cache_images_) {
@@ -104,14 +107,14 @@ void RoiDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype> *> &bottom,
   const unsigned int prefetch_rng_seed =
       FrcnnParam::rng_seed + Caffe::solver_rank();
   prefetch_rng_.reset(new Caffe::RNG(prefetch_rng_seed));
-  lines_id_ = 0; // First Shuffle
+  lines_id_ = 0;  // First Shuffle
   CHECK(prefetch_rng_);
   caffe::rng_t *prefetch_rng =
       static_cast<caffe::rng_t *>(prefetch_rng_->generator());
-  std::shuffle(lines_.begin(), lines_.end(), prefetch_rng);
+  std::shuffle(lines_.begin(), lines_.end(), *prefetch_rng);
 }
 
-template <typename Dtype> 
+template <typename Dtype>
 void RoiDataLayer<Dtype>::ShuffleImages() {
   lines_id_++;
   if (lines_id_ >= lines_.size()) {
@@ -120,11 +123,13 @@ void RoiDataLayer<Dtype>::ShuffleImages() {
     CHECK(prefetch_rng_);
     caffe::rng_t *prefetch_rng =
         static_cast<caffe::rng_t *>(prefetch_rng_->generator());
-    std::shuffle(lines_.begin(), lines_.end(), prefetch_rng);
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(lines_.begin(), lines_.end(), g);
   }
 }
 
-template <typename Dtype> 
+template <typename Dtype>
 unsigned int RoiDataLayer<Dtype>::PrefetchRand() {
   CHECK(prefetch_rng_);
   caffe::rng_t *prefetch_rng =
@@ -176,7 +181,6 @@ void RoiDataLayer<Dtype>::load_batch(Batch<Dtype> *batch) {
 template <typename Dtype>
 void RoiDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype> *> &bottom,
                                       const vector<Blob<Dtype> *> &top) {
-
   Batch<Dtype> *batch =
       this->prefetch_full_.pop("Data Layer prefetch queue empty");
 
@@ -197,5 +201,11 @@ void RoiDataLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype> *> &bottom,
   this->prefetch_free_.push(batch);
 }
 
-} // namespace frcnn
-} // namespace caffe
+// #ifndef USE_CUDA
+// STUB_GPU(RoiDataLayer);
+// #endif
+
+INSTANTIATE_CLASS(RoiDataLayer);
+REGISTER_LAYER_CLASS(RoiData);
+}  // namespace frcnn
+}  // namespace caffe

@@ -2135,8 +2135,7 @@ message ROIDataParameter {
   optional uint32 rng_seed = 16 [default=3];
   optional bool use_flipped = 17 [default = true];
   repeated float pixel_mean = 18;
-
-  
+  optional string config=19;
 }
 message SPPParameter {
   enum PoolMethod {

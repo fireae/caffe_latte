@@ -8,7 +8,7 @@
 #include "caffe/proto/caffe.pb.h"
 
 namespace caffe {
-
+namespace frcnn {
 /*************************************************
 Faster-rcnn anchor target layer
 Assign anchors to ground-truth targets. Produces anchor classification
@@ -60,8 +60,9 @@ class AnchorTargetLayer : public Layer<Dtype> {
 
   int feat_stride_;  // resolution
   vector<Dtype> anchors_;
-  int num_anchors_;
+  int config_n_anchors_;
   int base_size_;
+  int border_;
 #if 0
   // For Debug
   inline void Info_Stds_Means_AvePos(const vector<Point4d<Dtype> >& targets,
@@ -103,6 +104,7 @@ class AnchorTargetLayer : public Layer<Dtype> {
 #endif
 };
 
+}  // namespace frcnn
 }  // namespace caffe
 
 #endif  // CAFFE_PROPOSAL_LAYER_HPP_
