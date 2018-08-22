@@ -4,10 +4,12 @@
 #include <vector>
 
 #include "caffe/blob.hpp"
+#include "caffe/data_transformer.hpp"
+#include "caffe/util/internal_thread.hpp"
 #include "caffe/layer.hpp"
 #include "caffe/proto/caffe.pb.h"
 #include "caffe/util/blocking_queue.hpp"
-#include "caffe/util/internal_thread.hpp"
+
 namespace caffe {
 
 /**
@@ -36,13 +38,18 @@ class BaseDataLayer : public Layer<Dtype> {
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom) {}
 
  protected:
+  TransformationParameter transform_param_;
+  shared_ptr<DataTransformer<Dtype> > data_transformer_;
   bool output_labels_;
+  bool output_weights_;
+  bool output_roi_;
+bool output_pts_;
 };
 
 template <typename Dtype>
 class Batch {
  public:
-  Blob<Dtype> data_, label_;
+  Blob<Dtype> data_, label_, weight_, roi_, pts_;
 };
 
 template <typename Dtype>

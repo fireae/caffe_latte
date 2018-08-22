@@ -1,6 +1,7 @@
 #include <vector>
 
 #include "caffe/blob.hpp"
+#include "caffe/data_transformer.hpp"
 #include "caffe/util/internal_thread.hpp"
 #include "caffe/layer.hpp"
 #include "caffe/layers/base_data_layer.hpp"
@@ -11,8 +12,8 @@ namespace caffe {
 
 template <typename Dtype>
 BaseDataLayer<Dtype>::BaseDataLayer(const LayerParameter& param)
-    : Layer<Dtype>(param)
-      {
+    : Layer<Dtype>(param),
+      transform_param_(param.transform_param()) {
 }
 
 template <typename Dtype>
@@ -23,6 +24,27 @@ void BaseDataLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
   } else {
     output_labels_ = true;
   }
+  if (top.size() == 3) {
+    output_roi_ = true;
+  }
+  else {
+		output_roi_ = false;
+  }
+  if (top.size() == 4) {
+	  output_pts_ = true;
+  }
+  else {
+	  output_pts_ = false;
+  }
+  if (top.size() == 5) {
+	  output_weights_ = true;
+  }
+  else {
+	  output_weights_ = false;
+  }
+  data_transformer_.reset(
+      new DataTransformer<Dtype>(transform_param_, this->phase_));
+  data_transformer_->InitRand();
   // The subclasses should setup the size of bottom and top
   DataLayerSetUp(bottom, top);
 }
@@ -53,6 +75,15 @@ void BasePrefetchingDataLayer<Dtype>::LayerSetUp(
     if (this->output_labels_) {
       prefetch_[i]->label_.mutable_cpu_data();
     }
+    if(this->output_roi_){
+       prefetch_[i]->roi_.mutable_cpu_data();
+    }
+	if (this->output_pts_) {
+		prefetch_[i]->pts_.mutable_cpu_data();
+	}
+    if (this->output_weights_) {
+      prefetch_[i]->weight_.mutable_cpu_data();
+    }
   }
 #ifdef USE_CUDA
   if (Caffe::mode() == Caffe::GPU) {
@@ -61,10 +92,20 @@ void BasePrefetchingDataLayer<Dtype>::LayerSetUp(
       if (this->output_labels_) {
         prefetch_[i]->label_.mutable_gpu_data();
       }
+      if(this->output_roi_){
+       prefetch_[i]->roi_.mutable_gpu_data();
+      }
+	  if (this->output_pts_) {
+		  prefetch_[i]->pts_.mutable_gpu_data();
+	  }
+      if (this->output_weights_) {
+        prefetch_[i]->weight_.mutable_gpu_data();
+      }
     }
   }
 #endif
   DLOG(INFO) << "Initializing prefetch";
+  this->data_transformer_->InitRand();
   StartInternalThread();
   DLOG(INFO) << "Prefetch initialized.";
 }
@@ -87,6 +128,15 @@ void BasePrefetchingDataLayer<Dtype>::InternalThreadEntry() {
         batch->data_.data().get()->async_gpu_push(stream);
         if (this->output_labels_) {
           batch->label_.data().get()->async_gpu_push(stream);
+        }
+        if (this->output_roi_) {
+          batch->roi_.data().get()->async_gpu_push(stream);
+        }
+		if (this->output_pts_) {
+			batch->pts_.data().get()->async_gpu_push(stream);
+		}
+        if (this->output_weights_) {
+          batch->weight_.data().get()->async_gpu_push(stream);
         }
         CUDA_CHECK(cudaStreamSynchronize(stream));
       }
@@ -117,6 +167,21 @@ void BasePrefetchingDataLayer<Dtype>::Forward_cpu(
     // Reshape to loaded labels.
     top[1]->ReshapeLike(prefetch_current_->label_);
     top[1]->set_cpu_data(prefetch_current_->label_.mutable_cpu_data());
+  }
+  if (this->output_roi_) {
+    // Reshape to loaded labels.
+    top[2]->ReshapeLike(prefetch_current_->roi_);
+    top[2]->set_cpu_data(prefetch_current_->roi_.mutable_cpu_data());
+  }
+  if (this->output_pts_) {
+	  // Reshape to loaded labels.
+	  top[3]->ReshapeLike(prefetch_current_->pts_);
+	  top[3]->set_cpu_data(prefetch_current_->pts_.mutable_cpu_data());
+  }
+  if (this->output_weights_) {
+    // Reshape to loaded weights_.
+    top[4]->ReshapeLike(prefetch_current_->weight_);
+    top[4]->set_cpu_data(prefetch_current_->weight_.mutable_cpu_data());
   }
 }
 

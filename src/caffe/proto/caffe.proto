@@ -40,6 +40,19 @@ message Datum {
   optional bool encoded = 7 [default = false];
 }
 
+message MTCNNBBox {
+  optional float xmin = 1;
+  optional float ymin = 2;
+  optional float xmax = 3;
+  optional float ymax = 4;
+}
+
+message MTCNNDatum {
+  optional Datum datum = 1;
+  optional MTCNNBBox rois = 2;
+  repeated float pts = 3; 
+}
+
 message FillerParameter {
   // The filler type.
   optional string type = 1 [default = 'constant'];

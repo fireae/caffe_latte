@@ -127,7 +127,7 @@ include_directories(${PROJECT_SOURCE_DIR}/3rdparty/pybind11/include)
 add_subdirectory(src)
 add_subdirectory(3rdparty/warp_ctc)
 #add_subdirectory(pycaffe)
-add_subdirectory(python)
+#add_subdirectory(python)
 add_subdirectory(tools)
 #add_subdirectory(apps)
 
