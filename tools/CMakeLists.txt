@@ -12,7 +12,7 @@ foreach(source ${srcs})
 
   # target
   add_executable(${name} ${source})
-  target_link_libraries(${name} ${Caffe_LINK} caffe openblas pthread boost_system opencv_core opencv_imgproc opencv_highgui opencv_imgcodecs dl protobuf)
+  target_link_libraries(${name} PUBLIC caffe ${Caffe_LINKER_LIBS} caffe_proto boost_system)
   # caffe_default_properties(${name})
 
   # set back RUNTIME_OUTPUT_DIRECTORY

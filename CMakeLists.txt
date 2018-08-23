@@ -18,14 +18,13 @@ add_definitions(-DCAFFE_VERSION=${CAFFE_TARGET_VERSION})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Output/Lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Output/Lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Output/Bin)
-
+add_definitions(-DUSE_OPENCV)
+add_definitions(-DUSE_LMDB)
 # ---[ Using cmake scripts and modules
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/Modules)
 
 include(cmake/Utils.cmake)
 include(cmake/Targets.cmake)
-ADD_DEFINITIONS(-DUSE_OPENCV)
-ADD_DEFINITIONS(-DUSE_LMDB)
 # ---[ Options
 caffe_option(USE_CUDA  "Build Caffe without CUDA support" OFF) 
 caffe_option(USE_CUDNN "Build Caffe with cuDNN library support" ON IF USE_CUDA)
@@ -38,7 +37,6 @@ caffe_option(BUILD_examples  "Build examples" OFF)
 caffe_option(BUILD_docs   "Build documentation" OFF IF UNIX OR APPLE)
 caffe_option(BUILD_python_layer "Build the Caffe Python layer" ON)
 caffe_option(USE_OPENCV "Build with OpenCV support" ON)
-caffe_option(USE_LEVELDB "Build with levelDB" OFF)
 caffe_option(USE_LMDB "Build with lmdb" ON)
 caffe_option(ALLOW_LMDB_NOLOCK "Allow MDB_NOLOCK when reading LMDB files (only if necessary)" OFF)
 caffe_option(USE_OPENMP "Link with OpenMP (when your BLAS wants OpenMP and you get linker errors)" OFF)
@@ -65,6 +63,8 @@ if(MSVC AND BUILD_SHARED_LIBS)
   message(WARNING "Some tests (solvers) will fail when building as a shared library with MSVC")
 endif()
 
+include(cmake/caffe_options.cmake)
+message(${Caffe_DEFINITIONS})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 # ---[ Flags
 if(UNIX OR APPLE)
