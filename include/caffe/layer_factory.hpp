@@ -78,7 +78,8 @@ class LayerRegistry {
     }
     const string& type = param.type();
     CreatorRegistry& registry = Registry();
-    CHECK_EQ(registry.count(type), 1) << "Unknown layer type: " << type
+    CHECK_EQ(registry.count(type), 1)
+        << "Unknown layer type: " << type
         << " (known types: " << LayerTypeListString() << ")";
     return registry[type](param);
   }
@@ -112,7 +113,6 @@ class LayerRegistry {
   }
 };
 
-
 template <typename Dtype>
 class LayerRegisterer {
  public:
@@ -123,18 +123,41 @@ class LayerRegisterer {
   }
 };
 
+#define REGISTER_LAYER_CREATOR(type, creator)                                 \
+  CAFFE_API LayerRegisterer<float> g_creator_f_##type(#type, creator<float>); \
+  CAFFE_API LayerRegisterer<double> g_creator_d_##type(#type, creator<double>)
 
-#define REGISTER_LAYER_CREATOR(type, creator)                                  \
-  CAFFE_API LayerRegisterer<float> g_creator_f_##type(#type, creator<float>);     \
-  CAFFE_API LayerRegisterer<double> g_creator_d_##type(#type, creator<double>)    \
-
-#define REGISTER_LAYER_CLASS(type)                                             \
-  template <typename Dtype>                                                    \
-  shared_ptr<Layer<Dtype> > Creator_##type##Layer(const LayerParameter& param) \
-  {                                                                            \
-    return shared_ptr<Layer<Dtype> >(new type##Layer<Dtype>(param));           \
-  }                                                                            \
+#define REGISTER_LAYER_CLASS(type)                                   \
+  template <typename Dtype>                                          \
+  shared_ptr<Layer<Dtype> > Creator_##type##Layer(                   \
+      const LayerParameter& param) {                                 \
+    return shared_ptr<Layer<Dtype> >(new type##Layer<Dtype>(param)); \
+  }                                                                  \
   REGISTER_LAYER_CREATOR(type, Creator_##type##Layer)
+
+// export module cpp
+#define EXPORT_LAYER_MODULE_DELETER(deleter)               \
+  extern "C" void deleter##_float<Layer<float>* layer) {   \
+    return deleter<float>(layer);                          \
+  }                                                        \
+  extern "C" void deleter##_double<Layer<double>* layer) { \
+    return deleter<double>(layer);                         \
+  }
+
+#define EXPORT_LAYER_MODULE_CREATOR(type, creator)                          \
+  extern "C" Layer<float>* creator##_float(const LayerParameter& param) {   \
+    return creator<float>(param);                                           \
+  }                                                                         \
+  extern "C" Layer<double>* creator##_double(const LayerParameter& param) { \
+    return creator<double>(param);                                          \
+  }
+
+#define EXPORT_LAYER_MODULE_CLASS(classname)                                   \
+  template <typename Dtype>                                                    \
+  Layer<Dtype>* CreateModule_##classname##Layer(const LayerParameter& param) { \
+    return new classname##Layer<Dtype>(param);                                 \
+  }                                                                            \
+  EXPORT_LAYER_MODULE_CREATOR(classname, CreateModule_##classname##Layer)
 
 }  // namespace caffe
 

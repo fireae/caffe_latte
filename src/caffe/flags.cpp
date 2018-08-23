@@ -7,36 +7,9 @@
 
 namespace caffe {
 
-#ifdef Caffe_USE_GFLAGS
-
-void SetUsageMessage(const string& str) {
-  if (UsageMessage() != nullptr) {
-    // Usage message has already been set, so we will simply return.
-    return;
-  }
-  google::SetUsageMessage(str);
-}
-
-const char* UsageMessage() {
-  return google::ProgramUsage();
-}
-
-bool ParseCommandLineFlags(int* pargc, char*** pargv) {
-  if (*pargc == 0) return true;
-  return google::ParseCommandLineFlags(pargc, pargv, true);
-}
-
-bool CommandLineFlagsHasBeenParsed() {
-  // There is no way we query gflags right now, so we will simply return true.
-  return true;
-}
-
-#else  // Caffe_USE_GFLAGS
-
-
 CAFFE_DEFINE_REGISTRY(CaffeFlagsRegistry, CaffeFlagParser, const string&);
 
-namespace {
+// namespace {
 static bool gCommandLineFlagsParsed = false;
 // Since caffe flags is going to be loaded before caffe logging, we would
 // need to have a stringstream to hold the messages instead of directly
@@ -46,13 +19,12 @@ std::stringstream& GlobalInitStream() {
   return ss;
 }
 static string gUsageMessage = "(Usage message not set.)";
-}
-
+//}  // namespace
 
 void SetUsageMessage(const string& str) { gUsageMessage = str; }
 const char* UsageMessage() { return gUsageMessage.c_str(); }
 
-bool ShowUsageWithFlagsRestrict(const char *str, const char *str2) {
+bool ShowUsageWithFlagsRestrict(const char* str, const char* str2) {
   std::cout << str << ": ";
   std::cout << UsageMessage() << std::endl;
   return true;
@@ -62,8 +34,7 @@ bool ParseCommandLineFlags(int* pargc, char*** pargv) {
   if (*pargc == 0) return true;
   char** argv = *pargv;
   bool success = true;
-  GlobalInitStream() << "Parsing commandline arguments for Caffe."
-                     << std::endl;
+  GlobalInitStream() << "Parsing commandline arguments for Caffe." << std::endl;
   // write_head is the location we write the unused arguments to.
   int write_head = 1;
   for (int i = 1; i < *pargc; ++i) {
@@ -100,7 +71,8 @@ bool ParseCommandLineFlags(int* pargc, char*** pargv) {
       if (i == *pargc) {
         GlobalInitStream()
             << "Caffe flag: reached the last commandline argument, but "
-               "I am expecting a value for " << arg;
+               "I am expecting a value for "
+            << arg;
         success = false;
         break;
       }
@@ -121,8 +93,8 @@ bool ParseCommandLineFlags(int* pargc, char*** pargv) {
     std::unique_ptr<CaffeFlagParser> parser(
         CaffeFlagsRegistry()->Create(key, value));
     if (!parser->success()) {
-      GlobalInitStream() << "Caffe flag: illegal argument: "
-                         << arg << std::endl;
+      GlobalInitStream() << "Caffe flag: illegal argument: " << arg
+                         << std::endl;
       success = false;
       break;
     }
@@ -142,9 +114,7 @@ bool ParseCommandLineFlags(int* pargc, char*** pargv) {
   return success;
 }
 
-bool CommandLineFlagsHasBeenParsed() {
-  return gCommandLineFlagsParsed;
-}
+bool CommandLineFlagsHasBeenParsed() { return gCommandLineFlagsParsed; }
 
 template <>
 bool CaffeFlagParser::Parse<string>(const string& content, string* value) {
@@ -157,7 +127,7 @@ bool CaffeFlagParser::Parse<int>(const string& content, int* value) {
   try {
     *value = std::atoi(content.c_str());
     return true;
-  } catch(...) {
+  } catch (...) {
     GlobalInitStream() << "Caffe flag error: Cannot convert argument to int: "
                        << content << std::endl;
     return false;
@@ -187,10 +157,10 @@ bool CaffeFlagParser::Parse<double>(const string& content, double* value) {
   try {
     *value = std::atof(content.c_str());
     return true;
-  } catch(...) {
+  } catch (...) {
     GlobalInitStream()
-        << "Caffe flag error: Cannot convert argument to double: "
-        << content << std::endl;
+        << "Caffe flag error: Cannot convert argument to double: " << content
+        << std::endl;
     return false;
   }
 }
@@ -202,13 +172,13 @@ bool CaffeFlagParser::Parse<bool>(const string& content, bool* value) {
     *value = false;
     return true;
   } else if (content == "true" || content == "True" || content == "TRUE" ||
-      content == "1") {
+             content == "1") {
     *value = true;
     return true;
   } else {
     GlobalInitStream()
-        << "Caffe flag error: Cannot convert argument to bool: "
-        << content << std::endl
+        << "Caffe flag error: Cannot convert argument to bool: " << content
+        << std::endl
         << "Note that if you are passing in a bool flag, you need to "
            "explicitly specify it, like --arg=True or --arg True. Otherwise, "
            "the next argument may be inadvertently used as the argument, "
@@ -218,6 +188,4 @@ bool CaffeFlagParser::Parse<bool>(const string& content, bool* value) {
   }
 }
 
-#endif  // Caffe_USE_GFLAGS
-
-}  // namespace Caffe
+}  // namespace caffe

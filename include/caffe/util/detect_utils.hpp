@@ -1,6 +1,7 @@
 #ifndef CAFFE_UTIL_DETECT_UTILS_HPP_
 #define CAFFE_UTIL_DETECT_UTILS_HPP_
 //#include "caffe/util/frcnn_param.hpp"
+#include <fstream>
 #include <string>
 #include <vector>
 #include "caffe/logging.hpp"
@@ -11,7 +12,7 @@ using std::vector;
 
 struct BoxDataInfo {
  public:
-  vector<vector<float> > rois;
+  vector<vector<float>> rois;
   vector<int> difficult;
   string image_path;
   int image_index;
@@ -33,10 +34,10 @@ struct BoxDataInfo {
     return image_index;
   }
 
-  inline vector<vector<float> > GetRois(bool include_diff = false) {
+  inline vector<vector<float>> GetRois(bool include_diff = false) {
     CHECK(is_ok) << "illegal status(ok=" << is_ok << ")";
     CHECK_EQ(this->rois.size(), this->difficult.size());
-    vector<vector<float> > _rois;
+    vector<vector<float>> _rois;
     for (size_t index = 0; index < this->rois.size(); index++) {
       if (!include_diff && this->difficult[index] == 1) continue;
       _rois.push_back(this->rois[index]);
@@ -139,22 +140,30 @@ struct BBox : RectBox<Dtype> {
 };
 
 template <typename Dtype>
-RectBox<Dtype> TransformBbox(RectBox<Dtype> r1, RectBox<Dtype> r2);
-
-template <typename Dtype>
 Dtype ComputeIOU(const RectBox<Dtype>& a, const RectBox<Dtype>& b);
 
 template <typename Dtype>
 Dtype ComputeIOU(const BBox<Dtype>& a, const BBox<Dtype>& b);
 
 template <typename Dtype>
-std::vector<std::vector<Dtype> > ComputeIOUs(
-    const std::vector<RectBox<Dtype> >& a,
-    const std::vector<RectBox<Dtype> >& b, bool use_gpu);
+std::vector<Dtype> ComputeIOUs(const RectBox<Dtype>& a,
+                               const std::vector<RectBox<Dtype>>& b);
+template <typename Dtype>
+std::vector<std::vector<Dtype>> ComputeIOUs(
+    const std::vector<RectBox<Dtype>>& a, const std::vector<RectBox<Dtype>>& b,
+    bool use_gpu = false);
+
+template <typename Dtype>
+vector<BBox<Dtype>> VoteBbox(const vector<BBox<Dtype>>& dets_NMS,
+                             const vector<BBox<Dtype>>& dets_all,
+                             Dtype iou_thresh, Dtype add_val);
 
 template <typename Dtype>
 RectBox<Dtype> TransformRectBox(const RectBox<Dtype>& a,
                                 const RectBox<Dtype>& b);
+
+float get_scale_factor(int width, int height, int short_size,
+                       int max_long_size);
 
 }  // namespace caffe
 

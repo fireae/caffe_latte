@@ -3,9 +3,9 @@
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/text_format.h>
 #ifdef USE_OPENCV
+#include <opencv2/highgui/highgui_c.h>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <opencv2/highgui/highgui_c.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #endif  // USE_OPENCV
 #include <stdint.h>
@@ -23,13 +23,13 @@ const int kProtoReadBytesLimit = INT_MAX;  // Max size of 2 GB minus 1 byte.
 
 namespace caffe {
 
+using google::protobuf::Message;
+using google::protobuf::io::CodedInputStream;
+using google::protobuf::io::CodedOutputStream;
 using google::protobuf::io::FileInputStream;
 using google::protobuf::io::FileOutputStream;
 using google::protobuf::io::ZeroCopyInputStream;
-using google::protobuf::io::CodedInputStream;
 using google::protobuf::io::ZeroCopyOutputStream;
-using google::protobuf::io::CodedOutputStream;
-using google::protobuf::Message;
 
 bool ReadProtoFromTextFile(const char* filename, Message* proto) {
   int fd = open(filename, O_RDONLY);
@@ -70,11 +70,10 @@ void WriteProtoToBinaryFile(const Message& proto, const char* filename) {
 }
 
 #ifdef USE_OPENCV
-cv::Mat ReadImageToCVMat(const string& filename,
-    const int height, const int width, const bool is_color) {
+cv::Mat ReadImageToCVMat(const string& filename, const int height,
+                         const int width, const bool is_color) {
   cv::Mat cv_img;
-  int cv_read_flag = (is_color ? CV_LOAD_IMAGE_COLOR :
-    CV_LOAD_IMAGE_GRAYSCALE);
+  int cv_read_flag = (is_color ? CV_LOAD_IMAGE_COLOR : CV_LOAD_IMAGE_GRAYSCALE);
   cv::Mat cv_img_origin = cv::imread(filename, cv_read_flag);
   if (!cv_img_origin.data) {
     LOG(ERROR) << "Could not open or find file " << filename;
@@ -88,13 +87,12 @@ cv::Mat ReadImageToCVMat(const string& filename,
   return cv_img;
 }
 
-cv::Mat ReadImageToCVMat(const string& filename,
-    const int height, const int width) {
+cv::Mat ReadImageToCVMat(const string& filename, const int height,
+                         const int width) {
   return ReadImageToCVMat(filename, height, width, true);
 }
 
-cv::Mat ReadImageToCVMat(const string& filename,
-    const bool is_color) {
+cv::Mat ReadImageToCVMat(const string& filename, const bool is_color) {
   return ReadImageToCVMat(filename, 0, 0, is_color);
 }
 
@@ -103,38 +101,62 @@ cv::Mat ReadImageToCVMat(const string& filename) {
 }
 
 // Do the file extension and encoding match?
-static bool matchExt(const std::string & fn,
-                     std::string en) {
+static bool matchExt(const std::string& fn, std::string en) {
   size_t p = fn.rfind('.');
-  std::string ext = p != fn.npos ? fn.substr(p+1) : fn;
+  std::string ext = p != fn.npos ? fn.substr(p + 1) : fn;
   std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
   std::transform(en.begin(), en.end(), en.begin(), ::tolower);
-  if ( ext == en )
-    return true;
-  if ( en == "jpg" && ext == "jpeg" )
-    return true;
+  if (ext == en) return true;
+  if (en == "jpg" && ext == "jpeg") return true;
   return false;
 }
 
-bool ReadImageToDatum(const string& filename, const int label,
-    const int height, const int width, const bool is_color,
-    const std::string & encoding, Datum* datum) {
+bool ReadImageToDatum(const string& filename, const int label, const int height,
+                      const int width, const bool is_color,
+                      const std::string& encoding, Datum* datum) {
   cv::Mat cv_img = ReadImageToCVMat(filename, height, width, is_color);
   if (cv_img.data) {
     if (encoding.size()) {
-      if ( (cv_img.channels() == 3) == is_color && !height && !width &&
-          matchExt(filename, encoding) )
+      if ((cv_img.channels() == 3) == is_color && !height && !width &&
+          matchExt(filename, encoding))
         return ReadFileToDatum(filename, label, datum);
       std::vector<uchar> buf;
-      cv::imencode("."+encoding, cv_img, buf);
-      datum->set_data(std::string(reinterpret_cast<char*>(&buf[0]),
-                      buf.size()));
-      datum->set_label(label);
+      cv::imencode("." + encoding, cv_img, buf);
+      datum->set_data(
+          std::string(reinterpret_cast<char*>(&buf[0]), buf.size()));
+      datum->set_label(0, label);
       datum->set_encoded(true);
       return true;
     }
     CVMatToDatum(cv_img, datum);
-    datum->set_label(label);
+    datum->set_label(0, label);
+    return true;
+  } else {
+    return false;
+  }
+}
+
+bool ReadImageToDatum(const string& filename, std::vector<int> label,
+                      const int height, const int width, const bool is_color,
+                      const std::string& encoding, Datum* datum) {
+  cv::Mat cv_img = ReadImageToCVMat(filename, height, width, is_color);
+  if (cv_img.data) {
+    if (encoding.size()) {
+      // if ((cv_img.channels() == 3) == is_color && !height && !width &&
+      //     matchExt(filename, encoding))
+      //   return ReadFileToDatum(filename, label, datum);
+      std::vector<uchar> buf;
+      cv::imencode("." + encoding, cv_img, buf);
+      datum->set_data(
+          std::string(reinterpret_cast<char*>(&buf[0]), buf.size()));
+      for (int lidx = 0; lidx < label.size(); lidx++)
+        datum->set_label(lidx, label[lidx]);
+      datum->set_encoded(true);
+      return true;
+    }
+    CVMatToDatum(cv_img, datum);
+    for (int lidx = 0; lidx < label.size(); lidx++)
+      datum->set_label(lidx, label[lidx]);
     return true;
   } else {
     return false;
@@ -142,11 +164,10 @@ bool ReadImageToDatum(const string& filename, const int label,
 }
 #endif  // USE_OPENCV
 
-bool ReadFileToDatum(const string& filename, const int label,
-    Datum* datum) {
+bool ReadFileToDatum(const string& filename, const int label, Datum* datum) {
   std::streampos size;
 
-  fstream file(filename.c_str(), ios::in|ios::binary|ios::ate);
+  fstream file(filename.c_str(), ios::in | ios::binary | ios::ate);
   if (file.is_open()) {
     size = file.tellg();
     std::string buffer(size, ' ');
@@ -179,8 +200,7 @@ cv::Mat DecodeDatumToCVMat(const Datum& datum, bool is_color) {
   CHECK(datum.encoded()) << "Datum not encoded";
   const string& data = datum.data();
   std::vector<char> vec_data(data.c_str(), data.c_str() + data.size());
-  int cv_read_flag = (is_color ? CV_LOAD_IMAGE_COLOR :
-    CV_LOAD_IMAGE_GRAYSCALE);
+  int cv_read_flag = (is_color ? CV_LOAD_IMAGE_COLOR : CV_LOAD_IMAGE_GRAYSCALE);
   cv_img = cv::imdecode(vec_data, cv_read_flag);
   if (!cv_img.data) {
     LOG(ERROR) << "Could not decode datum ";

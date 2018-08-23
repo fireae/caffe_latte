@@ -24,7 +24,8 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/Modules)
 
 include(cmake/Utils.cmake)
 include(cmake/Targets.cmake)
-
+ADD_DEFINITIONS(-DUSE_OPENCV)
+ADD_DEFINITIONS(-DUSE_LMDB)
 # ---[ Options
 caffe_option(USE_CUDA  "Build Caffe without CUDA support" OFF) 
 caffe_option(USE_CUDNN "Build Caffe with cuDNN library support" ON IF USE_CUDA)
@@ -69,8 +70,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 if(UNIX OR APPLE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -Wall")
 endif()
-
-caffe_set_caffe_link()
 
 if(USE_libstdcpp)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")

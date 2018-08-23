@@ -46,13 +46,6 @@ CAFFE_DEFINE_string(
 
 int main(int argc, char** argv) {
 #ifdef USE_OPENCV
-//::caffe::InitLogging(argv[0]);
-// Print output to stderr (while still logging)
-// FLAGS_alsologtostderr = 1;
-
-#ifndef GFLAGS_GFLAGS_H_
-// namespace gflags = google;
-#endif
 
   caffe::SetUsageMessage(
       "Convert a set of images to the leveldb/lmdb\n"
@@ -108,9 +101,9 @@ int main(int argc, char** argv) {
   int resize_width = std::max<int>(0, FLAGS_resize_width);
 
   // Create new DB
-  scoped_ptr<db::DB> db(db::GetDB(FLAGS_backend));
+  shared_ptr<db::DB> db(db::GetDB(FLAGS_backend));
   db->Open(argv[3], db::NEW);
-  scoped_ptr<db::Transaction> txn(db->NewTransaction());
+  shared_ptr<db::Transaction> txn(db->NewTransaction());
 
   // Storing to db
   std::string root_folder(argv[1]);
@@ -141,8 +134,8 @@ int main(int argc, char** argv) {
         data_size_initialized = true;
       } else {
         const std::string& data = datum.data();
-        CHECK_EQ(data.size(), data_size) << "Incorrect data field size "
-                                         << data.size();
+        CHECK_EQ(data.size(), data_size)
+            << "Incorrect data field size " << data.size();
       }
     }
     // sequential

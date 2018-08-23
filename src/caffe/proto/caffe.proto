@@ -507,7 +507,7 @@ message LayerParameter {
   optional ROIPoolingParameter roi_pooling_param = 150;
   optional SmoothL1LossParameter smooth_l1_loss_param = 151;
   optional SpatialDropoutParameter spatial_dropout_param = 152;
-  optional AnchorTargetParameter anchor_target_param = 153;
+  //optional AnchorTargetParameter anchor_target_param = 153;
   optional ProposalParameter proposal_param = 154;
   optional ProposalTargetParameter proposal_target_param = 156;
   
@@ -560,9 +560,34 @@ message LayerParameter {
   optional STLossParameter st_loss_param = 214;
   optional PowerFileParameter power_file_param = 215;
   optional LocLossParameter loc_loss_param = 216;
-  
+  optional ROIPadingParameter roi_padding_param = 217;
   optional LabelSpecificAddParameter label_specific_add_param = 241;
+
+  optional ModuleParameter module_param = 300;
   
+}
+
+message ROIPadingParameter {
+  required float pad_ratio = 1;
+}
+
+// Module
+message ModuleParameter {
+  // Filename of module with extension.
+  required string module = 1;
+
+  // Type of the layer in the module.
+  // Either type or creator_symbol needs to be defined.
+  optional string type = 2;
+
+  // Name of symbol in module used to create the layer.
+  optional string creator_symbol = 3;
+
+  // Name of symbol in module used to delete the layer.
+  optional string deleter_symbol = 4;
+
+  // String containing parameters passed to the layer.
+  optional string param_str = 5;
 }
 
 // spatial transformer layer parameters
@@ -1124,94 +1149,20 @@ message ProposalTargetParameter {
   optional uint32 n_classes = 1 [default = 21];
 }
 
-message FrcnnConfigParameter {
-  //Max pixel size of the longest side of a scaled input image
-  optional uint32 train_max_size = 1 [default=1000];
-
-  //Images to use per minibatch
-  optional uint32 train_ims_per_batch = 2 [default = 2];
-
-  // Minibatch size (number of regions of interest [ROIs])
-  optional uint32 train_batch_size = 3 [default = 128];
-
-  //Fraction of minibatch that is labeled foreground (i.e. class > 0)
-  optional float train_fg_fraction = 4 [default = 0.25];
-
-  // Overlap threshold for a ROI to be considered foreground (if >= FG_THRESH)
-  optional float train_fg_thresh = 5 [default= 0.5];
-
-  // Overlap threshold for a ROI to be considered background (class = 0 if
-  // overlap in [LO, HI))
-  optional float train_bg_thresh_hi = 6 [default = 0.5];
-  optional float train_bg_thresh_lo = 7 [default = 0.1];
-
-  // Use horizontally-flipped images during training?
-  optional bool train_use_flip = 8 [default = true];
-
-  // Train bounding-box regressors
-  optional bool train_bbox_reg = 9 [default = true];
-   
-  // Overlap required between a ROI and ground-truth box in order for that ROI to
-  // be used as a bounding-box regression training example
-  optional float train_bbox_thresh = 10 [default = 0.5];
-
-  // Normalize the targets (subtract empirical mean, divide by empirical stddev)
-  optional bool train_bbox_normalize_targets = 11 [default = true];
-
-  // Normalize the targets using "precomputed" (or made up) means and stdevs
-  // (BBOX_NORMALIZE_TARGETS must also be True)
-  optional bool train_bbox_normalize_targets_precomputed = 12 [default = false];
-
-  //# Make minibatches from images that have similar aspect ratios (i.e. both
-  //# tall and thin or both short and wide) in order to avoid wasting computation
-  //# on zero-padding.
-  optional bool train_aspect_grouping = 13 [default = true];
-
-
-  // # IOU >= thresh: positive example
-  optional float train_rpn_positive_overlap = 14 [default=0.7];
-  //# IOU < thresh: negative example
-  optional float train_rpn_negative_overlap = 15 [default = 0.3];
-
-  //# If an anchor statisfied by positive and negative conditions set to negative
-  optional bool train_rpn_clobber_positives = 16 [default = false];
-
-  //# Max number of foreground examples
-  optional float train_rpn_fg_fraction = 17 [default = 0.5];
-  //# Total number of examples
-  optional uint32 train_rpn_batchsize = 18 [default = 256];
-  // # NMS threshold used on RPN proposals
-  optional float train_rpn_nms_thresh = 19 [default = 0.7];
-  // # Number of top scoring boxes to keep before apply NMS to RPN proposals
-  optional uint32 train_rpn_pre_nms_top_n = 20 [default = 12000];
-  // # Number of top scoring boxes to keep after applying NMS to RPN proposals
-  optional uint32 train_rpn_post_nms_top_n = 21 [default = 2000]; 
-  // # Proposal height and width both need to be greater than RPN_MIN_SIZE (at orig image scale)
-  optional uint32 train_rpn_min_size = 22 [default = 16];
-  //# Give the positive RPN examples weight of p * 1 / {num positives}
-  // # and give negatives a weight of (1 - p)
-  //# Set to -1.0 to use uniform example weighting
-  optional float train_rpn_positive_weight = 23 [default = -1.0];
-
-  repeated float train_bbox_normalize_mean = 24;
-  repeated float train_bbox_normalize_std = 25;
-  repeated float train_bbox_inside_weight = 26;
-}
-
-message Anchor {
-	optional uint32 tl_x = 1;
-	optional uint32 tl_y = 2;
-	optional uint32 br_x = 3;
-	optional uint32 br_y = 4;
-}
-
-message AnchorTargetParameter {
-  optional uint32 feat_stride = 1 [default=16];
-  repeated float scale = 2;
-  repeated float ratio = 3;
-  repeated Anchor anchor = 6;
-  optional uint32 base_size = 4 [default = 16];
-}
+//message Anchor {
+//	optional uint32 tl_x = 1;
+//	optional uint32 tl_y = 2;
+//	optional uint32 br_x = 3;
+//	optional uint32 br_y = 4;
+//}
+//
+//message AnchorTargetParameter {
+//  optional uint32 feat_stride = 1 [default=16];
+//  repeated float scale = 2;
+//  repeated float ratio = 3;
+//  repeated Anchor anchor = 6;
+//  optional uint32 base_size = 4 [default = 16];
+//}
 
 // Message that stores parameters used by ProposalLayer
 message ProposalParameter {
@@ -1220,7 +1171,7 @@ message ProposalParameter {
   optional uint32 feat_stride_h = 3 [default = 16];
   optional uint32 feat_stride_w = 4 [default = 16];
   optional uint32 min_size = 5 [default = 16];
-  repeated Anchor anchor = 6;
+//  repeated Anchor anchor = 6;
   optional uint32 pre_nms_topn = 7 [default = 6000];
   optional uint32 post_nms_topn = 8 [default = 300];
   optional float nms_thresh = 9 [default = 0.7];

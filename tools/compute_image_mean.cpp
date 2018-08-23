@@ -21,13 +21,6 @@ CAFFE_DEFINE_string(backend, "lmdb",
 
 int main(int argc, char** argv) {
 #ifdef USE_OPENCV
-//::caffe::InitLogging(argv[0]);
-// Print output to stderr (while still logging)
-// FLAGS_alsologtostderr = 1;
-
-#ifndef GFLAGS_GFLAGS_H_
-  namespace gflags = google;
-#endif
 
   caffe::SetUsageMessage(
       "Compute the mean_image of a set of images given by"
@@ -42,9 +35,9 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  scoped_ptr<db::DB> db(db::GetDB(FLAGS_backend));
+  shared_ptr<db::DB> db(db::GetDB(FLAGS_backend));
   db->Open(argv[1], db::READ);
-  scoped_ptr<db::Cursor> cursor(db->NewCursor());
+  shared_ptr<db::Cursor> cursor(db->NewCursor());
 
   BlobProto sum_blob;
   int count = 0;
@@ -74,8 +67,8 @@ int main(int argc, char** argv) {
 
     const std::string& data = datum.data();
     size_in_datum = std::max<int>(datum.data().size(), datum.float_data_size());
-    CHECK_EQ(size_in_datum, data_size) << "Incorrect data field size "
-                                       << size_in_datum;
+    CHECK_EQ(size_in_datum, data_size)
+        << "Incorrect data field size " << size_in_datum;
     if (data.size() != 0) {
       CHECK_EQ(data.size(), size_in_datum);
       for (int i = 0; i < size_in_datum; ++i) {

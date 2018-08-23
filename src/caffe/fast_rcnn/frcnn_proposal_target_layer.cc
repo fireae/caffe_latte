@@ -130,5 +130,6 @@ void ProposalTargetLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
     }
   }
 }
+
 }  // namespace frcnn
 }  // namespace caffe

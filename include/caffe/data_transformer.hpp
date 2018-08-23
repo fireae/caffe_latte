@@ -1,6 +1,7 @@
 #ifndef CAFFE_DATA_TRANSFORMER_HPP
 #define CAFFE_DATA_TRANSFORMER_HPP
 
+#include <opencv2/opencv.hpp>
 #include <vector>
 
 #include "caffe/blob.hpp"
@@ -47,8 +48,8 @@ class DataTransformer {
    *    This is destination blob. It can be part of top blob's data if
    *    set_cpu_data() is used. See memory_layer.cpp for an example.
    */
-  void Transform(const vector<Datum> & datum_vector,
-                Blob<Dtype>* transformed_blob);
+  void Transform(const vector<Datum>& datum_vector,
+                 Blob<Dtype>* transformed_blob);
 
 #ifdef USE_OPENCV
   /**
@@ -61,8 +62,8 @@ class DataTransformer {
    *    This is destination blob. It can be part of top blob's data if
    *    set_cpu_data() is used. See memory_layer.cpp for an example.
    */
-  void Transform(const vector<cv::Mat> & mat_vector,
-                Blob<Dtype>* transformed_blob);
+  void Transform(const vector<cv::Mat>& mat_vector,
+                 Blob<Dtype>* transformed_blob);
 
   /**
    * @brief Applies the transformation defined in the data layer's
@@ -106,7 +107,7 @@ class DataTransformer {
    * @param datum_vector
    *    A vector of Datum containing the data to be transformed.
    */
-  vector<int> InferBlobShape(const vector<Datum> & datum_vector);
+  vector<int> InferBlobShape(const vector<Datum>& datum_vector);
   /**
    * @brief Infers the shape of transformed_blob will have when
    *    the transformation is applied to the data.
@@ -116,7 +117,7 @@ class DataTransformer {
    *    A vector of Mat containing the data to be transformed.
    */
 #ifdef USE_OPENCV
-  vector<int> InferBlobShape(const vector<cv::Mat> & mat_vector);
+  vector<int> InferBlobShape(const vector<cv::Mat>& mat_vector);
   /**
    * @brief Infers the shape of transformed_blob will have when
    *    the transformation is applied to the data.
@@ -128,7 +129,7 @@ class DataTransformer {
 #endif  // USE_OPENCV
 
  protected:
-   /**
+  /**
    * @brief Generates a random integer from Uniform({0, 1, ..., n-1}).
    *
    * @param n
@@ -141,7 +142,6 @@ class DataTransformer {
   void Transform(const Datum& datum, Dtype* transformed_data);
   // Tranformation parameters
   TransformationParameter param_;
-
 
   shared_ptr<Caffe::RNG> rng_;
   Phase phase_;

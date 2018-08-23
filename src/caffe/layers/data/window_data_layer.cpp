@@ -1,4 +1,4 @@
-#if 0
+#ifdef USE_OPENCV
 #include <opencv2/highgui/highgui_c.h>
 #include <stdint.h>
 
@@ -218,9 +218,10 @@ void WindowDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
 template <typename Dtype>
 unsigned int WindowDataLayer<Dtype>::PrefetchRand() {
   CHECK(prefetch_rng_);
-  caffe::rng_t* prefetch_rng =
-      static_cast<caffe::rng_t*>(prefetch_rng_->generator());
-  return (*prefetch_rng)();
+  // caffe::rng_t* prefetch_rng =
+  //     static_cast<caffe::rng_t*>(prefetch_rng_->generator());
+  // return (*prefetch_rng)();
+  return 3;
 }
 
 // This function is called on prefetch thread
