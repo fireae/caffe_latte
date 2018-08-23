@@ -31,15 +31,19 @@ bool ReadImageToMTCNNDatum(const string &filename, const vector<float> &bbox,
                            caffe::MTCNNDatum &mtcnn_datum, bool is_color) {
   int cv_read_flag = (is_color ? CV_LOAD_IMAGE_COLOR : CV_LOAD_IMAGE_GRAYSCALE);
   cv::Mat cv_img_origin = cv::imread(filename, cv_read_flag);
+  LOG(INFO) << filename;
   if (!cv_img_origin.data) {
     LOG(ERROR) << "Could not open or find file " << filename;
     return false;
   } else {
     mtcnn_datum.clear_rois();
     CHECK_EQ(bbox.size(), 5) << "Size Error!";
+	cv::Mat cv_img_resize;
+	cv::resize(cv_img_origin, cv_img_resize, cv::Size(FLAGS_img_size, FLAGS_img_size));
     auto dt = mtcnn_datum.mutable_datum();
-    CVMatToDatum(cv_img_origin, dt);
-    dt->set_label(0, int(bbox[0]));
+    CVMatToDatum(cv_img_resize, dt);
+	dt->add_label(int(bbox[0]));
+    //dt->set_label(0, int(bbox[0]));
     auto rois = mtcnn_datum.rois();
     rois.set_xmin(bbox[1]);
     rois.set_ymin(bbox[2]);
@@ -95,7 +99,7 @@ void convert_data(const string &input_file_name, const string &output_folder,
     if (line_id % 1000 == 0)
       LOG(INFO) << "Loading image " << line_id + 1;
 
-    file_name = root_folder + "/" + lines[line_id].first;
+    file_name = root_folder + "/" + img_size + "/" + lines[line_id].first;
     bool status = ReadImageToMTCNNDatum(file_name, lines[line_id].second,
                                         mtcnndatum, true);
     if (status == false)
