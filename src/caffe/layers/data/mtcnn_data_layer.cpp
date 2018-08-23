@@ -117,10 +117,6 @@ void MTCNNDataLayer<Dtype>::load_batch(Batch<Dtype> *batch) {
     datum.ParseFromString(cursor_->value()); //数据库内读入一条数据
     const Datum &data = datum.datum();
     read_time += timer.MicroSeconds();
-    // cv::Mat cv_img = DatumToCVMat(data);
-    // cv::imshow("1", cv_img);
-    // cv::waitKey(0);
-    // DecodeDatumToCVMat(data, true);
     if (item_id == 0) {
       // Reshape according to the first datum of each batch
       // on single input batches allows for inputs of varying dimension.
@@ -166,9 +162,9 @@ void MTCNNDataLayer<Dtype>::load_batch(Batch<Dtype> *batch) {
   }
   timer.Stop();
   batch_timer.Stop();
-  // DLOG(INFO) << "Prefetch batch: " << batch_timer.MilliSeconds() << " ms.";
-  // DLOG(INFO) << "     Read time: " << read_time / 1000 << " ms.";
-  // DLOG(INFO) << "Transform time: " << trans_time / 1000 << " ms.";
+  LOG(INFO) << "Prefetch batch: " << batch_timer.MilliSeconds() << " ms.";
+  LOG(INFO) << "     Read time: " << read_time / 1000 << " ms.";
+  LOG(INFO) << "Transform time: " << trans_time / 1000 << " ms.";
 }
 
 INSTANTIATE_CLASS(MTCNNDataLayer);

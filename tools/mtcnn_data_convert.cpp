@@ -38,17 +38,18 @@ bool ReadImageToMTCNNDatum(const string &filename, const vector<float> &bbox,
   } else {
     mtcnn_datum.clear_rois();
     CHECK_EQ(bbox.size(), 5) << "Size Error!";
-	cv::Mat cv_img_resize;
-	cv::resize(cv_img_origin, cv_img_resize, cv::Size(FLAGS_img_size, FLAGS_img_size));
+    cv::Mat cv_img_resize;
+    cv::resize(cv_img_origin, cv_img_resize,
+               cv::Size(FLAGS_img_size, FLAGS_img_size));
     auto dt = mtcnn_datum.mutable_datum();
     CVMatToDatum(cv_img_resize, dt);
-	dt->add_label(int(bbox[0]));
-    //dt->set_label(0, int(bbox[0]));
-    auto rois = mtcnn_datum.rois();
-    rois.set_xmin(bbox[1]);
-    rois.set_ymin(bbox[2]);
-    rois.set_xmax(bbox[3]);
-    rois.set_ymax(bbox[4]);
+    dt->add_label(int(bbox[0]));
+    // dt->set_label(0, int(bbox[0]));
+    auto rois = mtcnn_datum.mutable_rois();
+    rois->set_xmin(bbox[1]);
+    rois->set_ymin(bbox[2]);
+    rois->set_xmax(bbox[3]);
+    rois->set_ymax(bbox[4]);
   }
   return true;
 }
@@ -72,6 +73,7 @@ void convert_data(const string &input_file_name, const string &output_folder,
     iss >> file_name;
     std::vector<float> labels;
     while (iss >> label) {
+      LOG(INFO) << label ;
       labels.push_back(label);
     }
     CHECK_EQ(labels.size(), 5) << "mtcnn data size error" << file_name;

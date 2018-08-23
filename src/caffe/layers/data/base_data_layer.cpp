@@ -2,23 +2,21 @@
 
 #include "caffe/blob.hpp"
 #include "caffe/data_transformer.hpp"
-#include "caffe/util/internal_thread.hpp"
 #include "caffe/layer.hpp"
 #include "caffe/layers/base_data_layer.hpp"
 #include "caffe/proto/caffe.pb.h"
 #include "caffe/util/blocking_queue.hpp"
+#include "caffe/util/internal_thread.hpp"
 
 namespace caffe {
 
 template <typename Dtype>
-BaseDataLayer<Dtype>::BaseDataLayer(const LayerParameter& param)
-    : Layer<Dtype>(param),
-      transform_param_(param.transform_param()) {
-}
+BaseDataLayer<Dtype>::BaseDataLayer(const LayerParameter &param)
+    : Layer<Dtype>(param), transform_param_(param.transform_param()) {}
 
 template <typename Dtype>
-void BaseDataLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) {
+void BaseDataLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype> *> &bottom,
+                                      const vector<Blob<Dtype> *> &top) {
   if (top.size() == 1) {
     output_labels_ = false;
   } else {
@@ -26,21 +24,18 @@ void BaseDataLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
   }
   if (top.size() == 3) {
     output_roi_ = true;
-  }
-  else {
-		output_roi_ = false;
+  } else {
+    output_roi_ = false;
   }
   if (top.size() == 4) {
-	  output_pts_ = true;
-  }
-  else {
-	  output_pts_ = false;
+    output_pts_ = true;
+  } else {
+    output_pts_ = false;
   }
   if (top.size() == 5) {
-	  output_weights_ = true;
-  }
-  else {
-	  output_weights_ = false;
+    output_weights_ = true;
+  } else {
+    output_weights_ = false;
   }
   data_transformer_.reset(
       new DataTransformer<Dtype>(transform_param_, this->phase_));
@@ -51,9 +46,8 @@ void BaseDataLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
 
 template <typename Dtype>
 BasePrefetchingDataLayer<Dtype>::BasePrefetchingDataLayer(
-    const LayerParameter& param)
-    : BaseDataLayer<Dtype>(param),
-      prefetch_(param.data_param().prefetch()),
+    const LayerParameter &param)
+    : BaseDataLayer<Dtype>(param), prefetch_(param.data_param().prefetch()),
       prefetch_free_(), prefetch_full_(), prefetch_current_() {
   for (int i = 0; i < prefetch_.size(); ++i) {
     prefetch_[i].reset(new Batch<Dtype>());
@@ -63,7 +57,7 @@ BasePrefetchingDataLayer<Dtype>::BasePrefetchingDataLayer(
 
 template <typename Dtype>
 void BasePrefetchingDataLayer<Dtype>::LayerSetUp(
-    const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+    const vector<Blob<Dtype> *> &bottom, const vector<Blob<Dtype> *> &top) {
   BaseDataLayer<Dtype>::LayerSetUp(bottom, top);
 
   // Before starting the prefetch thread, we make cpu_data and gpu_data
@@ -75,12 +69,12 @@ void BasePrefetchingDataLayer<Dtype>::LayerSetUp(
     if (this->output_labels_) {
       prefetch_[i]->label_.mutable_cpu_data();
     }
-    if(this->output_roi_){
-       prefetch_[i]->roi_.mutable_cpu_data();
+    if (this->output_roi_) {
+      prefetch_[i]->roi_.mutable_cpu_data();
     }
-	if (this->output_pts_) {
-		prefetch_[i]->pts_.mutable_cpu_data();
-	}
+    if (this->output_pts_) {
+      prefetch_[i]->pts_.mutable_cpu_data();
+    }
     if (this->output_weights_) {
       prefetch_[i]->weight_.mutable_cpu_data();
     }
@@ -92,12 +86,12 @@ void BasePrefetchingDataLayer<Dtype>::LayerSetUp(
       if (this->output_labels_) {
         prefetch_[i]->label_.mutable_gpu_data();
       }
-      if(this->output_roi_){
-       prefetch_[i]->roi_.mutable_gpu_data();
+      if (this->output_roi_) {
+        prefetch_[i]->roi_.mutable_gpu_data();
       }
-	  if (this->output_pts_) {
-		  prefetch_[i]->pts_.mutable_gpu_data();
-	  }
+      if (this->output_pts_) {
+        prefetch_[i]->pts_.mutable_gpu_data();
+      }
       if (this->output_weights_) {
         prefetch_[i]->weight_.mutable_gpu_data();
       }
@@ -121,7 +115,7 @@ void BasePrefetchingDataLayer<Dtype>::InternalThreadEntry() {
 
   try {
     while (!must_stop()) {
-      Batch<Dtype>* batch = prefetch_free_.pop();
+      Batch<Dtype> *batch = prefetch_free_.pop();
       load_batch(batch);
 #ifdef USE_CUDA
       if (Caffe::mode() == Caffe::GPU) {
@@ -132,9 +126,9 @@ void BasePrefetchingDataLayer<Dtype>::InternalThreadEntry() {
         if (this->output_roi_) {
           batch->roi_.data().get()->async_gpu_push(stream);
         }
-		if (this->output_pts_) {
-			batch->pts_.data().get()->async_gpu_push(stream);
-		}
+        if (this->output_pts_) {
+          batch->pts_.data().get()->async_gpu_push(stream);
+        }
         if (this->output_weights_) {
           batch->weight_.data().get()->async_gpu_push(stream);
         }
@@ -143,7 +137,7 @@ void BasePrefetchingDataLayer<Dtype>::InternalThreadEntry() {
 #endif
       prefetch_full_.push(batch);
     }
-  } catch (std::exception&) {
+  } catch (std::exception &) {
     // Interrupted exception is expected on shutdown
   }
 #ifdef USE_CUDA
@@ -155,7 +149,7 @@ void BasePrefetchingDataLayer<Dtype>::InternalThreadEntry() {
 
 template <typename Dtype>
 void BasePrefetchingDataLayer<Dtype>::Forward_cpu(
-    const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+    const vector<Blob<Dtype> *> &bottom, const vector<Blob<Dtype> *> &top) {
   if (prefetch_current_) {
     prefetch_free_.push(prefetch_current_);
   }
@@ -174,9 +168,9 @@ void BasePrefetchingDataLayer<Dtype>::Forward_cpu(
     top[2]->set_cpu_data(prefetch_current_->roi_.mutable_cpu_data());
   }
   if (this->output_pts_) {
-	  // Reshape to loaded labels.
-	  top[3]->ReshapeLike(prefetch_current_->pts_);
-	  top[3]->set_cpu_data(prefetch_current_->pts_.mutable_cpu_data());
+    // Reshape to loaded labels.
+    top[3]->ReshapeLike(prefetch_current_->pts_);
+    top[3]->set_cpu_data(prefetch_current_->pts_.mutable_cpu_data());
   }
   if (this->output_weights_) {
     // Reshape to loaded weights_.
@@ -192,4 +186,4 @@ STUB_GPU_FORWARD(BasePrefetchingDataLayer, Forward);
 INSTANTIATE_CLASS(BaseDataLayer);
 INSTANTIATE_CLASS(BasePrefetchingDataLayer);
 
-}  // namespace caffe
+} // namespace caffe
