@@ -8,7 +8,6 @@
 #include "caffe/util/io.hpp"
 #include "caffe/util/upgrade_proto.hpp"
 
-
 namespace caffe {
 
 template <typename Dtype>
@@ -451,7 +450,6 @@ string Solver<Dtype>::SnapshotToBinaryProto() {
 template <typename Dtype>
 void Solver<Dtype>::Restore(const char* state_file) {
   string state_filename(state_file);
-
   RestoreSolverStateFromBinaryProto(state_filename);
 }
 

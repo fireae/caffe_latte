@@ -5,7 +5,7 @@ if(WIN32)
     set(Caffe_blas libopenblas)
 else() 
     set(Caffe_protobuf protobuf)
-    set(Caffe_blas openblas pthread boost_system opencv_core opencv_imgproc opencv_highgui opencv_imgcodecs dl)
+    set(Caffe_blas openblas pthread boost_system boost_thread opencv_core opencv_imgproc opencv_highgui opencv_imgcodecs dl)
 endif()
 
 add_library(caffe_proto STATIC ${src_dir}/proto/caffe.pb.cc)
